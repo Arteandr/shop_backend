@@ -6,4 +6,4 @@ http:
 pgsql:
   dbname: shop
   sslmode: disable
-  port: 3000
+  port: 5433
