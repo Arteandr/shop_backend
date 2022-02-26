@@ -6,6 +6,8 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"shop_backend/internal/config"
+	"shop_backend/internal/repository"
+	"shop_backend/internal/service"
 )
 
 func Run(configPath string) {
@@ -19,11 +21,16 @@ func Run(configPath string) {
 	// DB
 	connectionString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.PGSQL.Host, cfg.PGSQL.Port, cfg.PGSQL.User, cfg.PGSQL.Password, cfg.PGSQL.DatabaseName, cfg.PGSQL.SSLMode)
-	_, err = sqlx.Connect("postgres", connectionString)
+	db, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
+
+	repos := repository.NewRepositories(db)
+	_ := service.NewServices(service.ServicesDeps{
+		Repos: repos,
+	})
 
 	// HTTP server
 
