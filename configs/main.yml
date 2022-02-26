@@ -3,3 +3,7 @@ http:
   maxHeaderBytes: 1
   readTimeout: 10s
   writeTimeout: 10s
+pgsql:
+  dbname: shop
+  sslmode: disable
+  port: 5433
