@@ -19,6 +19,7 @@ func Run(configPath string) {
 	// DB
 	connectionString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.PGSQL.Host, cfg.PGSQL.Port, cfg.PGSQL.User, cfg.PGSQL.Password, cfg.PGSQL.DatabaseName, cfg.PGSQL.SSLMode)
+
 	db, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
 		log.Fatal(err)
