@@ -14,3 +14,10 @@ CREATE TABLE items
     tags        varchar(255)[]                                       not null,
     created_at  timestamp                                            not null
 );
+
+CREATE TABLE users
+(
+    id       serial primary key not null unique,
+    email    varchar(255)       not null check ( length(email) > 3 ),
+    password varchar(255)       not null
+);
