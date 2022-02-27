@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,6 +14,7 @@ import (
 	"shop_backend/internal/repository"
 	"shop_backend/internal/server"
 	"shop_backend/internal/service"
+	"shop_backend/pkg/logger"
 	"syscall"
 	"time"
 )
@@ -23,7 +23,7 @@ func Run(configPath string) {
 	// Config
 	cfg, err := config.Init(configPath)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(err)
 		return
 	}
 
@@ -32,7 +32,7 @@ func Run(configPath string) {
 		cfg.PGSQL.Host, cfg.PGSQL.Port, cfg.PGSQL.User, cfg.PGSQL.Password, cfg.PGSQL.DatabaseName, cfg.PGSQL.SSLMode)
 	db, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(err)
 		return
 	}
 
@@ -48,10 +48,10 @@ func Run(configPath string) {
 
 	go func() {
 		if err := srv.Run(); !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("error occured while running http server: %s\n", err.Error())
+			logger.Errorf("error occured while running http server: %s\n", err.Error())
 		}
 	}()
-	fmt.Println("server started")
+	logger.Info("server started")
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
@@ -63,10 +63,10 @@ func Run(configPath string) {
 	defer shutdown()
 
 	if err := srv.Stop(ctx); err != nil {
-		log.Fatalf("failed to stop server: %s", err.Error())
+		logger.Errorf("failed to stop server: %s", err.Error())
 	}
 
 	if err := db.Close(); err != nil {
-		log.Fatalf(err.Error())
+		logger.Error(err.Error())
 	}
 }
