@@ -18,6 +18,6 @@ CREATE TABLE items
 CREATE TABLE users
 (
     id       serial primary key not null unique,
-    email    varchar(255)       not null check ( length(email) > 3 ),
+    email    varchar(255)       not null unique check ( length(email) > 3 ),
     password varchar(255)       not null
 );
