@@ -1,7 +1,7 @@
 package models
 
 type User struct {
-	id       string `db:"id"`
-	email    string `db:"email"`
-	password string `db:"password"`
+	Id       int    `db:"id"`
+	Email    string `db:"email"`
+	Password string `db:"password"`
 }
