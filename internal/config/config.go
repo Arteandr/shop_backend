@@ -10,6 +10,7 @@ type (
 	Config struct {
 		HTTP  HTTPConfig
 		PGSQL PGSQLConfig
+		Auth  AuthConfig
 	}
 
 	HTTPConfig struct {
@@ -27,6 +28,16 @@ type (
 		DatabaseName string `mapstructure:"dbname"`
 		SSLMode      string `mapstructure:"sslmode"`
 		Port         string `mapstructure:"port"`
+	}
+
+	AuthConfig struct {
+		JWT             JWTConfig
+		AccessTokenTTL  time.Duration `mapstructure:"accessTokenTTL"`
+		RefreshTokenTTL time.Duration `mapstructure:"refreshTokenTTL"`
+	}
+
+	JWTConfig struct {
+		SigningKey string
 	}
 )
 
@@ -46,9 +57,13 @@ func Init(configPath string) (*Config, error) {
 }
 
 func setEnv(cfg *Config) {
+	// PostgresSQL connection
 	cfg.PGSQL.Host = os.Getenv("PGSQL_HOST")
 	cfg.PGSQL.User = os.Getenv("PGSQL_USER")
 	cfg.PGSQL.Password = os.Getenv("PGSQL_PASS")
+
+	// JWT
+	cfg.Auth.JWT.SigningKey = os.Getenv("JWT_SIGNING_KEY")
 }
 
 func unmarshal(cfg *Config) error {
@@ -60,6 +75,9 @@ func unmarshal(cfg *Config) error {
 		return err
 	}
 
+	if err := viper.UnmarshalKey("auth", &cfg.Auth); err != nil {
+		return err
+	}
 	return nil
 }
 
