@@ -14,6 +14,8 @@ import (
 	"shop_backend/internal/repository"
 	"shop_backend/internal/server"
 	"shop_backend/internal/service"
+	"shop_backend/pkg/auth"
+	"shop_backend/pkg/hash"
 	"shop_backend/pkg/logger"
 	"syscall"
 	"time"
@@ -36,9 +38,22 @@ func Run(configPath string) {
 		return
 	}
 
+	// Hasher
+	hasher := hash.NewSHA1Hasher(cfg.Auth.PasswordSalt)
+
+	// JWT token manager
+	manager, err := auth.NewAuthManager(cfg.Auth.JWT.SigningKey)
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+
+	// Services and repositories
 	repos := repository.NewRepositories(db)
 	services := service.NewServices(service.ServicesDeps{
-		Repos: repos,
+		Repos:        repos,
+		TokenManager: manager,
+		Hasher:       hasher,
 	})
 
 	handlers := delivery.NewHandler(services, cfg)
@@ -48,7 +63,7 @@ func Run(configPath string) {
 
 	go func() {
 		if err := srv.Run(); !errors.Is(err, http.ErrServerClosed) {
-			logger.Errorf("error occured while running http server: %s\n", err.Error())
+			logger.Errorf("error occurred while running http server: %s\n", err.Error())
 		}
 	}()
 	logger.Info("server started")

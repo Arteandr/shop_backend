@@ -18,10 +18,6 @@ func NewHandler(services *service.Services, cfg *config.Config) *Handler {
 func (h *Handler) Init(api *gin.RouterGroup) {
 	v1 := api.Group("/v1")
 	{
-		v1.GET("/", func(ctx *gin.Context) {
-			ctx.JSON(200, gin.H{
-				"msg": "test",
-			})
-		})
+		h.InitUsersRoutes(v1)
 	}
 }
