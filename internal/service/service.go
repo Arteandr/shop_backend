@@ -6,7 +6,11 @@ import (
 	"shop_backend/pkg/hash"
 )
 
+type Users interface {
+}
+
 type Services struct {
+	Users Users
 }
 
 type ServicesDeps struct {
@@ -16,5 +20,7 @@ type ServicesDeps struct {
 }
 
 func NewServices(deps ServicesDeps) *Services {
-	return &Services{}
+	return &Services{
+		Users: NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager),
+	}
 }
