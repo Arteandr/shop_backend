@@ -15,6 +15,7 @@ import (
 	"shop_backend/internal/server"
 	"shop_backend/internal/service"
 	"shop_backend/pkg/auth"
+	"shop_backend/pkg/hash"
 	"shop_backend/pkg/logger"
 	"syscall"
 	"time"
@@ -37,6 +38,9 @@ func Run(configPath string) {
 		return
 	}
 
+	// Hasher
+	hasher := hash.NewSHA1Hasher(cfg.Auth.PasswordSalt)
+
 	// JWT token manager
 	manager, err := auth.NewAuthManager(cfg.Auth.JWT.SigningKey)
 	if err != nil {
@@ -49,6 +53,7 @@ func Run(configPath string) {
 	services := service.NewServices(service.ServicesDeps{
 		Repos:        repos,
 		TokenManager: manager,
+		Hasher:       hasher,
 	})
 
 	handlers := delivery.NewHandler(services, cfg)
