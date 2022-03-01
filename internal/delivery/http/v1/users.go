@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
 )
 
 func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
@@ -37,4 +38,23 @@ func (h *Handler) signUp(ctx *gin.Context) {
 		return
 	}
 
+	exist := h.services.Users.EmailExist(strings.TrimSpace(body.Email))
+	if exist {
+		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
+			"error": "email already exist",
+		})
+		return
+	}
+
+	id, err := h.services.Users.SignUp(strings.TrimSpace(body.Email), strings.TrimSpace(body.Password))
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"id": id,
+	})
 }

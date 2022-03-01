@@ -7,6 +7,8 @@ import (
 )
 
 type Users interface {
+	EmailExist(email string) bool
+	SignUp(email, password string) (int, error)
 }
 
 type Services struct {
