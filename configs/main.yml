@@ -3,7 +3,12 @@ http:
   maxHeaderBytes: 1
   readTimeout: 10s
   writeTimeout: 10s
+
 pgsql:
   dbname: shop
   sslmode: disable
   port: 5433
+
+auth:
+  accessTokenTTL: 1h
+  refreshTokenTTL: 720h #30 days
