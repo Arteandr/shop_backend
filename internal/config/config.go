@@ -31,6 +31,7 @@ type (
 	}
 
 	AuthConfig struct {
+		PasswordSalt    string
 		JWT             JWTConfig
 		AccessTokenTTL  time.Duration `mapstructure:"accessTokenTTL"`
 		RefreshTokenTTL time.Duration `mapstructure:"refreshTokenTTL"`
@@ -64,6 +65,9 @@ func setEnv(cfg *Config) {
 
 	// JWT
 	cfg.Auth.JWT.SigningKey = os.Getenv("JWT_SIGNING_KEY")
+
+	// Password salt
+	cfg.Auth.PasswordSalt = os.Getenv("PASS_SALT")
 }
 
 func unmarshal(cfg *Config) error {
