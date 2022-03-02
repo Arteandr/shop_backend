@@ -17,6 +17,7 @@ type Categories interface {
 }
 
 type Items interface {
+	Create(name, description string, categoryId int, tags []string, createdAt time.Time) (int, error)
 }
 
 type Users interface {

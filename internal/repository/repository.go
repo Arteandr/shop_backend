@@ -14,7 +14,7 @@ const (
 )
 
 type Colors interface {
-	Create(category models.Color) (int, error)
+	Create(color models.Color) (int, error)
 }
 
 type Categories interface {
@@ -22,6 +22,7 @@ type Categories interface {
 }
 
 type Items interface {
+	Create(item models.Item) (int, error)
 }
 
 type Users interface {
