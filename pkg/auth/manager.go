@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt"
+	"strconv"
 	"time"
 )
 
@@ -27,7 +28,7 @@ func NewAuthManager(signingKey string) (*Manager, error) {
 func (m *Manager) NewJWT(userID int, ttl time.Duration) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(ttl).Unix(),
-		Subject:   string(userID),
+		Subject:   strconv.Itoa(userID),
 	})
 
 	return token.SignedString([]byte(m.signingKey))
