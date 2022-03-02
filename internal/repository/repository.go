@@ -9,7 +9,13 @@ const (
 	usersTable      = "users"
 	categoriesTable = "categories"
 	itemsTable      = "items"
+	colorsTable     = "colors"
+	itemColorsTable = "item_colors"
 )
+
+type Colors interface {
+	Create(category models.Color) (int, error)
+}
 
 type Categories interface {
 	Create(category models.Category) (int, error)
@@ -29,6 +35,7 @@ type Repositories struct {
 	Users      Users
 	Items      Items
 	Categories Categories
+	Colors     Colors
 }
 
 func NewRepositories(db *sqlx.DB) *Repositories {
@@ -36,5 +43,6 @@ func NewRepositories(db *sqlx.DB) *Repositories {
 		Users:      NewUsersRepo(db),
 		Items:      NewItemsRepo(db),
 		Categories: NewCategoriesRepo(db),
+		Colors:     NewColorsRepo(db),
 	}
 }
