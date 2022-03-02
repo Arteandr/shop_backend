@@ -1,4 +1,5 @@
 http:
+  host: localhost
   port: 8000
   maxHeaderBytes: 1
   readTimeout: 10s
