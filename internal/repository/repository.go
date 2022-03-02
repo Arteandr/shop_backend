@@ -11,6 +11,9 @@ const (
 	itemsTable      = "items"
 )
 
+type Items interface {
+}
+
 type Users interface {
 	Create(user models.User) (int, error)
 	GetByCredentials(email, passwordHash string) (models.User, error)
@@ -20,10 +23,12 @@ type Users interface {
 
 type Repositories struct {
 	Users Users
+	Items Items
 }
 
 func NewRepositories(db *sqlx.DB) *Repositories {
 	return &Repositories{
 		Users: NewUsersRepo(db),
+		Items: NewItemsRepo(db),
 	}
 }
