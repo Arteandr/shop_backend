@@ -12,6 +12,7 @@ const (
 )
 
 type Categories interface {
+	Create(category models.Category) (int, error)
 }
 
 type Items interface {
