@@ -25,5 +25,6 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 	v1 := api.Group("/v1")
 	{
 		h.InitUsersRoutes(v1)
+		h.InitItemsRoutes(v1)
 	}
 }
