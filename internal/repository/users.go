@@ -48,3 +48,14 @@ func (r *UsersRepo) GetByCredentials(email, passwordHash string) (models.User, e
 
 	return user, nil
 }
+
+func (r *UsersRepo) GetById(id int) (models.User, error) {
+	var user models.User
+	query := fmt.Sprintf("SELECT id, email FROM %s WHERE id=$1", usersTable)
+	err := r.db.Get(&user, query, id)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
+}

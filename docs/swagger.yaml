@@ -1,6 +1,30 @@
 basePath: /api/v1
 definitions:
-  v1.signUpInput:
+  models.Tokens:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  v1.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  v1.SignUpResponse:
+    properties:
+      id:
+        type: integer
+    type: object
+  v1.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+    type: object
+  v1.authInput:
     properties:
       email:
         maxLength: 255
@@ -20,26 +44,98 @@ info:
   title: FinlandShop API
   version: "0.1"
 paths:
-  /users/auth/sign-up:
+  /users/auth/sign-in:
     post:
       consumes:
       - application/json
-      description: Users sign-up
+      description: sign-in user to account
       parameters:
-      - description: sign-up input
+      - description: email and password
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/v1.signUpInput'
+          $ref: '#/definitions/v1.authInput'
       produces:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
           schema:
-            type: string
-      summary: Sign-up
+            $ref: '#/definitions/models.Tokens'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Login
       tags:
       - users-auth
+  /users/auth/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: sign-up user
+      parameters:
+      - description: email and password
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.authInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.SignUpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Register
+      tags:
+      - users-auth
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: get current user by auth token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      summary: Get current user
+      tags:
+      - users-actions
+securityDefinitions:
+  UsersAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

@@ -58,7 +58,7 @@ func Run(configPath string) {
 		RefreshTokenTTL: cfg.Auth.RefreshTokenTTL,
 	})
 
-	handlers := delivery.NewHandler(services, cfg)
+	handlers := delivery.NewHandler(services, manager, cfg)
 
 	// HTTP server
 	srv := server.NewServer(cfg, handlers.Init(cfg))

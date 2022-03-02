@@ -4,15 +4,21 @@ import (
 	"github.com/gin-gonic/gin"
 	"shop_backend/internal/config"
 	"shop_backend/internal/service"
+	"shop_backend/pkg/auth"
 )
 
 type Handler struct {
-	services *service.Services
-	cfg      *config.Config
+	services     *service.Services
+	tokenManager auth.TokenManager
+	cfg          *config.Config
 }
 
-func NewHandler(services *service.Services, cfg *config.Config) *Handler {
-	return &Handler{services: services, cfg: cfg}
+func NewHandler(services *service.Services, tokenManager auth.TokenManager, cfg *config.Config) *Handler {
+	return &Handler{
+		services:     services,
+		tokenManager: tokenManager,
+		cfg:          cfg,
+	}
 }
 
 func (h *Handler) Init(api *gin.RouterGroup) {

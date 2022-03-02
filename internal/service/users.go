@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	"shop_backend/pkg/auth"
@@ -65,7 +64,6 @@ func (s *UsersService) SignIn(email, password string) (models.Tokens, error) {
 
 	user, err := s.repo.GetByCredentials(email, passwordHash)
 	if err != nil {
-		fmt.Println(err.Error())
 		return models.Tokens{}, errors.New("user not found")
 	}
 
@@ -89,4 +87,8 @@ func (s *UsersService) createSession(userId int) (models.Tokens, error) {
 	}
 
 	return res, err
+}
+
+func (s *UsersService) GetUserById(id int) (models.User, error) {
+	return s.repo.GetById(id)
 }

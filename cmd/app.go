@@ -10,6 +10,10 @@ const configPath = "configs"
 
 // @host localhost:8000
 // @BasePath /api/v1
+
+// @securityDefinitions.apikey UsersAuth
+// @in header
+// @name Authorization
 func main() {
 	app.Run(configPath)
 }
