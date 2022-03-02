@@ -13,6 +13,7 @@ const (
 
 type Users interface {
 	Create(user models.User) (int, error)
+	GetByCredentials(email, passwordHash string) (models.User, error)
 	Exist(email string) bool
 }
 

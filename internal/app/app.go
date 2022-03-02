@@ -51,9 +51,11 @@ func Run(configPath string) {
 	// Services and repositories
 	repos := repository.NewRepositories(db)
 	services := service.NewServices(service.ServicesDeps{
-		Repos:        repos,
-		TokenManager: manager,
-		Hasher:       hasher,
+		Repos:           repos,
+		TokenManager:    manager,
+		Hasher:          hasher,
+		AccessTokenTTL:  cfg.Auth.AccessTokenTTL,
+		RefreshTokenTTL: cfg.Auth.RefreshTokenTTL,
 	})
 
 	handlers := delivery.NewHandler(services, cfg)

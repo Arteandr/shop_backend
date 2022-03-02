@@ -29,11 +29,22 @@ func (r *UsersRepo) Create(user models.User) (int, error) {
 
 func (r *UsersRepo) Exist(email string) bool {
 	var user models.User
-	query := fmt.Sprintf("SELECT * from users where email=$1;")
+	query := fmt.Sprintf("SELECT * from %s where email=$1;", usersTable)
 	err := r.db.Get(&user, query, email)
 	if err != nil {
 		return false
 	}
 
 	return true
+}
+
+func (r *UsersRepo) GetByCredentials(email, passwordHash string) (models.User, error) {
+	var user models.User
+	query := fmt.Sprintf("SELECT id, email FROM %s WHERE password=$1 and email=$2", usersTable)
+	err := r.db.Get(&user, query, passwordHash, email)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
 }
