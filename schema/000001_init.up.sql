@@ -1,7 +1,7 @@
 CREATE TABLE categories
 (
     id   serial primary key not null unique,
-    name varchar(255)       not null
+    name varchar(255)       not null unique
 );
 
 CREATE TABLE items
