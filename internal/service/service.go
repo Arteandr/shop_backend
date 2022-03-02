@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+type Colors interface {
+	Create(name, hex string, price float64) (int, error)
+}
+
 type Categories interface {
 	Create(name string) (int, error)
 }
@@ -26,6 +30,7 @@ type Services struct {
 	Users      Users
 	Items      Items
 	Categories Categories
+	Colors     Colors
 }
 
 type ServicesDeps struct {
@@ -41,5 +46,6 @@ func NewServices(deps ServicesDeps) *Services {
 		Users:      NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL),
 		Items:      NewItemsService(deps.Repos.Items),
 		Categories: NewCategoriesService(deps.Repos.Categories),
+		Colors:     NewColorsService(deps.Repos.Colors),
 	}
 }
