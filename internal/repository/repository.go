@@ -11,6 +11,9 @@ const (
 	itemsTable      = "items"
 )
 
+type Categories interface {
+}
+
 type Items interface {
 }
 
@@ -22,13 +25,15 @@ type Users interface {
 }
 
 type Repositories struct {
-	Users Users
-	Items Items
+	Users      Users
+	Items      Items
+	Categories Categories
 }
 
 func NewRepositories(db *sqlx.DB) *Repositories {
 	return &Repositories{
-		Users: NewUsersRepo(db),
-		Items: NewItemsRepo(db),
+		Users:      NewUsersRepo(db),
+		Items:      NewItemsRepo(db),
+		Categories: NewCategoriesRepo(db),
 	}
 }
