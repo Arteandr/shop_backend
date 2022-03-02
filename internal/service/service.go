@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+type Items interface {
+}
+
 type Users interface {
 	EmailExist(email string) bool
 	SignUp(email, password string) (int, error)
@@ -17,6 +20,7 @@ type Users interface {
 
 type Services struct {
 	Users Users
+	Items Items
 }
 
 type ServicesDeps struct {
@@ -30,5 +34,6 @@ type ServicesDeps struct {
 func NewServices(deps ServicesDeps) *Services {
 	return &Services{
 		Users: NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL),
+		Items: NewItemsService(deps.Repos.Items),
 	}
 }
