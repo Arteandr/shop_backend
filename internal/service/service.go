@@ -12,6 +12,7 @@ type Users interface {
 	EmailExist(email string) bool
 	SignUp(email, password string) (int, error)
 	SignIn(email, password string) (models.Tokens, error)
+	GetUserById(id int) (models.User, error)
 }
 
 type Services struct {
