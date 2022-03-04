@@ -23,6 +23,7 @@ type Categories interface {
 
 type Items interface {
 	Create(item models.Item) (int, error)
+	LinkColor(itemId int, colorId int) error
 }
 
 type Users interface {

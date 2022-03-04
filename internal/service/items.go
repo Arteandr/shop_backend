@@ -30,3 +30,7 @@ func (s *ItemsService) Create(name, description string, categoryId int, tags []s
 
 	return id, err
 }
+
+func (s *ItemsService) LinkColor(itemId int, colorId int) error {
+	return s.repo.LinkColor(itemId, colorId)
+}
