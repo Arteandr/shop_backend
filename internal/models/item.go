@@ -9,4 +9,5 @@ type Item struct {
 	CategoryId  int       `json:"categoryId" db:"category_id"`
 	Tags        []string  `json:"tags" db:"tags"`
 	CreatedAt   time.Time `json:"createdAt" db:"created_at"`
+	Colors      []Color   `json:"colors,omitempty"`
 }
