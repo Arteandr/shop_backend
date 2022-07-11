@@ -9,6 +9,6 @@ CREATE TABLE colors
 
 CREATE TABLE item_colors
 (
-    item_id  int4 references items (id),
-    color_id int4 references colors (id)
+    item_id  int references items (id),
+    color_id int references colors (id)
 );

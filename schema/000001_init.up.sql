@@ -10,8 +10,8 @@ CREATE TABLE items
     name        varchar(255)                                         not null,
     description varchar(255)                                         not null,
     category_id integer references categories (id) on delete cascade not null,
-    tags        varchar(255)[]                                       not null,
-    created_at  timestamp                                            not null
+    tags        varchar(255)[],
+    sku         varchar(255)                                         not null
 );
 
 CREATE TABLE users
