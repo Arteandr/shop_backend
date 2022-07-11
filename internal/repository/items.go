@@ -17,8 +17,8 @@ func NewItemsRepo(db *sqlx.DB) *ItemsRepo {
 
 func (r *ItemsRepo) Create(item models.Item) (int, error) {
 	var id int
-	query := fmt.Sprintf("INSERT INTO %s (name,description,category_id,tags,created_at) VALUES ($1,$2,$3,$4,$5) RETURNING id;", itemsTable)
-	row := r.db.QueryRow(query, item.Name, item.Description, item.CategoryId, pq.Array(item.Tags), item.CreatedAt)
+	query := fmt.Sprintf("INSERT INTO %s (name,description,category_id,tags) VALUES ($1,$2,$3,$4) RETURNING id;", itemsTable)
+	row := r.db.QueryRow(query, item.Name, item.Description, item.CategoryId, pq.Array(item.Tags))
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}

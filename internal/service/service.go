@@ -17,7 +17,7 @@ type Categories interface {
 }
 
 type Items interface {
-	Create(name, description string, categoryId int, tags []string, createdAt time.Time) (int, error)
+	Create(name, description string, categoryId int, tags []string) (int, error)
 	LinkColor(itemId int, colorId int) error
 }
 

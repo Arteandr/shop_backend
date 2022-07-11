@@ -3,7 +3,6 @@ package service
 import (
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
-	"time"
 )
 
 type ItemsService struct {
@@ -14,13 +13,12 @@ func NewItemsService(repo repository.Items) *ItemsService {
 	return &ItemsService{repo: repo}
 }
 
-func (s *ItemsService) Create(name, description string, categoryId int, tags []string, createdAt time.Time) (int, error) {
+func (s *ItemsService) Create(name, description string, categoryId int, tags []string) (int, error) {
 	item := models.Item{
 		Name:        name,
 		Description: description,
 		CategoryId:  categoryId,
 		Tags:        tags,
-		CreatedAt:   createdAt,
 	}
 
 	id, err := s.repo.Create(item)
