@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
@@ -23,4 +24,14 @@ func (r *CategoriesRepo) Create(category models.Category) (int, error) {
 	}
 
 	return id, nil
+}
+
+func (r *CategoriesRepo) Exist(categoryId int) (bool, error) {
+	var exist bool
+	queryMain := fmt.Sprintf("SELECT name FROM %s WHERE id=$1", categoriesTable)
+	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
+	if err := r.db.QueryRow(query, categoryId).Scan(&exist); err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+	return exist, nil
 }

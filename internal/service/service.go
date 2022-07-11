@@ -9,15 +9,17 @@ import (
 )
 
 type Colors interface {
+	Exist(colorId int) (bool, error)
 	Create(name, hex string, price float64) (int, error)
 }
 
 type Categories interface {
+	Exist(colorId int) (bool, error)
 	Create(name string) (int, error)
 }
 
 type Items interface {
-	Create(name, description string, categoryId int, tags []string) (int, error)
+	Create(name, description string, categoryId int, tags []string, sku string) (int, error)
 	LinkColor(itemId int, colorId int) error
 }
 

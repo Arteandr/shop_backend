@@ -24,3 +24,7 @@ func (s *CategoriesService) Create(name string) (int, error) {
 
 	return id, nil
 }
+
+func (s *CategoriesService) Exist(categoryId int) (bool, error) {
+	return s.repo.Exist(categoryId)
+}

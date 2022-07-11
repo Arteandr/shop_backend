@@ -13,12 +13,13 @@ func NewItemsService(repo repository.Items) *ItemsService {
 	return &ItemsService{repo: repo}
 }
 
-func (s *ItemsService) Create(name, description string, categoryId int, tags []string) (int, error) {
+func (s *ItemsService) Create(name, description string, categoryId int, tags []string, sku string) (int, error) {
 	item := models.Item{
 		Name:        name,
 		Description: description,
 		CategoryId:  categoryId,
 		Tags:        tags,
+		Sku:         sku,
 	}
 
 	id, err := s.repo.Create(item)

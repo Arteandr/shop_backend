@@ -14,10 +14,12 @@ const (
 )
 
 type Colors interface {
+	Exist(colorId int) (bool, error)
 	Create(color models.Color) (int, error)
 }
 
 type Categories interface {
+	Exist(categoryId int) (bool, error)
 	Create(category models.Category) (int, error)
 }
 

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shop_backend/internal/models"
@@ -10,6 +11,7 @@ func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 	colors := api.Group("/colors")
 	{
 		colors.POST("/create", h.createColor)
+		colors.POST("/exist", h.checkExist)
 	}
 }
 
@@ -41,4 +43,23 @@ func (h *Handler) createColor(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, CreateColorResult{ColorId: colorId})
+}
+
+func (h *Handler) checkExist(ctx *gin.Context) {
+	var b struct {
+		Id int `json:"colorId"`
+	}
+	if err := ctx.BindJSON(&b); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	exist, err := h.services.Colors.Exist(b.Id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+	fmt.Println("Exist:", exist)
+
+	ctx.JSON(http.StatusOK, exist)
 }
