@@ -1,5 +1,14 @@
 basePath: /api/v1
 definitions:
+  models.Category:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    required:
+    - name
+    type: object
   models.Color:
     properties:
       hex:
@@ -21,6 +30,11 @@ definitions:
         type: string
       refreshToken:
         type: string
+    type: object
+  v1.CreateCategoryResult:
+    properties:
+      categoryId:
+        type: integer
     type: object
   v1.CreateColorResult:
     properties:
@@ -64,6 +78,36 @@ info:
   title: FinlandShop API
   version: "0.1"
 paths:
+  /categories/create:
+    post:
+      consumes:
+      - application/json
+      description: create a new category
+      parameters:
+      - description: input body
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Category'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.CreateCategoryResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Create a new category
+      tags:
+      - categories-actions
   /colors/create:
     post:
       consumes:
