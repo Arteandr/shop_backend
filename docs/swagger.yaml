@@ -1,11 +1,31 @@
 basePath: /api/v1
 definitions:
+  models.Color:
+    properties:
+      hex:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+    required:
+    - hex
+    - name
+    - price
+    type: object
   models.Tokens:
     properties:
       accessToken:
         type: string
       refreshToken:
         type: string
+    type: object
+  v1.CreateColorResult:
+    properties:
+      colorId:
+        type: integer
     type: object
   v1.ErrorResponse:
     properties:
@@ -44,6 +64,36 @@ info:
   title: FinlandShop API
   version: "0.1"
 paths:
+  /colors/create:
+    post:
+      consumes:
+      - application/json
+      description: create a new color
+      parameters:
+      - description: input body
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Color'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.CreateColorResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Create a new color
+      tags:
+      - colors-actions
   /users/auth/sign-in:
     post:
       consumes:

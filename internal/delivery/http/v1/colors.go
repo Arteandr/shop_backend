@@ -13,6 +13,20 @@ func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 	}
 }
 
+type CreateColorResult struct {
+	ColorId int `json:"colorId"`
+}
+
+// @Summary Create a new color
+// @Tags colors-actions
+// @Description create a new color
+// @Accept json
+// @Produce json
+// @Param input body models.Color true "input body"
+// @Success 200 {object} CreateColorResult
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /colors/create [post]
 func (h *Handler) createColor(ctx *gin.Context) {
 	var color models.Color
 	if err := ctx.BindJSON(&color); err != nil {
@@ -26,7 +40,5 @@ func (h *Handler) createColor(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"colorId": colorId,
-	})
+	ctx.JSON(http.StatusOK, CreateColorResult{ColorId: colorId})
 }

@@ -16,7 +16,7 @@ type createItemInput struct {
 	Name        string   `json:"name" binding:"required"`
 	Description string   `json:"description" binding:"required"`
 	CategoryId  int      `json:"categoryId" binding:"required"`
-	Tags        []string `json:"tags,omitempty" binding:"required"`
+	Tags        []string `json:"tags,omitempty"`
 	ColorsId    []int    `json:"colors" binding:"required"`
 }
 
