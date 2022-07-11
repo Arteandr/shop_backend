@@ -8,6 +8,21 @@ import (
 	"time"
 )
 
+type Colors interface {
+	Exist(colorId int) (bool, error)
+	Create(name, hex string, price float64) (int, error)
+}
+
+type Categories interface {
+	Exist(colorId int) (bool, error)
+	Create(name string) (int, error)
+}
+
+type Items interface {
+	Create(name, description string, categoryId int, tags []string, sku string) (int, error)
+	LinkColor(itemId int, colorId int) error
+}
+
 type Users interface {
 	EmailExist(email string) bool
 	SignUp(email, password string) (int, error)
@@ -16,7 +31,10 @@ type Users interface {
 }
 
 type Services struct {
-	Users Users
+	Users      Users
+	Items      Items
+	Categories Categories
+	Colors     Colors
 }
 
 type ServicesDeps struct {
@@ -29,6 +47,9 @@ type ServicesDeps struct {
 
 func NewServices(deps ServicesDeps) *Services {
 	return &Services{
-		Users: NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL),
+		Users:      NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL),
+		Items:      NewItemsService(deps.Repos.Items),
+		Categories: NewCategoriesService(deps.Repos.Categories),
+		Colors:     NewColorsService(deps.Repos.Colors),
 	}
 }

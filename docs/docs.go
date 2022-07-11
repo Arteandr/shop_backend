@@ -23,6 +23,98 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/categories/create": {
+            "post": {
+                "description": "create a new category",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categories-actions"
+                ],
+                "summary": "Create a new category",
+                "parameters": [
+                    {
+                        "description": "input body",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Category"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.CreateCategoryResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/colors/create": {
+            "post": {
+                "description": "create a new color",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "colors-actions"
+                ],
+                "summary": "Create a new color",
+                "parameters": [
+                    {
+                        "description": "input body",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Color"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.CreateColorResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/auth/sign-in": {
             "post": {
                 "description": "sign-in user to account",
@@ -163,6 +255,42 @@ var doc = `{
         }
     },
     "definitions": {
+        "models.Category": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Color": {
+            "type": "object",
+            "required": [
+                "hex",
+                "name",
+                "price"
+            ],
+            "properties": {
+                "hex": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
         "models.Tokens": {
             "type": "object",
             "properties": {
@@ -171,6 +299,22 @@ var doc = `{
                 },
                 "refreshToken": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.CreateCategoryResult": {
+            "type": "object",
+            "properties": {
+                "categoryId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.CreateColorResult": {
+            "type": "object",
+            "properties": {
+                "colorId": {
+                    "type": "integer"
                 }
             }
         },
