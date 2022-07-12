@@ -33,3 +33,7 @@ func (s *ItemsService) Create(name, description string, categoryId int, tags []s
 func (s *ItemsService) LinkColor(itemId int, colorId int) error {
 	return s.repo.LinkColor(itemId, colorId)
 }
+
+func (s *ItemsService) GetById(itemId int) (models.Item, error) {
+	return s.repo.GetById(itemId)
+}

@@ -26,6 +26,8 @@ type Categories interface {
 type Items interface {
 	Create(item models.Item) (int, error)
 	LinkColor(itemId int, colorId int) error
+	GetById(itemId int) (models.Item, error)
+	GetColors(itemId int) ([]models.Color, error)
 }
 
 type Users interface {

@@ -32,3 +32,23 @@ func (r *ItemsRepo) LinkColor(itemId int, colorId int) error {
 
 	return err
 }
+
+func (r *ItemsRepo) GetById(itemId int) (models.Item, error) {
+	var item models.Item
+	query := fmt.Sprintf("SELECT * from %s WHERE id=$1;", itemsTable)
+	if err := r.db.QueryRow(query, itemId).Scan(&item); err != nil {
+		return models.Item{}, err
+	}
+
+	return item, nil
+}
+
+func (r *ItemsRepo) GetColors(itemId int) ([]models.Color, error) {
+	var colors []models.Color
+	query := fmt.Sprintf("SELECT colors.id, colors.name, colors.hex, colors.price FROM %s, %s WHERE colors.id = item_colors.color_id AND item_colors.item_id = $1;", colorsTable, itemColorsTable)
+	if err := r.db.Select(&colors, query, itemId); err != nil {
+		return []models.Color{}, err
+	}
+
+	return colors, nil
+}
