@@ -13,6 +13,7 @@ func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
 		items.POST("/create", h.createItem)
 		items.GET("/:id", h.getItemById)
 		items.GET("/sku/:sku", h.getItemBySku)
+		items.DELETE("/:id", h.deleteItem)
 
 	}
 }
@@ -130,4 +131,21 @@ func (h *Handler) getItemBySku(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, item)
+}
+
+func (h *Handler) deleteItem(ctx *gin.Context) {
+	strItemId := ctx.Param("id")
+	itemId, err := strconv.Atoi(strItemId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	err = h.services.Items.Delete(itemId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }

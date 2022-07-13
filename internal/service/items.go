@@ -83,3 +83,7 @@ func (s *ItemsService) LinkTags(itemId int, tags []string) error {
 	}
 	return nil
 }
+
+func (s *ItemsService) Delete(itemId int) error {
+	return s.repo.Delete(itemId)
+}

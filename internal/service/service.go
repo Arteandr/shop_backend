@@ -24,6 +24,7 @@ type Items interface {
 	LinkTags(itemId int, tags []string) error
 	GetById(itemId int) (models.Item, error)
 	GetBySku(sku string) (models.Item, error)
+	Delete(itemId int) error
 }
 
 type Users interface {

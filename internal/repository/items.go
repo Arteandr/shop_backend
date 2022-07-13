@@ -79,3 +79,10 @@ func (r *ItemsRepo) GetTags(itemId int) ([]models.Tag, error) {
 
 	return tags, nil
 }
+
+func (r *ItemsRepo) Delete(itemId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", itemsTable)
+	_, err := r.db.Exec(query, itemId)
+
+	return err
+}

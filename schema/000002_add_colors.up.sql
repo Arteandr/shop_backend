@@ -9,7 +9,7 @@ CREATE TABLE colors
 
 CREATE TABLE item_colors
 (
-    id serial primary key not null,
-    item_id  int references items (id),
-    color_id int references colors (id)
+    id       serial primary key                           not null,
+    item_id  int references items (id) on delete cascade  not null,
+    color_id int references colors (id) on delete cascade not null
 );

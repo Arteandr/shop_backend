@@ -6,18 +6,18 @@ CREATE TABLE categories
 
 CREATE TABLE items
 (
-    id          serial primary key                                   not null unique,
-    name        varchar(255)                                         not null,
-    description varchar(255)                                         not null,
-    category_id integer references categories (id) on delete cascade not null,
-    sku         varchar(255)                                         not null unique
+    id          serial primary key                 not null unique,
+    name        varchar(255)                       not null,
+    description varchar(255)                       not null,
+    category_id integer references categories (id) not null,
+    sku         varchar(255)                       not null unique
 );
 
 CREATE TABLE tags
 (
-    id      serial primary key        not null,
-    item_id int references items (id) not null,
-    name    varchar(255)              not null
+    id      serial primary key                          not null,
+    item_id int references items (id) on delete cascade not null,
+    name    varchar(255)                                not null
 );
 
 CREATE TABLE users

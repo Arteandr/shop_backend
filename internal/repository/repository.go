@@ -32,6 +32,7 @@ type Items interface {
 	GetBySku(sku string) (models.Item, error)
 	GetColors(itemId int) ([]models.Color, error)
 	GetTags(itemId int) ([]models.Tag, error)
+	Delete(itemId int) error
 }
 
 type Users interface {
