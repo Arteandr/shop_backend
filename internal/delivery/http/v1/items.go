@@ -26,6 +26,16 @@ type createItemInput struct {
 	Sku         string   `json:"sku" binding:"required"`
 }
 
+// @Summary Create a new item
+// @Tags items-actions
+// @Description create a new item
+// @Accept json
+// @Produce json
+// @Param input body createItemInput true "input body"
+// @Success 200 {object} models.Item
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /items/create [post]
 func (h *Handler) createItem(ctx *gin.Context) {
 	var body createItemInput
 	if err := ctx.BindJSON(&body); err != nil {
@@ -66,9 +76,20 @@ func (h *Handler) createItem(ctx *gin.Context) {
 		}
 	}
 
-	ctx.Status(http.StatusOK)
+	item, _ := h.services.Items.GetById(itemId)
+
+	ctx.JSON(http.StatusOK, item)
 }
 
+// @Summary Get item by ID
+// @Tags items-actions
+// @Description get item by id
+// @Accept json
+// @Produce json
+// @Param id path int true "item id"
+// @Success 200 {object} models.Item
+// @Failure 400,404 {object} ErrorResponse
+// @Router /items/{id} [get]
 func (h *Handler) getItemById(ctx *gin.Context) {
 	strItemId := ctx.Param("id")
 	itemId, err := strconv.Atoi(strItemId)
@@ -86,6 +107,15 @@ func (h *Handler) getItemById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, item)
 }
 
+// @Summary Get item by SKU
+// @Tags items-actions
+// @Description get item by sku
+// @Accept json
+// @Produce json
+// @Param sku path int true "item sku"
+// @Success 200 {object} models.Item
+// @Failure 400,404 {object} ErrorResponse
+// @Router /items/sku/{sku} [get]
 func (h *Handler) getItemBySku(ctx *gin.Context) {
 	sku := ctx.Param("sku")
 	if len(sku) < 1 {

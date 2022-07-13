@@ -24,6 +24,36 @@ definitions:
     - name
     - price
     type: object
+  models.Item:
+    properties:
+      categoryId:
+        type: integer
+      colors:
+        items:
+          $ref: '#/definitions/models.Color'
+        type: array
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      sku:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/models.Tag'
+        type: array
+    type: object
+  models.Tag:
+    properties:
+      id:
+        type: integer
+      itemId:
+        type: integer
+      name:
+        type: string
+    type: object
   models.Tokens:
     properties:
       accessToken:
@@ -70,6 +100,31 @@ definitions:
     required:
     - email
     - password
+    type: object
+  v1.createItemInput:
+    properties:
+      categoryId:
+        type: integer
+      colors:
+        items:
+          type: integer
+        type: array
+      description:
+        type: string
+      name:
+        type: string
+      sku:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+    required:
+    - categoryId
+    - colors
+    - description
+    - name
+    - sku
     type: object
 host: localhost:8000
 info:
@@ -138,6 +193,94 @@ paths:
       summary: Create a new color
       tags:
       - colors-actions
+  /items/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get item by id
+      parameters:
+      - description: item id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Get item by ID
+      tags:
+      - items-actions
+  /items/create:
+    post:
+      consumes:
+      - application/json
+      description: create a new item
+      parameters:
+      - description: input body
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.createItemInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Create a new item
+      tags:
+      - items-actions
+  /items/sku/{sku}:
+    get:
+      consumes:
+      - application/json
+      description: get item by sku
+      parameters:
+      - description: item sku
+        in: path
+        name: sku
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Get item by SKU
+      tags:
+      - items-actions
   /users/auth/sign-in:
     post:
       consumes:
