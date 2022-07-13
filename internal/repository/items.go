@@ -1,9 +1,9 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	"shop_backend/internal/models"
 )
 
@@ -17,8 +17,8 @@ func NewItemsRepo(db *sqlx.DB) *ItemsRepo {
 
 func (r *ItemsRepo) Create(item models.Item) (int, error) {
 	var id int
-	query := fmt.Sprintf("INSERT INTO %s (name,description,category_id,tags,sku) VALUES ($1,$2,$3,$4,$5) RETURNING id;", itemsTable)
-	row := r.db.QueryRow(query, item.Name, item.Description, item.CategoryId, pq.Array(item.Tags), item.Sku)
+	query := fmt.Sprintf("INSERT INTO %s (name,description,category_id,sku) VALUES ($1,$2,$3,$4) RETURNING id;", itemsTable)
+	row := r.db.QueryRow(query, item.Name, item.Description, item.CategoryId, item.Sku)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
@@ -33,10 +33,27 @@ func (r *ItemsRepo) LinkColor(itemId int, colorId int) error {
 	return err
 }
 
+func (r *ItemsRepo) LinkTag(itemId int, tag string) error {
+	query := fmt.Sprintf("INSERT INTO %s (item_id, name) VALUES($1,$2);", tagsTable)
+	_, err := r.db.Exec(query, itemId, tag)
+
+	return err
+}
+
 func (r *ItemsRepo) GetById(itemId int) (models.Item, error) {
 	var item models.Item
-	query := fmt.Sprintf("SELECT * from %s WHERE id=$1;", itemsTable)
-	if err := r.db.QueryRow(query, itemId).Scan(&item); err != nil {
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", itemsTable)
+	if err := r.db.QueryRow(query, itemId).Scan(&item.Id, &item.Name, &item.Description, &item.CategoryId, &item.Sku); err != nil {
+		return models.Item{}, err
+	}
+
+	return item, nil
+}
+
+func (r *ItemsRepo) GetBySku(sku string) (models.Item, error) {
+	var item models.Item
+	query := fmt.Sprintf("SELECT * FROM %s where sku=$1;", itemsTable)
+	if err := r.db.QueryRow(query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.CategoryId, &item.Sku); err != nil {
 		return models.Item{}, err
 	}
 
@@ -51,4 +68,14 @@ func (r *ItemsRepo) GetColors(itemId int) ([]models.Color, error) {
 	}
 
 	return colors, nil
+}
+
+func (r *ItemsRepo) GetTags(itemId int) ([]models.Tag, error) {
+	var tags []models.Tag
+	query := fmt.Sprintf("SELECT * FROM %s WHERE tags.item_id = $1;", tagsTable)
+	if err := r.db.Select(&tags, query, itemId); err != nil && err != sql.ErrNoRows {
+		return []models.Tag{}, err
+	}
+
+	return tags, nil
 }

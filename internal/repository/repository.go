@@ -11,6 +11,7 @@ const (
 	itemsTable      = "items"
 	colorsTable     = "colors"
 	itemColorsTable = "item_colors"
+	tagsTable       = "tags"
 )
 
 type Colors interface {
@@ -26,8 +27,11 @@ type Categories interface {
 type Items interface {
 	Create(item models.Item) (int, error)
 	LinkColor(itemId int, colorId int) error
+	LinkTag(itemId int, tag string) error
 	GetById(itemId int) (models.Item, error)
+	GetBySku(sku string) (models.Item, error)
 	GetColors(itemId int) ([]models.Color, error)
+	GetTags(itemId int) ([]models.Tag, error)
 }
 
 type Users interface {

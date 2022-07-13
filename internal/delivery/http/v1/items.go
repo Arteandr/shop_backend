@@ -4,12 +4,16 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
 	items := api.Group("/items")
 	{
 		items.POST("/create", h.createItem)
+		items.GET("/:id", h.getItemById)
+		items.GET("/sku/:sku", h.getItemBySku)
+
 	}
 }
 
@@ -41,7 +45,7 @@ func (h *Handler) createItem(ctx *gin.Context) {
 		}
 	}
 
-	itemId, err := h.services.Items.Create(body.Name, body.Description, body.CategoryId, body.Tags, body.Sku)
+	itemId, err := h.services.Items.Create(body.Name, body.Description, body.CategoryId, body.Sku)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
@@ -55,5 +59,45 @@ func (h *Handler) createItem(ctx *gin.Context) {
 		}
 	}
 
+	if len(body.Tags) > 0 {
+		if err := h.services.Items.LinkTags(itemId, body.Tags); err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+			return
+		}
+	}
+
 	ctx.Status(http.StatusOK)
+}
+
+func (h *Handler) getItemById(ctx *gin.Context) {
+	strItemId := ctx.Param("id")
+	itemId, err := strconv.Atoi(strItemId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	item, err := h.services.Items.GetById(itemId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: fmt.Sprintf("item %d not found", itemId)})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, item)
+}
+
+func (h *Handler) getItemBySku(ctx *gin.Context) {
+	sku := ctx.Param("sku")
+	if len(sku) < 1 {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "wrong sku"})
+		return
+	}
+
+	item, err := h.services.Items.GetBySku(sku)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: fmt.Sprintf("item with sku %s not found", sku)})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, item)
 }

@@ -19,9 +19,11 @@ type Categories interface {
 }
 
 type Items interface {
-	Create(name, description string, categoryId int, tags []string, sku string) (int, error)
+	Create(name, description string, categoryId int, sku string) (int, error)
 	LinkColor(itemId int, colorId int) error
+	LinkTags(itemId int, tags []string) error
 	GetById(itemId int) (models.Item, error)
+	GetBySku(sku string) (models.Item, error)
 }
 
 type Users interface {

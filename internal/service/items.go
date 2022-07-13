@@ -13,12 +13,11 @@ func NewItemsService(repo repository.Items) *ItemsService {
 	return &ItemsService{repo: repo}
 }
 
-func (s *ItemsService) Create(name, description string, categoryId int, tags []string, sku string) (int, error) {
+func (s *ItemsService) Create(name, description string, categoryId int, sku string) (int, error) {
 	item := models.Item{
 		Name:        name,
 		Description: description,
 		CategoryId:  categoryId,
-		Tags:        tags,
 		Sku:         sku,
 	}
 
@@ -35,5 +34,52 @@ func (s *ItemsService) LinkColor(itemId int, colorId int) error {
 }
 
 func (s *ItemsService) GetById(itemId int) (models.Item, error) {
-	return s.repo.GetById(itemId)
+	item, err := s.repo.GetById(itemId)
+	if err != nil {
+		return models.Item{}, err
+	}
+
+	colors, err := s.repo.GetColors(item.Id)
+	if err != nil {
+		return models.Item{}, err
+	}
+	item.Colors = colors
+
+	tags, err := s.repo.GetTags(item.Id)
+	if err != nil {
+		return models.Item{}, err
+	}
+	item.Tags = tags
+
+	return item, nil
+}
+
+func (s *ItemsService) GetBySku(sku string) (models.Item, error) {
+	item, err := s.repo.GetBySku(sku)
+	if err != nil {
+		return models.Item{}, err
+	}
+
+	colors, err := s.repo.GetColors(item.Id)
+	if err != nil {
+		return models.Item{}, err
+	}
+	item.Colors = colors
+
+	tags, err := s.repo.GetTags(item.Id)
+	if err != nil {
+		return models.Item{}, err
+	}
+	item.Tags = tags
+
+	return item, nil
+}
+
+func (s *ItemsService) LinkTags(itemId int, tags []string) error {
+	for _, tag := range tags {
+		if err := s.repo.LinkTag(itemId, tag); err != nil {
+			return err
+		}
+	}
+	return nil
 }

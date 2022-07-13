@@ -1,3 +1,4 @@
+DROP TABLE tags;
 DROP TABLE item_colors;
 DROP TABLE colors;
 DROP TABLE items;
