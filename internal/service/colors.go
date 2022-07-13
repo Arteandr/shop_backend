@@ -31,3 +31,7 @@ func (s *ColorsService) Create(name, hex string, price float64) (int, error) {
 func (s *ColorsService) Exist(colorId int) (bool, error) {
 	return s.repo.Exist(colorId)
 }
+
+func (s *ColorsService) Delete(colorId int) error {
+	return s.repo.Delete(colorId)
+}

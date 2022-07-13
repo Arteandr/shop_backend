@@ -17,6 +17,7 @@ const (
 type Colors interface {
 	Exist(colorId int) (bool, error)
 	Create(color models.Color) (int, error)
+	Delete(colorId int) error
 }
 
 type Categories interface {

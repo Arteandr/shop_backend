@@ -35,3 +35,10 @@ func (r *ColorsRepo) Exist(colorId int) (bool, error) {
 	}
 	return exist, nil
 }
+
+func (r *ColorsRepo) Delete(colorId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", colorsTable)
+	_, err := r.db.Exec(query, colorId)
+
+	return err
+}

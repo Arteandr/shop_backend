@@ -115,6 +115,47 @@ var doc = `{
                 }
             }
         },
+        "/colors/{id}": {
+            "delete": {
+                "description": "delete color by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "colors-actions"
+                ],
+                "summary": "Delete colors",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "color id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/items/create": {
             "post": {
                 "description": "create a new item",
@@ -485,6 +526,9 @@ var doc = `{
                 "name": {
                     "type": "string"
                 },
+                "price": {
+                    "type": "number"
+                },
                 "sku": {
                     "type": "string"
                 },
@@ -589,6 +633,7 @@ var doc = `{
                 "colors",
                 "description",
                 "name",
+                "price",
                 "sku"
             ],
             "properties": {
@@ -606,6 +651,9 @@ var doc = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "price": {
+                    "type": "number"
                 },
                 "sku": {
                     "type": "string"

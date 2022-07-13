@@ -1,17 +1,17 @@
 package v1
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shop_backend/internal/models"
+	"strconv"
 )
 
 func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 	colors := api.Group("/colors")
 	{
 		colors.POST("/create", h.createColor)
-		colors.POST("/exist", h.checkExist)
+		colors.DELETE("/:id", h.deleteColor)
 	}
 }
 
@@ -45,21 +45,28 @@ func (h *Handler) createColor(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, CreateColorResult{ColorId: colorId})
 }
 
-func (h *Handler) checkExist(ctx *gin.Context) {
-	var b struct {
-		Id int `json:"colorId"`
-	}
-	if err := ctx.BindJSON(&b); err != nil {
+// @Summary Delete colors
+// @Tags colors-actions
+// @Description delete color by id
+// @Accept json
+// @Produce json
+// @Param id path int true "color id"
+// @Success 200 ""
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /colors/{id} [delete]
+func (h *Handler) deleteColor(ctx *gin.Context) {
+	strColorId := ctx.Param("id")
+	colorId, err := strconv.Atoi(strColorId)
+	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	exist, err := h.services.Colors.Exist(b.Id)
-	if err != nil {
+	if err := h.services.Colors.Delete(colorId); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
-	fmt.Println("Exist:", exist)
 
-	ctx.JSON(http.StatusOK, exist)
+	ctx.Status(http.StatusOK)
 }
