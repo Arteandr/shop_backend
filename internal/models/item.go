@@ -7,5 +7,6 @@ type Item struct {
 	CategoryId  int     `json:"categoryId" db:"category_id"`
 	Tags        []Tag   `json:"tags,omitempty"`
 	Colors      []Color `json:"colors,omitempty"`
+	Price       float64 `json:"price" db:"price"`
 	Sku         string  `json:"sku" db:"sku"`
 }

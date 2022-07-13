@@ -194,6 +194,32 @@ paths:
       tags:
       - colors-actions
   /items/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete item by id
+      parameters:
+      - description: item id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Delete item
+      tags:
+      - items-actions
     get:
       consumes:
       - application/json
@@ -262,7 +288,7 @@ paths:
         in: path
         name: sku
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:

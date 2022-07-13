@@ -17,8 +17,8 @@ func NewItemsRepo(db *sqlx.DB) *ItemsRepo {
 
 func (r *ItemsRepo) Create(item models.Item) (int, error) {
 	var id int
-	query := fmt.Sprintf("INSERT INTO %s (name,description,category_id,sku) VALUES ($1,$2,$3,$4) RETURNING id;", itemsTable)
-	row := r.db.QueryRow(query, item.Name, item.Description, item.CategoryId, item.Sku)
+	query := fmt.Sprintf("INSERT INTO %s (name,description,category_id,sku,price) VALUES ($1,$2,$3,$4,$5) RETURNING id;", itemsTable)
+	row := r.db.QueryRow(query, item.Name, item.Description, item.CategoryId, item.Sku, item.Price)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
@@ -43,7 +43,7 @@ func (r *ItemsRepo) LinkTag(itemId int, tag string) error {
 func (r *ItemsRepo) GetById(itemId int) (models.Item, error) {
 	var item models.Item
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", itemsTable)
-	if err := r.db.QueryRow(query, itemId).Scan(&item.Id, &item.Name, &item.Description, &item.CategoryId, &item.Sku); err != nil {
+	if err := r.db.QueryRow(query, itemId).Scan(&item.Id, &item.Name, &item.Description, &item.CategoryId, &item.Price, &item.Sku); err != nil {
 		return models.Item{}, err
 	}
 
@@ -53,7 +53,7 @@ func (r *ItemsRepo) GetById(itemId int) (models.Item, error) {
 func (r *ItemsRepo) GetBySku(sku string) (models.Item, error) {
 	var item models.Item
 	query := fmt.Sprintf("SELECT * FROM %s where sku=$1;", itemsTable)
-	if err := r.db.QueryRow(query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.CategoryId, &item.Sku); err != nil {
+	if err := r.db.QueryRow(query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.CategoryId, &item.Price, &item.Sku); err != nil {
 		return models.Item{}, err
 	}
 

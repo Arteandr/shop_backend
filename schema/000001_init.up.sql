@@ -10,6 +10,7 @@ CREATE TABLE items
     name        varchar(255)                       not null,
     description varchar(255)                       not null,
     category_id integer references categories (id) not null,
+    price       decimal                            not null,
     sku         varchar(255)                       not null unique
 );
 

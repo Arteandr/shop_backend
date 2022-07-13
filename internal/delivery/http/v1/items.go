@@ -22,8 +22,9 @@ type createItemInput struct {
 	Name        string   `json:"name" binding:"required"`
 	Description string   `json:"description" binding:"required"`
 	CategoryId  int      `json:"categoryId" binding:"required"`
-	Tags        []string `json:"tags,omitempty"`
+	Tags        []string `json:"tags"`
 	ColorsId    []int    `json:"colors" binding:"required"`
+	Price       float64  `json:"price" binding:"required"`
 	Sku         string   `json:"sku" binding:"required"`
 }
 
@@ -56,7 +57,7 @@ func (h *Handler) createItem(ctx *gin.Context) {
 		}
 	}
 
-	itemId, err := h.services.Items.Create(body.Name, body.Description, body.CategoryId, body.Sku)
+	itemId, err := h.services.Items.Create(body.Name, body.Description, body.CategoryId, body.Sku, body.Price)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
@@ -113,7 +114,7 @@ func (h *Handler) getItemById(ctx *gin.Context) {
 // @Description get item by sku
 // @Accept json
 // @Produce json
-// @Param sku path int true "item sku"
+// @Param sku path string true "item sku"
 // @Success 200 {object} models.Item
 // @Failure 400,404 {object} ErrorResponse
 // @Router /items/sku/{sku} [get]
@@ -133,6 +134,16 @@ func (h *Handler) getItemBySku(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, item)
 }
 
+// @Summary Delete item
+// @Tags items-actions
+// @Description delete item by id
+// @Accept json
+// @Produce json
+// @Param id path int true "item id"
+// @Success 200 ""
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /items/{id} [delete]
 func (h *Handler) deleteItem(ctx *gin.Context) {
 	strItemId := ctx.Param("id")
 	itemId, err := strconv.Atoi(strItemId)

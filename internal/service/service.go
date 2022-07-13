@@ -19,7 +19,7 @@ type Categories interface {
 }
 
 type Items interface {
-	Create(name, description string, categoryId int, sku string) (int, error)
+	Create(name, description string, categoryId int, sku string, price float64) (int, error)
 	LinkColor(itemId int, colorId int) error
 	LinkTags(itemId int, tags []string) error
 	GetById(itemId int) (models.Item, error)
