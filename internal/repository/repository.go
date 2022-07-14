@@ -18,6 +18,8 @@ type Colors interface {
 	Exist(colorId int) (bool, error)
 	Create(color models.Color) (int, error)
 	Delete(colorId int) error
+	DeleteFromItems(colorId int) error
+	AddToItems(colorId int) error
 }
 
 type Categories interface {
@@ -35,6 +37,7 @@ type Items interface {
 	GetColors(itemId int) ([]models.Color, error)
 	GetTags(itemId int) ([]models.Tag, error)
 	Delete(itemId int) error
+	Exist(itemId int) (bool, error)
 }
 
 type Users interface {

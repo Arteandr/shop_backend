@@ -86,3 +86,13 @@ func (r *ItemsRepo) Delete(itemId int) error {
 
 	return err
 }
+
+func (r *ItemsRepo) Exist(itemId int) (bool, error) {
+	var exist bool
+	queryMain := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", itemsTable)
+	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
+	if err := r.db.QueryRow(query, itemId).Scan(&exist); err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+	return exist, nil
+}

@@ -88,3 +88,7 @@ func (s *ItemsService) LinkTags(itemId int, tags []string) error {
 func (s *ItemsService) Delete(itemId int) error {
 	return s.repo.Delete(itemId)
 }
+
+func (s *ItemsService) Exist(itemId int) (bool, error) {
+	return s.repo.Exist(itemId)
+}

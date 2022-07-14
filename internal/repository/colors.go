@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
@@ -30,15 +29,30 @@ func (r *ColorsRepo) Exist(colorId int) (bool, error) {
 	var exist bool
 	queryMain := fmt.Sprintf("SELECT name FROM %s WHERE id=$1", colorsTable)
 	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
-	if err := r.db.QueryRow(query, colorId).Scan(&exist); err != nil && err != sql.ErrNoRows {
+	if err := r.db.QueryRow(query, colorId).Scan(&exist); err != nil {
 		return false, err
 	}
+
 	return exist, nil
 }
 
 func (r *ColorsRepo) Delete(colorId int) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1;", colorsTable)
 	_, err := r.db.Exec(query, colorId)
+
+	return err
+}
+
+func (r *ColorsRepo) DeleteFromItems(colorId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE color_id=$1;", itemColorsTable)
+	resp, err := r.db.Exec(query, colorId)
+	fmt.Println(resp.RowsAffected())
+	return err
+}
+
+func (r *ColorsRepo) AddToItems(colorId int) error {
+	query := fmt.Sprintf("INSERT INTO %s (item_id,color_id) SELECT id, %d from %s;", itemColorsTable, colorId, itemsTable)
+	_, err := r.db.Exec(query)
 
 	return err
 }

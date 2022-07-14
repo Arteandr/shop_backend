@@ -35,3 +35,11 @@ func (s *ColorsService) Exist(colorId int) (bool, error) {
 func (s *ColorsService) Delete(colorId int) error {
 	return s.repo.Delete(colorId)
 }
+
+func (s *ColorsService) DeleteFromItems(colorId int) error {
+	return s.repo.DeleteFromItems(colorId)
+}
+
+func (s *ColorsService) AddToItems(colorId int) error {
+	return s.repo.AddToItems(colorId)
+}

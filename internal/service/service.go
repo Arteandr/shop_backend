@@ -12,6 +12,8 @@ type Colors interface {
 	Exist(colorId int) (bool, error)
 	Create(name, hex string, price float64) (int, error)
 	Delete(colorId int) error
+	DeleteFromItems(colorId int) error
+	AddToItems(colorId int) error
 }
 
 type Categories interface {
@@ -27,6 +29,7 @@ type Items interface {
 	GetById(itemId int) (models.Item, error)
 	GetBySku(sku string) (models.Item, error)
 	Delete(itemId int) error
+	Exist(itemId int) (bool, error)
 }
 
 type Users interface {
