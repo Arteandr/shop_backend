@@ -195,6 +195,27 @@ paths:
       summary: Create a new category
       tags:
       - categories-actions
+  /colors/:
+    get:
+      consumes:
+      - application/json
+      description: get all colors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Color'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Get all colors
+      tags:
+      - colors-actions
   /colors/{id}:
     delete:
       consumes:
@@ -220,6 +241,36 @@ paths:
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
       summary: Delete colors
+      tags:
+      - colors-actions
+    get:
+      consumes:
+      - application/json
+      description: get color by id
+      parameters:
+      - description: color id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Get color by id
       tags:
       - colors-actions
     put:
@@ -258,7 +309,33 @@ paths:
       summary: Update color
       tags:
       - colors-actions
-  /colors/addToItems/{id}:
+  /colors/all/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete color by id from all items
+      parameters:
+      - description: color id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Delete color from all items
+      tags:
+      - colors-actions
     post:
       consumes:
       - application/json
@@ -287,33 +364,6 @@ paths:
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
       summary: Add color to all items
-      tags:
-      - colors-actions
-  /colors/all/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: delete color by id from items
-      parameters:
-      - description: color id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ""
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-      summary: Delete color from items
       tags:
       - colors-actions
   /colors/create:

@@ -11,10 +11,12 @@ import (
 func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 	colors := api.Group("/colors")
 	{
+		colors.GET("/", h.getAllColors)
+		colors.GET("/:id", h.getColorById)
 		colors.POST("/create", h.createColor)
-		colors.DELETE("/:id", h.deleteColor)
+		colors.POST("/all/:id", h.addColorToItems)
 		colors.DELETE("/all/:id", h.deleteColorFromItems)
-		colors.POST("/addToItems/:id", h.addColorToItems)
+		colors.DELETE("/:id", h.deleteColor)
 		colors.PUT("/:id", h.updateColor)
 	}
 }
@@ -112,9 +114,9 @@ func (h *Handler) deleteColor(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-// @Summary Delete color from items
+// @Summary Delete color from all items
 // @Tags colors-actions
-// @Description delete color by id from items
+// @Description delete color by id from all items
 // @Accept json
 // @Produce json
 // @Param id path int true "color id"
@@ -147,7 +149,7 @@ func (h *Handler) deleteColorFromItems(ctx *gin.Context) {
 // @Success 200 ""
 // @Failure 400,404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /colors/addToItems/{id} [post]
+// @Router /colors/all/{id} [post]
 func (h *Handler) addColorToItems(ctx *gin.Context) {
 	strColorId := ctx.Param("id")
 	colorId, err := strconv.Atoi(strColorId)
@@ -170,4 +172,57 @@ func (h *Handler) addColorToItems(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+// @Summary Get color by id
+// @Tags colors-actions
+// @Description get color by id
+// @Accept json
+// @Produce json
+// @Param id path int true "color id"
+// @Success 200 ""
+// @Failure 400,404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /colors/{id} [get]
+func (h *Handler) getColorById(ctx *gin.Context) {
+	strColorId := ctx.Param("id")
+	colorId, err := strconv.Atoi(strColorId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if exist, err := h.services.Colors.Exist(colorId); err != nil || !exist {
+		if !exist {
+			err = errors.New("wrong color id")
+		}
+		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	color, err := h.services.Colors.GetById(colorId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, color)
+}
+
+// @Summary Get all colors
+// @Tags colors-actions
+// @Description get all colors
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Color
+// @Failure 500 {object} ErrorResponse
+// @Router /colors/ [get]
+func (h *Handler) getAllColors(ctx *gin.Context) {
+	colors, err := h.services.Colors.GetAll()
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, colors)
 }

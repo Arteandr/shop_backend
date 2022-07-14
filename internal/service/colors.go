@@ -54,3 +54,11 @@ func (s *ColorsService) Update(id int, name, hex string, price float64) error {
 
 	return s.repo.Update(color)
 }
+
+func (s *ColorsService) GetById(colorId int) (models.Color, error) {
+	return s.repo.GetById(colorId)
+}
+
+func (s *ColorsService) GetAll() ([]models.Color, error) {
+	return s.repo.GetAll()
+}

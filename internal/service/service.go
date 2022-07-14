@@ -10,6 +10,8 @@ import (
 
 type Colors interface {
 	Exist(colorId int) (bool, error)
+	GetById(colorId int) (models.Color, error)
+	GetAll() ([]models.Color, error)
 	Create(name, hex string, price float64) (int, error)
 	Update(id int, name, hex string, price float64) error
 	Delete(colorId int) error

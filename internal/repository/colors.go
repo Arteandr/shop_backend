@@ -63,3 +63,23 @@ func (r *ColorsRepo) Update(color models.Color) error {
 
 	return err
 }
+
+func (r *ColorsRepo) GetById(colorId int) (models.Color, error) {
+	var color models.Color
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", colorsTable)
+	if err := r.db.QueryRow(query, colorId).Scan(&color.Id, &color.Name, &color.Hex, &color.Price); err != nil {
+		return models.Color{}, err
+	}
+
+	return color, nil
+}
+
+func (r *ColorsRepo) GetAll() ([]models.Color, error) {
+	var colors []models.Color
+	query := fmt.Sprintf("SELECT * FROM %s ORDER BY id;", colorsTable)
+	if err := r.db.Select(&colors, query); err != nil {
+		return []models.Color{}, err
+	}
+
+	return colors, nil
+}

@@ -96,7 +96,39 @@
                 }
             }
         },
-        "/colors/addToItems/{id}": {
+        "/colors/": {
+            "get": {
+                "description": "get all colors",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "colors-actions"
+                ],
+                "summary": "Get all colors",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Color"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/colors/all/{id}": {
             "post": {
                 "description": "Add color by id to all items",
                 "consumes": [
@@ -141,11 +173,9 @@
                         }
                     }
                 }
-            }
-        },
-        "/colors/all/{id}": {
+            },
             "delete": {
-                "description": "delete color by id from items",
+                "description": "delete color by id from all items",
                 "consumes": [
                     "application/json"
                 ],
@@ -155,7 +185,7 @@
                 "tags": [
                     "colors-actions"
                 ],
-                "summary": "Delete color from items",
+                "summary": "Delete color from all items",
                 "parameters": [
                     {
                         "type": "integer",
@@ -231,6 +261,51 @@
             }
         },
         "/colors/{id}": {
+            "get": {
+                "description": "get color by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "colors-actions"
+                ],
+                "summary": "Get color by id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "color id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "put": {
                 "description": "update color",
                 "consumes": [

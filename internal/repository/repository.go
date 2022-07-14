@@ -16,6 +16,8 @@ const (
 
 type Colors interface {
 	Exist(colorId int) (bool, error)
+	GetById(colorId int) (models.Color, error)
+	GetAll() ([]models.Color, error)
 	Create(color models.Color) (int, error)
 	Update(color models.Color) error
 	Delete(colorId int) error
