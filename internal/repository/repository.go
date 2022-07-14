@@ -17,6 +17,7 @@ const (
 type Colors interface {
 	Exist(colorId int) (bool, error)
 	Create(color models.Color) (int, error)
+	Update(color models.Color) error
 	Delete(colorId int) error
 	DeleteFromItems(colorId int) error
 	AddToItems(colorId int) error

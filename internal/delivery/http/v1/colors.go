@@ -15,11 +15,8 @@ func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 		colors.DELETE("/:id", h.deleteColor)
 		colors.DELETE("/all/:id", h.deleteColorFromItems)
 		colors.POST("/addToItems/:id", h.addColorToItems)
+		colors.PUT("/:id", h.updateColor)
 	}
-}
-
-type CreateColorResult struct {
-	ColorId int `json:"colorId"`
 }
 
 // @Summary Create a new color
@@ -46,6 +43,47 @@ func (h *Handler) createColor(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, CreateColorResult{ColorId: colorId})
+}
+
+// @Summary Update color
+// @Tags colors-actions
+// @Description update color
+// @Accept json
+// @Produce json
+// @Param id path int true "color id"
+// @Param input body models.Color true "input body"
+// @Success 200 ""
+// @Failure 400,404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /colors/{id} [put]
+func (h *Handler) updateColor(ctx *gin.Context) {
+	strColorId := ctx.Param("id")
+	colorId, err := strconv.Atoi(strColorId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	var color models.Color
+	if err := ctx.BindJSON(&color); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "wrong input body"})
+		return
+	}
+
+	if exist, err := h.services.Colors.Exist(colorId); err != nil || !exist {
+		if !exist {
+			err = errors.New("wrong color id")
+		}
+		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Colors.Update(colorId, color.Name, color.Hex, color.Price); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }
 
 // @Summary Delete colors

@@ -56,3 +56,10 @@ func (r *ColorsRepo) AddToItems(colorId int) error {
 
 	return err
 }
+
+func (r *ColorsRepo) Update(color models.Color) error {
+	query := fmt.Sprintf("UPDATE %s SET name=$1,hex=$2,price=$3 WHERE id=$4", colorsTable)
+	_, err := r.db.Exec(query, color.Name, color.Hex, color.Price, color.Id)
+
+	return err
+}

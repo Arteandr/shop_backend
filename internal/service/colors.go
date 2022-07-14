@@ -43,3 +43,14 @@ func (s *ColorsService) DeleteFromItems(colorId int) error {
 func (s *ColorsService) AddToItems(colorId int) error {
 	return s.repo.AddToItems(colorId)
 }
+
+func (s *ColorsService) Update(id int, name, hex string, price float64) error {
+	color := models.Color{
+		Id:    id,
+		Name:  name,
+		Hex:   hex,
+		Price: price,
+	}
+
+	return s.repo.Update(color)
+}

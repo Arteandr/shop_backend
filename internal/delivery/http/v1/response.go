@@ -12,3 +12,7 @@ type UserResponse struct {
 type SignUpResponse struct {
 	Id int `json:"id"`
 }
+
+type CreateColorResult struct {
+	ColorId int `json:"colorId"`
+}
