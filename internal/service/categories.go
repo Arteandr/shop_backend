@@ -28,3 +28,7 @@ func (s *CategoriesService) Create(name string) (int, error) {
 func (s *CategoriesService) Exist(categoryId int) (bool, error) {
 	return s.repo.Exist(categoryId)
 }
+
+func (s *CategoriesService) Delete(categoryId int) error {
+	return s.repo.Delete(categoryId)
+}

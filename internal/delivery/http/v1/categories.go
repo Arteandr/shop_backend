@@ -4,12 +4,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shop_backend/internal/models"
+	"strconv"
 )
 
 func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 	categories := api.Group("/categories")
 	{
 		categories.POST("/create", h.createCategory)
+		categories.DELETE("/:id", h.deleteCategory)
 	}
 }
 
@@ -41,4 +43,30 @@ func (h *Handler) createCategory(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, CreateCategoryResult{CategoryId: categoryId})
+}
+
+// @Summary Delete category
+// @Tags categories-actions
+// @Description delete category by id
+// @Accept json
+// @Produce json
+// @Param id path int true "category id"
+// @Success 200 ""
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /categories/{id} [delete]
+func (h *Handler) deleteCategory(ctx *gin.Context) {
+	strCategoryId := ctx.Param("id")
+	categoryId, err := strconv.Atoi(strCategoryId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Categories.Delete(categoryId); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }

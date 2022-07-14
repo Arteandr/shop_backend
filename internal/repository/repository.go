@@ -23,6 +23,7 @@ type Colors interface {
 type Categories interface {
 	Exist(categoryId int) (bool, error)
 	Create(category models.Category) (int, error)
+	Delete(categoryId int) error
 }
 
 type Items interface {

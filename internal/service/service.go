@@ -17,6 +17,7 @@ type Colors interface {
 type Categories interface {
 	Exist(colorId int) (bool, error)
 	Create(name string) (int, error)
+	Delete(categoryId int) error
 }
 
 type Items interface {

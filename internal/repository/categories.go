@@ -35,3 +35,10 @@ func (r *CategoriesRepo) Exist(categoryId int) (bool, error) {
 	}
 	return exist, nil
 }
+
+func (r *CategoriesRepo) Delete(categoryId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1;", categoriesTable)
+	_, err := r.db.Exec(query, categoryId)
+
+	return err
+}
