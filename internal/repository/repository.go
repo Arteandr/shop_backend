@@ -37,6 +37,7 @@ type Items interface {
 	LinkTag(itemId int, tag string) error
 	GetById(itemId int) (models.Item, error)
 	GetBySku(sku string) (models.Item, error)
+	GetByCategory(categoryId int) ([]models.Item, error)
 	GetColors(itemId int) ([]models.Color, error)
 	GetTags(itemId int) ([]models.Tag, error)
 	Delete(itemId int) error

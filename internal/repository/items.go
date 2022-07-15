@@ -60,6 +60,16 @@ func (r *ItemsRepo) GetBySku(sku string) (models.Item, error) {
 	return item, nil
 }
 
+func (r *ItemsRepo) GetByCategory(categoryId int) ([]models.Item, error) {
+	var items []models.Item
+	query := fmt.Sprintf("SELECT * FROM %s WHERE category_id=$1;", itemsTable)
+	if err := r.db.Select(&items, query, categoryId); err != nil {
+		return []models.Item{}, err
+	}
+
+	return items, nil
+}
+
 func (r *ItemsRepo) GetColors(itemId int) ([]models.Color, error) {
 	var colors []models.Color
 	query := fmt.Sprintf("SELECT colors.id, colors.name, colors.hex, colors.price FROM %s, %s WHERE colors.id = item_colors.color_id AND item_colors.item_id = $1;", colorsTable, itemColorsTable)

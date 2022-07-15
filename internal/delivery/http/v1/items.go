@@ -13,6 +13,7 @@ func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
 		items.POST("/create", h.createItem)
 		items.GET("/:id", h.getItemById)
 		items.GET("/sku/:sku", h.getItemBySku)
+		items.GET("/category/:id", h.getItemsByCategory)
 		items.DELETE("/:id", h.deleteItem)
 
 	}
@@ -107,6 +108,23 @@ func (h *Handler) getItemById(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, item)
+}
+
+func (h *Handler) getItemsByCategory(ctx *gin.Context) {
+	strCategoryId := ctx.Param("id")
+	categoryId, err := strconv.Atoi(strCategoryId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	items, err := h.services.Items.GetByCategory(categoryId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, items)
 }
 
 // @Summary Get item by SKU
