@@ -111,6 +111,15 @@ func (h *Handler) getItemById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, item)
 }
 
+// @Summary Get items with category
+// @Tags items-actions
+// @Description get all items with provided category id
+// @Accept json
+// @Produce json
+// @Param id path int true "category id"
+// @Success 200 {array} models.Item
+// @Failure 400 {object} ErrorResponse
+// @Router /items/category/{id} [get]
 func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 	strCategoryId := ctx.Param("id")
 	categoryId, err := strconv.Atoi(strCategoryId)
@@ -128,6 +137,15 @@ func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, items)
 }
 
+// @Summary Get items with tag
+// @Tags items-actions
+// @Description get all items with provided tag id
+// @Accept json
+// @Produce json
+// @Param id path int true "tag id"
+// @Success 200 {array} models.Item
+// @Failure 400 {object} ErrorResponse
+// @Router /items/tag/{id} [get]
 func (h *Handler) getItemsByTag(ctx *gin.Context) {
 	tag := ctx.Param("id")
 	if len(tag) < 1 {
