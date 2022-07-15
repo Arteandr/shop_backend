@@ -14,6 +14,7 @@ func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
 		items.GET("/:id", h.getItemById)
 		items.GET("/sku/:sku", h.getItemBySku)
 		items.GET("/category/:id", h.getItemsByCategory)
+		items.GET("/tag/:name", h.getItemsByTag)
 		items.DELETE("/:id", h.deleteItem)
 
 	}
@@ -119,6 +120,22 @@ func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 	}
 
 	items, err := h.services.Items.GetByCategory(categoryId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, items)
+}
+
+func (h *Handler) getItemsByTag(ctx *gin.Context) {
+	tag := ctx.Param("id")
+	if len(tag) < 1 {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "wrong tag"})
+		return
+	}
+
+	items, err := h.services.Items.GetByTag(tag)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return

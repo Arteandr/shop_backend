@@ -42,3 +42,14 @@ func (r *CategoriesRepo) Delete(categoryId int) error {
 
 	return err
 }
+
+func (r *CategoriesRepo) GetAll() ([]models.Category, error) {
+	var categories []models.Category
+	query := fmt.Sprintf("SELECT * FROM %s;", categoriesTable)
+	err := r.db.Select(&categories, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return categories, nil
+}

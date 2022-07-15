@@ -10,6 +10,7 @@ import (
 func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 	categories := api.Group("/categories")
 	{
+		categories.GET("/", h.getAllCategories)
 		categories.POST("/create", h.createCategory)
 		categories.DELETE("/:id", h.deleteCategory)
 	}
@@ -69,4 +70,22 @@ func (h *Handler) deleteCategory(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+// @Summary Get all categories
+// @Tags categories-actions
+// @Description get all categories
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Category
+// @Failure 500 {object} ErrorResponse
+// @Router /categories/ [get]
+func (h *Handler) getAllCategories(ctx *gin.Context) {
+	categories, err := h.services.Categories.GetAll()
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, categories)
 }

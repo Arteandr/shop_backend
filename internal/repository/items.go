@@ -70,6 +70,15 @@ func (r *ItemsRepo) GetByCategory(categoryId int) ([]models.Item, error) {
 	return items, nil
 }
 
+func (r *ItemsRepo) GetByTag(tag string) ([]models.Item, error) {
+	var items []models.Item
+	query := fmt.Sprintf("SELECT items.id,items.name,items.description,items.category_id,items.price,items.sku FROM %s,%s WHERE %s.name = $1 AND %s.id = %s.item_id;", itemsTable, tagsTable, tagsTable, itemsTable, tagsTable)
+	if err := r.db.Select(&items, query, tag); err != nil {
+		return []models.Item{}, err
+	}
+
+	return items, nil
+}
 func (r *ItemsRepo) GetColors(itemId int) ([]models.Color, error) {
 	var colors []models.Color
 	query := fmt.Sprintf("SELECT colors.id, colors.name, colors.hex, colors.price FROM %s, %s WHERE colors.id = item_colors.color_id AND item_colors.item_id = $1;", colorsTable, itemColorsTable)

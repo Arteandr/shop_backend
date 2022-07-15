@@ -98,6 +98,28 @@ func (s *ItemsService) GetByCategory(categoryId int) ([]models.Item, error) {
 	return items, nil
 }
 
+func (s *ItemsService) GetByTag(tag string) ([]models.Item, error) {
+	items, err := s.repo.GetByTag(tag)
+	if err != nil {
+		return []models.Item{}, err
+	}
+
+	for i, item := range items {
+		colors, err := s.repo.GetColors(item.Id)
+		if err != nil {
+			return []models.Item{}, err
+		}
+		tags, err := s.repo.GetTags(item.Id)
+		if err != nil {
+			return []models.Item{}, err
+		}
+		items[i].Colors = colors
+		items[i].Tags = tags
+	}
+
+	return items, nil
+}
+
 func (s *ItemsService) LinkTags(itemId int, tags []string) error {
 	for _, tag := range tags {
 		if err := s.repo.LinkTag(itemId, tag); err != nil {

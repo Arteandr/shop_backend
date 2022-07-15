@@ -32,3 +32,7 @@ func (s *CategoriesService) Exist(categoryId int) (bool, error) {
 func (s *CategoriesService) Delete(categoryId int) error {
 	return s.repo.Delete(categoryId)
 }
+
+func (s *CategoriesService) GetAll() ([]models.Category, error) {
+	return s.repo.GetAll()
+}

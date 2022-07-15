@@ -28,6 +28,7 @@ type Colors interface {
 type Categories interface {
 	Exist(categoryId int) (bool, error)
 	Create(category models.Category) (int, error)
+	GetAll() ([]models.Category, error)
 	Delete(categoryId int) error
 }
 
@@ -38,6 +39,7 @@ type Items interface {
 	GetById(itemId int) (models.Item, error)
 	GetBySku(sku string) (models.Item, error)
 	GetByCategory(categoryId int) ([]models.Item, error)
+	GetByTag(tag string) ([]models.Item, error)
 	GetColors(itemId int) ([]models.Color, error)
 	GetTags(itemId int) ([]models.Tag, error)
 	Delete(itemId int) error
