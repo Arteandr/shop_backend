@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"net/http"
@@ -34,9 +37,22 @@ func Run(configPath string) {
 		cfg.PGSQL.Host, cfg.PGSQL.Port, cfg.PGSQL.User, cfg.PGSQL.Password, cfg.PGSQL.DatabaseName, cfg.PGSQL.SSLMode)
 	db, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
-		logger.Error(err)
+		logger.Error("[DATABASE] " + err.Error())
 		return
 	}
+
+	// Migrations
+	instance, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		logger.Error("[DB INSTANCE] " + err.Error())
+		return
+	}
+	m, err := migrate.NewWithDatabaseInstance("file://./schema", "postgres", instance)
+	if err != nil {
+		logger.Error("[MIGRATE] " + err.Error())
+		return
+	}
+	m.Up()
 
 	// Hasher
 	hasher := hash.NewSHA1Hasher(cfg.Auth.PasswordSalt)

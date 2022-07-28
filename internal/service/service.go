@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+type Images interface {
+	Upload(filename string) (int, error)
+	GetAll() ([]models.Image, error)
+}
+
 type Colors interface {
 	Exist(colorId int) (bool, error)
 	GetById(colorId int) (models.Color, error)
@@ -50,6 +55,7 @@ type Services struct {
 	Items      Items
 	Categories Categories
 	Colors     Colors
+	Images     Images
 }
 
 type ServicesDeps struct {
@@ -66,5 +72,6 @@ func NewServices(deps ServicesDeps) *Services {
 		Items:      NewItemsService(deps.Repos.Items),
 		Categories: NewCategoriesService(deps.Repos.Categories),
 		Colors:     NewColorsService(deps.Repos.Colors),
+		Images:     NewImagesService(deps.Repos.Images),
 	}
 }
