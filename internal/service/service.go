@@ -1,6 +1,7 @@
 package service
 
 import (
+	"mime/multipart"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	"shop_backend/pkg/auth"
@@ -9,7 +10,7 @@ import (
 )
 
 type Images interface {
-	Upload(filename string) (int, error)
+	Upload(image *multipart.FileHeader) (int, error)
 	GetAll() ([]models.Image, error)
 }
 

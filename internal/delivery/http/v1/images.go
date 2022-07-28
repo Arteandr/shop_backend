@@ -3,8 +3,6 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"path/filepath"
-	"strings"
 )
 
 func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
@@ -22,15 +20,7 @@ func (h *Handler) uploadFile(ctx *gin.Context) {
 		return
 	}
 
-	filename := filepath.Base(photo.Filename)
-	replacer := strings.NewReplacer("-", "", "_", "", " ", "")
-	filename = replacer.Replace(filename)
-	if err := ctx.SaveUploadedFile(photo, "./files/"+filename); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	id, err := h.services.Images.Upload(filename)
+	id, err := h.services.Images.Upload(photo)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
@@ -49,7 +39,7 @@ func (h *Handler) getAllImages(ctx *gin.Context) {
 	}
 
 	for i, image := range images {
-		images[i].Filename = "/assets/images/" + image.Filename
+		images[i].Filename = "/files/" + image.Filename
 	}
 
 	ctx.JSON(http.StatusOK, images)
