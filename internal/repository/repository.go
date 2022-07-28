@@ -12,8 +12,13 @@ const (
 	colorsTable     = "colors"
 	itemColorsTable = "item_colors"
 	tagsTable       = "tags"
+	imagesTable     = "images"
 )
 
+type Images interface {
+	Upload(filename string) (int, error)
+	GetAll() ([]models.Image, error)
+}
 type Colors interface {
 	Exist(colorId int) (bool, error)
 	GetById(colorId int) (models.Color, error)
@@ -58,6 +63,7 @@ type Repositories struct {
 	Items      Items
 	Categories Categories
 	Colors     Colors
+	Images     Images
 }
 
 func NewRepositories(db *sqlx.DB) *Repositories {
@@ -66,5 +72,6 @@ func NewRepositories(db *sqlx.DB) *Repositories {
 		Items:      NewItemsRepo(db),
 		Categories: NewCategoriesRepo(db),
 		Colors:     NewColorsRepo(db),
+		Images:     NewImagesRepo(db),
 	}
 }

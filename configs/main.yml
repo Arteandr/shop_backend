@@ -8,7 +8,7 @@ http:
 pgsql:
   dbname: shop
   sslmode: disable
-  port: 5433
+  port: 5432
 
 auth:
   accessTokenTTL: 1h

@@ -1,12 +1,18 @@
 package service
 
 import (
+	"mime/multipart"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	"shop_backend/pkg/auth"
 	"shop_backend/pkg/hash"
 	"time"
 )
+
+type Images interface {
+	Upload(image *multipart.FileHeader) (int, error)
+	GetAll() ([]models.Image, error)
+}
 
 type Colors interface {
 	Exist(colorId int) (bool, error)
@@ -50,6 +56,7 @@ type Services struct {
 	Items      Items
 	Categories Categories
 	Colors     Colors
+	Images     Images
 }
 
 type ServicesDeps struct {
@@ -66,5 +73,6 @@ func NewServices(deps ServicesDeps) *Services {
 		Items:      NewItemsService(deps.Repos.Items),
 		Categories: NewCategoriesService(deps.Repos.Categories),
 		Colors:     NewColorsService(deps.Repos.Colors),
+		Images:     NewImagesService(deps.Repos.Images),
 	}
 }

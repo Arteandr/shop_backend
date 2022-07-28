@@ -5,7 +5,7 @@ import "shop_backend/internal/app"
 const configPath = "configs"
 
 // @title FinlandShop API
-// @version 0.1
+// @version 0.5
 // @description API server
 
 // @host localhost:8000

@@ -39,7 +39,7 @@ func (h *Handler) Init(cfg *config.Config) *gin.Engine {
 
 func (h *Handler) InitApi(r *gin.Engine) {
 	handlerV1 := v1.NewHandler(h.services, h.tokenManager, h.cfg)
-	api := r.Group("/api")
+	api := r.Group("/")
 	{
 		handlerV1.Init(api)
 	}
