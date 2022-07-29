@@ -31,6 +31,7 @@ type Categories interface {
 	GetAll() ([]models.Category, error)
 	Create(name string) (int, error)
 	Delete(categoryId int) error
+	GetById(categoryId int) (models.Category, error)
 }
 
 type Items interface {

@@ -36,3 +36,7 @@ func (s *CategoriesService) Delete(categoryId int) error {
 func (s *CategoriesService) GetAll() ([]models.Category, error) {
 	return s.repo.GetAll()
 }
+
+func (s *CategoriesService) GetById(categoryId int) (models.Category, error) {
+	return s.repo.GetById(categoryId)
+}

@@ -53,3 +53,14 @@ func (r *CategoriesRepo) GetAll() ([]models.Category, error) {
 
 	return categories, nil
 }
+
+func (r *CategoriesRepo) GetById(categoryId int) (models.Category, error) {
+	var category models.Category
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", categoriesTable)
+	if err := r.db.QueryRow(query, categoryId).Scan(&category.Id, &category.Name); err != nil {
+		return models.Category{}, err
+	}
+	fmt.Println(category)
+
+	return category, nil
+}

@@ -18,7 +18,7 @@ func NewItemsRepo(db *sqlx.DB) *ItemsRepo {
 func (r *ItemsRepo) Create(item models.Item) (int, error) {
 	var id int
 	query := fmt.Sprintf("INSERT INTO %s (name,description,category_id,sku,price) VALUES ($1,$2,$3,$4,$5) RETURNING id;", itemsTable)
-	row := r.db.QueryRow(query, item.Name, item.Description, item.CategoryId, item.Sku, item.Price)
+	row := r.db.QueryRow(query, item.Name, item.Description, item.Category.Id, item.Sku, item.Price)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
@@ -50,7 +50,7 @@ func (r *ItemsRepo) LinkImage(itemId, imageId int) error {
 func (r *ItemsRepo) GetById(itemId int) (models.Item, error) {
 	var item models.Item
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", itemsTable)
-	if err := r.db.QueryRow(query, itemId).Scan(&item.Id, &item.Name, &item.Description, &item.CategoryId, &item.Price, &item.Sku); err != nil {
+	if err := r.db.QueryRow(query, itemId).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku); err != nil {
 		return models.Item{}, err
 	}
 
@@ -60,7 +60,7 @@ func (r *ItemsRepo) GetById(itemId int) (models.Item, error) {
 func (r *ItemsRepo) GetBySku(sku string) (models.Item, error) {
 	var item models.Item
 	query := fmt.Sprintf("SELECT * FROM %s where sku=$1;", itemsTable)
-	if err := r.db.QueryRow(query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.CategoryId, &item.Price, &item.Sku); err != nil {
+	if err := r.db.QueryRow(query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku); err != nil {
 		return models.Item{}, err
 	}
 
@@ -101,10 +101,20 @@ func (r *ItemsRepo) GetTags(itemId int) ([]models.Tag, error) {
 	var tags []models.Tag
 	query := fmt.Sprintf("SELECT * FROM %s WHERE tags.item_id = $1;", tagsTable)
 	if err := r.db.Select(&tags, query, itemId); err != nil && err != sql.ErrNoRows {
-		return []models.Tag{}, err
+		return nil, err
 	}
 
 	return tags, nil
+}
+
+func (r *ItemsRepo) GetImages(itemId int) ([]models.Image, error) {
+	var images []models.Image
+	query := fmt.Sprintf("SELECT images.id, images.filename, images.created_at FROM %s, %s WHERE images.id = %s.image_id AND %s.item_id = $1;", imagesTable, itemsImagesTable, itemsImagesTable, itemsImagesTable)
+	if err := r.db.Select(&images, query, itemId); err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	return images, nil
 }
 
 func (r *ItemsRepo) Delete(itemId int) error {

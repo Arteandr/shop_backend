@@ -18,7 +18,7 @@ func (s *ItemsService) Create(name, description string, categoryId int, sku stri
 	item := models.Item{
 		Name:        name,
 		Description: description,
-		CategoryId:  categoryId,
+		Category:    models.Category{Id: categoryId},
 		Price:       price,
 		Sku:         sku,
 	}
@@ -60,21 +60,27 @@ func (s *ItemsService) GetById(itemId int) (models.Item, error) {
 		fmt.Println("err", err.Error())
 		return models.Item{}, err
 	}
-	fmt.Println(item)
 
 	colors, err := s.repo.GetColors(item.Id)
 	if err != nil {
-		fmt.Println("err", err.Error())
 		return models.Item{}, err
 	}
 	item.Colors = colors
 
 	tags, err := s.repo.GetTags(item.Id)
 	if err != nil {
-		fmt.Println("err", err.Error())
 		return models.Item{}, err
 	}
 	item.Tags = tags
+
+	images, err := s.repo.GetImages(item.Id)
+	if err != nil {
+		return models.Item{}, err
+	}
+	for i, _ := range images {
+		images[i].Filename = "/files/" + images[i].Filename
+	}
+	item.Images = images
 
 	return item, nil
 }

@@ -110,6 +110,15 @@ func (h *Handler) createItem(ctx *gin.Context) {
 	// Return created item
 	item, _ := h.services.Items.GetById(itemId)
 
+	// Get category and set
+	category, err := h.services.Categories.GetById(item.Category.Id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+	fmt.Println(category)
+	item.Category = category
+
 	ctx.JSON(http.StatusOK, item)
 }
 
