@@ -35,3 +35,14 @@ func (r *ImagesRepo) GetAll() ([]models.Image, error) {
 
 	return images, nil
 }
+
+func (r *ImagesRepo) Exist(imageId int) (bool, error) {
+	var exist bool
+	queryMain := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", imagesTable)
+	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
+	if err := r.db.QueryRow(query, imageId).Scan(&exist); err != nil {
+		return false, err
+	}
+
+	return exist, nil
+}

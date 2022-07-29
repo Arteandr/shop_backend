@@ -6,19 +6,22 @@ import (
 )
 
 const (
-	usersTable      = "users"
-	categoriesTable = "categories"
-	itemsTable      = "items"
-	colorsTable     = "colors"
-	itemColorsTable = "item_colors"
-	tagsTable       = "tags"
-	imagesTable     = "images"
+	usersTable       = "users"
+	categoriesTable  = "categories"
+	itemsTable       = "items"
+	colorsTable      = "colors"
+	itemsColorsTable = "items_colors"
+	tagsTable        = "tags"
+	imagesTable      = "images"
+	itemsImagesTable = "items_images"
 )
 
 type Images interface {
 	Upload(filename string) (int, error)
 	GetAll() ([]models.Image, error)
+	Exist(imageId int) (bool, error)
 }
+
 type Colors interface {
 	Exist(colorId int) (bool, error)
 	GetById(colorId int) (models.Color, error)
@@ -39,8 +42,9 @@ type Categories interface {
 
 type Items interface {
 	Create(item models.Item) (int, error)
-	LinkColor(itemId int, colorId int) error
+	LinkColor(itemId, colorId int) error
 	LinkTag(itemId int, tag string) error
+	LinkImage(itemId, imageId int) error
 	GetById(itemId int) (models.Item, error)
 	GetBySku(sku string) (models.Item, error)
 	GetByCategory(categoryId int) ([]models.Item, error)

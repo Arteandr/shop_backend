@@ -12,6 +12,7 @@ import (
 type Images interface {
 	Upload(image *multipart.FileHeader) (int, error)
 	GetAll() ([]models.Image, error)
+	Exist(imageId int) (bool, error)
 }
 
 type Colors interface {
@@ -36,6 +37,7 @@ type Items interface {
 	Create(name, description string, categoryId int, sku string, price float64) (int, error)
 	LinkColor(itemId int, colorId int) error
 	LinkTags(itemId int, tags []string) error
+	LinkImages(itemId int, imagesId []int) error
 	GetById(itemId int) (models.Item, error)
 	GetBySku(sku string) (models.Item, error)
 	GetByCategory(categoryId int) ([]models.Item, error)

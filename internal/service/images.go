@@ -63,3 +63,7 @@ func (s *ImagesService) saveFile(file *multipart.FileHeader, dst string) error {
 func (s *ImagesService) GetAll() ([]models.Image, error) {
 	return s.repo.GetAll()
 }
+
+func (s *ImagesService) Exist(imageId int) (bool, error) {
+	return s.repo.Exist(imageId)
+}

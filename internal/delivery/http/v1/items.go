@@ -28,6 +28,7 @@ type createItemInput struct {
 	ColorsId    []int    `json:"colors" binding:"required"`
 	Price       float64  `json:"price" binding:"required"`
 	Sku         string   `json:"sku" binding:"required"`
+	ImagesId    []int    `json:"images" binding:"required"`
 }
 
 // @Summary Create a new item
@@ -41,17 +42,20 @@ type createItemInput struct {
 // @Failure 500 {object} ErrorResponse
 // @Router /items/create [post]
 func (h *Handler) createItem(ctx *gin.Context) {
+	// Body binding
 	var body createItemInput
 	if err := ctx.BindJSON(&body); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
+	// Check if exist category
 	if exist, err := h.services.Categories.Exist(body.CategoryId); err != nil || !exist {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "wrong category id"})
 		return
 	}
 
+	// Check if colors is existed
 	for _, colorId := range body.ColorsId {
 		if exist, err := h.services.Colors.Exist(colorId); err != nil || !exist {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("wrong color[%d] id", colorId)})
@@ -59,12 +63,28 @@ func (h *Handler) createItem(ctx *gin.Context) {
 		}
 	}
 
+	// Check if at least one image
+	if len(body.ImagesId) < 1 {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "at least 1 image"})
+		return
+	}
+
+	// Check if images is existed
+	for _, imageId := range body.ImagesId {
+		if exist, err := h.services.Images.Exist(imageId); err != nil || !exist {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("wrong image[%d] id", imageId)})
+			return
+		}
+	}
+
+	// Create item
 	itemId, err := h.services.Items.Create(body.Name, body.Description, body.CategoryId, body.Sku, body.Price)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
+	// Link colors
 	for i := 0; i < len(body.ColorsId); i++ {
 		colorId := body.ColorsId[i]
 		if err := h.services.Items.LinkColor(itemId, colorId); err != nil {
@@ -73,6 +93,7 @@ func (h *Handler) createItem(ctx *gin.Context) {
 		}
 	}
 
+	// Link tags if more than zero
 	if len(body.Tags) > 0 {
 		if err := h.services.Items.LinkTags(itemId, body.Tags); err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
@@ -80,6 +101,13 @@ func (h *Handler) createItem(ctx *gin.Context) {
 		}
 	}
 
+	// Link images
+	if err := h.services.Items.LinkImages(itemId, body.ImagesId); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	// Return created item
 	item, _ := h.services.Items.GetById(itemId)
 
 	ctx.JSON(http.StatusOK, item)

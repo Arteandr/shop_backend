@@ -44,14 +44,14 @@ func (r *ColorsRepo) Delete(colorId int) error {
 }
 
 func (r *ColorsRepo) DeleteFromItems(colorId int) error {
-	query := fmt.Sprintf("DELETE FROM %s WHERE color_id=$1;", itemColorsTable)
+	query := fmt.Sprintf("DELETE FROM %s WHERE color_id=$1;", itemsColorsTable)
 	resp, err := r.db.Exec(query, colorId)
 	fmt.Println(resp.RowsAffected())
 	return err
 }
 
 func (r *ColorsRepo) AddToItems(colorId int) error {
-	query := fmt.Sprintf("INSERT INTO %s (item_id,color_id) SELECT id, %d from %s;", itemColorsTable, colorId, itemsTable)
+	query := fmt.Sprintf("INSERT INTO %s (item_id,color_id) SELECT id, %d from %s;", itemsColorsTable, colorId, itemsTable)
 	_, err := r.db.Exec(query)
 
 	return err

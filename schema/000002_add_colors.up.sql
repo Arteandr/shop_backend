@@ -7,7 +7,7 @@ CREATE TABLE colors
 );
 
 
-CREATE TABLE item_colors
+CREATE TABLE items_colors
 (
     id       serial primary key                           not null,
     item_id  int references items (id) on delete cascade  not null,

@@ -27,7 +27,7 @@ func (r *ItemsRepo) Create(item models.Item) (int, error) {
 }
 
 func (r *ItemsRepo) LinkColor(itemId int, colorId int) error {
-	query := fmt.Sprintf("INSERT INTO %s (item_id,color_id) VALUES ($1,$2);", itemColorsTable)
+	query := fmt.Sprintf("INSERT INTO %s (item_id,color_id) VALUES ($1,$2);", itemsColorsTable)
 	_, err := r.db.Exec(query, itemId, colorId)
 
 	return err
@@ -36,6 +36,13 @@ func (r *ItemsRepo) LinkColor(itemId int, colorId int) error {
 func (r *ItemsRepo) LinkTag(itemId int, tag string) error {
 	query := fmt.Sprintf("INSERT INTO %s (item_id, name) VALUES($1,$2);", tagsTable)
 	_, err := r.db.Exec(query, itemId, tag)
+
+	return err
+}
+
+func (r *ItemsRepo) LinkImage(itemId, imageId int) error {
+	query := fmt.Sprintf("INSERT INTO %s (item_id, image_id) VALUES ($1, $2);", itemsImagesTable)
+	_, err := r.db.Exec(query, itemId, imageId)
 
 	return err
 }
@@ -79,9 +86,10 @@ func (r *ItemsRepo) GetByTag(tag string) ([]models.Item, error) {
 
 	return items, nil
 }
+
 func (r *ItemsRepo) GetColors(itemId int) ([]models.Color, error) {
 	var colors []models.Color
-	query := fmt.Sprintf("SELECT colors.id, colors.name, colors.hex, colors.price FROM %s, %s WHERE colors.id = item_colors.color_id AND item_colors.item_id = $1;", colorsTable, itemColorsTable)
+	query := fmt.Sprintf("SELECT colors.id, colors.name, colors.hex, colors.price FROM %s, %s WHERE colors.id = %s.color_id AND %s.item_id = $1;", colorsTable, itemsColorsTable, itemsColorsTable, itemsColorsTable)
 	if err := r.db.Select(&colors, query, itemId); err != nil {
 		return []models.Color{}, err
 	}
