@@ -77,7 +77,7 @@ func (s *ItemsService) GetById(itemId int) (models.Item, error) {
 	if err != nil {
 		return models.Item{}, err
 	}
-	for i, _ := range images {
+	for i := range images {
 		images[i].Filename = "/files/" + images[i].Filename
 	}
 	item.Images = images

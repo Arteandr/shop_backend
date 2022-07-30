@@ -15,7 +15,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n   \"name\": \"green\",\n   \"hex\": \"#2233\",\n   \"price\": 756\n}",
+							"raw": "{\n    \"name\": \"red\",\n    \"hex\": \"#fff\",\n    \"price\": 24.2\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -23,7 +23,28 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8000/api/v1/colors/create",
+							"raw": "http://localhost:8000/v1/colors/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"v1",
+								"colors",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add to all items",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/v1/colors/addToItems/5",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -33,7 +54,8 @@
 								"api",
 								"v1",
 								"colors",
-								"create"
+								"addToItems",
+								"5"
 							]
 						}
 					},
@@ -79,29 +101,6 @@
 								"colors",
 								"all",
 								"4"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "add to all items",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8000/api/v1/colors/addToItems/5",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"api",
-								"v1",
-								"colors",
-								"addToItems",
-								"5"
 							]
 						}
 					},
@@ -172,7 +171,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"новая лодочка\",\n    \"description\": \"описание для новой лодочки\",\n    \"categoryId\": 2,\n    \"colors\": [3,4],\n    \"price\": 241.24,\n    \"sku\": \"F2322\",\n    \"tags\": [\"tag1\", \"tag2\"]\n    \n}",
+							"raw": "{\n    \"name\": \"новая лодочка\",\n    \"description\": \"описание для новой лодочки\",\n    \"categoryId\": 1,\n    \"colors\": [2],\n    \"price\": 241.24,\n    \"sku\": \"232329\",\n    \"tags\": [\"tag2\"],\n    \"images\": [2, 1]\n    \n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -180,14 +179,13 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8000/api/v1/items/create",
+							"raw": "http://localhost:8000/v1/items/create",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8000",
 							"path": [
-								"api",
 								"v1",
 								"items",
 								"create"
@@ -202,17 +200,16 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8000/api/v1/items/12",
+							"raw": "http://localhost:8000/v1/items/3",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8000",
 							"path": [
-								"api",
 								"v1",
 								"items",
-								"12"
+								"3"
 							]
 						}
 					},
@@ -224,7 +221,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8000/api/v1/items/sku/F23d",
+							"raw": "http://localhost:8000/api/v1/items/sku/F23d22",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -235,7 +232,30 @@
 								"v1",
 								"items",
 								"sku",
-								"F23d"
+								"F23d22"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get by category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/v1/items/category/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"items",
+								"category",
+								"2"
 							]
 						}
 					},
@@ -283,14 +303,13 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8000/api/v1/categories/create",
+							"raw": "http://localhost:8000/v1/categories/create",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8000",
 							"path": [
-								"api",
 								"v1",
 								"categories",
 								"create"
@@ -304,6 +323,10 @@
 					"request": {
 						"method": "DELETE",
 						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
 						"url": {
 							"raw": "http://localhost:8000/api/v1/categories/1",
 							"protocol": "http",
@@ -316,6 +339,83 @@
 								"v1",
 								"categories",
 								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/v1/categories/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"categories",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "images",
+			"item": [
+				{
+					"name": "upload",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "photo",
+									"type": "file",
+									"src": "/Users/user/Desktop/1.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "localhost:8000/v1/assets/upload",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"v1",
+								"assets",
+								"upload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8000/v1/assets/images",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"v1",
+								"assets",
+								"images"
 							]
 						}
 					},
