@@ -31,6 +31,24 @@ func (s *ItemsService) Create(name, description string, categoryId int, sku stri
 	return id, err
 }
 
+func (s *ItemsService) GetNew() ([]models.Item, error) {
+	var items []models.Item
+	ids, err := s.repo.GetNew(4)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, id := range ids {
+		item, err := s.repo.GetById(id)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+
+	return items, nil
+}
+
 func (s *ItemsService) LinkColor(itemId int, colorId int) error {
 	return s.repo.LinkColor(itemId, colorId)
 }

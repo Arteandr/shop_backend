@@ -46,6 +46,7 @@ type Items interface {
 	LinkColor(itemId, colorId int) error
 	LinkTag(itemId int, tag string) error
 	LinkImage(itemId, imageId int) error
+	GetNew(limit int) ([]int, error)
 	GetById(itemId int) (models.Item, error)
 	GetBySku(sku string) (models.Item, error)
 	GetByCategory(categoryId int) ([]models.Item, error)

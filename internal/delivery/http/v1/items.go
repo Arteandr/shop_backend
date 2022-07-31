@@ -11,6 +11,7 @@ func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
 	items := api.Group("/items")
 	{
 		items.POST("/create", h.createItem)
+		items.GET("/new", h.getNewItems)
 		items.GET("/:id", h.getItemById)
 		items.GET("/sku/:sku", h.getItemBySku)
 		items.GET("/category/:id", h.getItemsByCategory)
@@ -119,6 +120,24 @@ func (h *Handler) createItem(ctx *gin.Context) {
 	item.Category = category
 
 	ctx.JSON(http.StatusOK, item)
+}
+
+// @Summary Get new items
+// @Tags items-actions
+// @Description get new items
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Item
+// @Failure 500 {object} ErrorResponse
+// @Router /items/new [get]
+func (h *Handler) getNewItems(ctx *gin.Context) {
+	items, err := h.services.Items.GetNew()
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, items)
 }
 
 // @Summary Get item by ID

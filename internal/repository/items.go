@@ -47,10 +47,19 @@ func (r *ItemsRepo) LinkImage(itemId, imageId int) error {
 	return err
 }
 
+func (r *ItemsRepo) GetNew(limit int) ([]int, error) {
+	var ids []int
+	query := fmt.Sprintf("SELECT I.id FROM %s AS I ORDER BY created_at DESC LIMIT $1;", itemsTable)
+	if err := r.db.Select(&ids, query, limit); err != nil {
+		return nil, err
+	}
+
+	return ids, nil
+}
 func (r *ItemsRepo) GetById(itemId int) (models.Item, error) {
 	var item models.Item
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", itemsTable)
-	if err := r.db.QueryRow(query, itemId).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku); err != nil {
+	if err := r.db.QueryRow(query, itemId).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku, &item.CreatedAt); err != nil {
 		return models.Item{}, err
 	}
 
