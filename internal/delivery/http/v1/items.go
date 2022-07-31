@@ -116,7 +116,6 @@ func (h *Handler) createItem(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
-	fmt.Println(category)
 	item.Category = category
 
 	ctx.JSON(http.StatusOK, item)

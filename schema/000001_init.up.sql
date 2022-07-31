@@ -11,7 +11,8 @@ CREATE TABLE items
     description varchar(255)                       not null,
     category_id integer references categories (id) not null,
     price       decimal                            not null,
-    sku         varchar(255)                       not null unique
+    sku         varchar(255)                       not null unique,
+    created_at  timestamp default now()
 );
 
 CREATE TABLE tags
