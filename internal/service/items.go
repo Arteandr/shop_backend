@@ -125,25 +125,21 @@ func (s *ItemsService) GetBySku(sku string) (models.Item, error) {
 }
 
 func (s *ItemsService) GetByCategory(categoryId int) ([]models.Item, error) {
-	items, err := s.repo.GetByCategory(categoryId)
+	var items []models.Item
+	ids, err := s.repo.GetByCategory(categoryId)
 	if err != nil {
-		return []models.Item{}, err
+		return nil, err
 	}
 
-	for i, item := range items {
-		colors, err := s.repo.GetColors(item.Id)
+	for _, id := range ids {
+		item, err := s.repo.GetById(id)
 		if err != nil {
-			return []models.Item{}, err
+			return nil, err
 		}
-		tags, err := s.repo.GetTags(item.Id)
-		if err != nil {
-			return []models.Item{}, err
-		}
-		items[i].Colors = colors
-		items[i].Tags = tags
+		items = append(items, item)
 	}
 
-	return items, nil
+	return items, err
 }
 
 func (s *ItemsService) GetByTag(tag string) ([]models.Item, error) {

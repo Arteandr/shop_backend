@@ -76,14 +76,14 @@ func (r *ItemsRepo) GetBySku(sku string) (models.Item, error) {
 	return item, nil
 }
 
-func (r *ItemsRepo) GetByCategory(categoryId int) ([]models.Item, error) {
-	var items []models.Item
-	query := fmt.Sprintf("SELECT * FROM %s WHERE category_id=$1;", itemsTable)
-	if err := r.db.Select(&items, query, categoryId); err != nil {
-		return []models.Item{}, err
+func (r *ItemsRepo) GetByCategory(categoryId int) ([]int, error) {
+	var ids []int
+	query := fmt.Sprintf("SELECT I.id FROM %s AS I WHERE category_id=$1;", itemsTable)
+	if err := r.db.Select(&ids, query, categoryId); err != nil {
+		return nil, err
 	}
 
-	return items, nil
+	return ids, nil
 }
 
 func (r *ItemsRepo) GetByTag(tag string) ([]models.Item, error) {

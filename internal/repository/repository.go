@@ -49,7 +49,7 @@ type Items interface {
 	GetNew(limit int) ([]int, error)
 	GetById(itemId int) (models.Item, error)
 	GetBySku(sku string) (models.Item, error)
-	GetByCategory(categoryId int) ([]models.Item, error)
+	GetByCategory(categoryId int) ([]int, error)
 	GetByTag(tag string) ([]models.Item, error)
 	GetColors(itemId int) ([]models.Color, error)
 	GetTags(itemId int) ([]models.Tag, error)
