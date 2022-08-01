@@ -304,8 +304,7 @@ func (h *Handler) deleteItem(ctx *gin.Context) {
 		return
 	}
 
-	err = h.services.Items.Delete(itemId)
-	if err != nil {
+	if err := h.services.Items.Delete(itemId); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}

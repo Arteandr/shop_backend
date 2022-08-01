@@ -19,7 +19,10 @@ const (
 type Images interface {
 	Upload(filename string) (int, error)
 	GetAll() ([]models.Image, error)
+	GetById(imageId int) (models.Image, error)
 	Exist(imageId int) (bool, error)
+	Delete(imageId int) error
+	DeleteFromItems(imageId int) error
 }
 
 type Colors interface {

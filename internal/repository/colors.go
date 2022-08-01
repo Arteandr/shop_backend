@@ -45,8 +45,8 @@ func (r *ColorsRepo) Delete(colorId int) error {
 
 func (r *ColorsRepo) DeleteFromItems(colorId int) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE color_id=$1;", itemsColorsTable)
-	resp, err := r.db.Exec(query, colorId)
-	fmt.Println(resp.RowsAffected())
+	_, err := r.db.Exec(query, colorId)
+
 	return err
 }
 

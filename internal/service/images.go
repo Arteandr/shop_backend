@@ -60,6 +60,23 @@ func (s *ImagesService) saveFile(file *multipart.FileHeader, dst string) error {
 	return err
 }
 
+func (s *ImagesService) Delete(imageId int) error {
+	image, err := s.repo.GetById(imageId)
+	if err != nil {
+		return err
+	}
+
+	if err := os.Remove("./files/" + image.Filename); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+
+	if err := s.repo.Delete(imageId); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *ImagesService) GetAll() ([]models.Image, error) {
 	return s.repo.GetAll()
 }

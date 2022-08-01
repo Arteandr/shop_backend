@@ -26,6 +26,16 @@ func (r *ImagesRepo) Upload(filename string) (int, error) {
 	return id, nil
 }
 
+func (r *ImagesRepo) GetById(imageId int) (models.Image, error) {
+	var image models.Image
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", imagesTable)
+	if err := r.db.QueryRow(query, imageId).Scan(&image.Id, &image.Filename, &image.CreatedAt); err != nil {
+		return models.Image{}, err
+	}
+
+	return image, nil
+}
+
 func (r *ImagesRepo) GetAll() ([]models.Image, error) {
 	var images []models.Image
 	query := fmt.Sprintf("SELECT * FROM %s ORDER BY created_at DESC;", imagesTable)
@@ -45,4 +55,18 @@ func (r *ImagesRepo) Exist(imageId int) (bool, error) {
 	}
 
 	return exist, nil
+}
+
+func (r *ImagesRepo) Delete(imageId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1;", imagesTable)
+	_, err := r.db.Exec(query, imageId)
+
+	return err
+}
+
+func (r *ImagesRepo) DeleteFromItems(imageId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE image_id=$1;", itemsImagesTable)
+	_, err := r.db.Exec(query, imageId)
+
+	return err
 }
