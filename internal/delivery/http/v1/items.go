@@ -137,6 +137,16 @@ func (h *Handler) getNewItems(ctx *gin.Context) {
 		return
 	}
 
+	for i := range items {
+		category, err := h.services.Categories.GetById(items[i].Category.Id)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+			return
+		}
+
+		items[i].Category = category
+	}
+
 	ctx.JSON(http.StatusOK, items)
 }
 
