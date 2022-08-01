@@ -249,6 +249,14 @@ func (h *Handler) getItemBySku(ctx *gin.Context) {
 		return
 	}
 
+	category, err := h.services.Categories.GetById(item.Category.Id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	item.Category = category
+
 	ctx.JSON(http.StatusOK, item)
 }
 

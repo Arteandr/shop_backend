@@ -121,6 +121,15 @@ func (s *ItemsService) GetBySku(sku string) (models.Item, error) {
 	}
 	item.Tags = tags
 
+	images, err := s.repo.GetImages(item.Id)
+	if err != nil {
+		return models.Item{}, err
+	}
+	for i := range images {
+		images[i].Filename = "/files/" + images[i].Filename
+	}
+	item.Images = images
+
 	return item, nil
 }
 

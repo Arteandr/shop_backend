@@ -69,7 +69,7 @@ func (r *ItemsRepo) GetById(itemId int) (models.Item, error) {
 func (r *ItemsRepo) GetBySku(sku string) (models.Item, error) {
 	var item models.Item
 	query := fmt.Sprintf("SELECT * FROM %s where sku=$1;", itemsTable)
-	if err := r.db.QueryRow(query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku); err != nil {
+	if err := r.db.QueryRow(query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku, &item.CreatedAt); err != nil {
 		return models.Item{}, err
 	}
 
