@@ -21,6 +21,13 @@ func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 	}
 }
 
+type createColor struct {
+	Id    int      `json:"id,omitempty"`
+	Name  string   `json:"name" binding:"required"`
+	Hex   string   `json:"hex" binding:"required"`
+	Price *float64 `json:"price" binding:"required"`
+}
+
 // @Summary Create a new color
 // @Tags colors-actions
 // @Description create a new color
@@ -32,13 +39,13 @@ func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 // @Failure 500 {object} ErrorResponse
 // @Router /colors/create [post]
 func (h *Handler) createColor(ctx *gin.Context) {
-	var color models.Color
+	var color createColor
 	if err := ctx.BindJSON(&color); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	colorId, err := h.services.Colors.Create(color.Name, color.Hex, color.Price)
+	colorId, err := h.services.Colors.Create(color.Name, color.Hex, *color.Price)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
