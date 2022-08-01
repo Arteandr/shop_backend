@@ -189,6 +189,16 @@ func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 		return
 	}
 
+	category, err := h.services.Categories.GetById(categoryId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	for i := range items {
+		items[i].Category = category
+	}
+
 	ctx.JSON(http.StatusOK, items)
 }
 

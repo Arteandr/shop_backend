@@ -136,6 +136,27 @@ func (s *ItemsService) GetByCategory(categoryId int) ([]models.Item, error) {
 		if err != nil {
 			return nil, err
 		}
+		colors, err := s.repo.GetColors(item.Id)
+		if err != nil {
+			return nil, err
+		}
+		item.Colors = colors
+
+		tags, err := s.repo.GetTags(item.Id)
+		if err != nil {
+			return nil, err
+		}
+		item.Tags = tags
+
+		images, err := s.repo.GetImages(item.Id)
+		if err != nil {
+			return nil, err
+		}
+		for i := range images {
+			images[i].Filename = "/files/" + images[i].Filename
+		}
+		item.Images = images
+
 		items = append(items, item)
 	}
 

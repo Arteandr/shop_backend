@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
@@ -57,7 +58,7 @@ func (r *CategoriesRepo) GetAll() ([]models.Category, error) {
 func (r *CategoriesRepo) GetById(categoryId int) (models.Category, error) {
 	var category models.Category
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", categoriesTable)
-	if err := r.db.QueryRow(query, categoryId).Scan(&category.Id, &category.Name); err != nil {
+	if err := r.db.QueryRow(query, categoryId).Scan(&category.Id, &category.Name); err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return models.Category{}, err
 	}
 	fmt.Println(category)
