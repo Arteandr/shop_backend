@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 )
@@ -75,7 +74,6 @@ func (s *ItemsService) LinkTags(itemId int, tags []string) error {
 func (s *ItemsService) GetById(itemId int) (models.Item, error) {
 	item, err := s.repo.GetById(itemId)
 	if err != nil {
-		fmt.Println("err", err.Error())
 		return models.Item{}, err
 	}
 
@@ -173,25 +171,42 @@ func (s *ItemsService) GetByCategory(categoryId int) ([]models.Item, error) {
 }
 
 func (s *ItemsService) GetByTag(tag string) ([]models.Item, error) {
-	items, err := s.repo.GetByTag(tag)
+	var items []models.Item
+	ids, err := s.repo.GetByTag(tag)
 	if err != nil {
-		return []models.Item{}, err
+		return nil, err
 	}
 
-	for i, item := range items {
+	for _, id := range ids {
+		item, err := s.repo.GetById(id)
+		if err != nil {
+			return nil, err
+		}
 		colors, err := s.repo.GetColors(item.Id)
 		if err != nil {
-			return []models.Item{}, err
+			return nil, err
 		}
+		item.Colors = colors
+
 		tags, err := s.repo.GetTags(item.Id)
 		if err != nil {
-			return []models.Item{}, err
+			return nil, err
 		}
-		items[i].Colors = colors
-		items[i].Tags = tags
+		item.Tags = tags
+
+		images, err := s.repo.GetImages(item.Id)
+		if err != nil {
+			return nil, err
+		}
+		for i := range images {
+			images[i].Filename = "/files/" + images[i].Filename
+		}
+		item.Images = images
+
+		items = append(items, item)
 	}
 
-	return items, nil
+	return items, err
 }
 
 func (s *ItemsService) Delete(itemId int) error {

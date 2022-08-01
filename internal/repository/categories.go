@@ -61,7 +61,6 @@ func (r *CategoriesRepo) GetById(categoryId int) (models.Category, error) {
 	if err := r.db.QueryRow(query, categoryId).Scan(&category.Id, &category.Name); err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return models.Category{}, err
 	}
-	fmt.Println(category)
 
 	return category, nil
 }

@@ -163,6 +163,14 @@ func (h *Handler) getItemById(ctx *gin.Context) {
 		return
 	}
 
+	category, err := h.services.Categories.GetById(item.Category.Id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	item.Category = category
+
 	ctx.JSON(http.StatusOK, item)
 }
 
@@ -212,16 +220,24 @@ func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 // @Failure 400 {object} ErrorResponse
 // @Router /items/tag/{id} [get]
 func (h *Handler) getItemsByTag(ctx *gin.Context) {
-	tag := ctx.Param("id")
+	tag := ctx.Param("name")
 	if len(tag) < 1 {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "wrong tag"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("wrong tag %s", tag)})
 		return
 	}
-
 	items, err := h.services.Items.GetByTag(tag)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
+	}
+
+	for i := range items {
+		category, err := h.services.Categories.GetById(items[i].Category.Id)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+			return
+		}
+		items[i].Category = category
 	}
 
 	ctx.JSON(http.StatusOK, items)

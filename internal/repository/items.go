@@ -86,14 +86,14 @@ func (r *ItemsRepo) GetByCategory(categoryId int) ([]int, error) {
 	return ids, nil
 }
 
-func (r *ItemsRepo) GetByTag(tag string) ([]models.Item, error) {
-	var items []models.Item
-	query := fmt.Sprintf("SELECT items.id,items.name,items.description,items.category_id,items.price,items.sku FROM %s,%s WHERE %s.name = $1 AND %s.id = %s.item_id;", itemsTable, tagsTable, tagsTable, itemsTable, tagsTable)
-	if err := r.db.Select(&items, query, tag); err != nil {
-		return []models.Item{}, err
+func (r *ItemsRepo) GetByTag(tag string) ([]int, error) {
+	var ids []int
+	query := fmt.Sprintf("SELECT I.id FROM %s AS I, %s AS T WHERE T.name = $1 AND I.id = T.item_id;", itemsTable, tagsTable)
+	if err := r.db.Select(&ids, query, tag); err != nil {
+		return nil, err
 	}
 
-	return items, nil
+	return ids, nil
 }
 
 func (r *ItemsRepo) GetColors(itemId int) ([]models.Color, error) {

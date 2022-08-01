@@ -50,7 +50,7 @@ type Items interface {
 	GetById(itemId int) (models.Item, error)
 	GetBySku(sku string) (models.Item, error)
 	GetByCategory(categoryId int) ([]int, error)
-	GetByTag(tag string) ([]models.Item, error)
+	GetByTag(tag string) ([]int, error)
 	GetColors(itemId int) ([]models.Color, error)
 	GetTags(itemId int) ([]models.Tag, error)
 	GetImages(itemId int) ([]models.Image, error)
