@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"shop_backend/internal/models"
 	"strconv"
 )
 
@@ -54,13 +53,19 @@ func (h *Handler) createColor(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, CreateColorResult{ColorId: colorId})
 }
 
+type updateColorInput struct {
+	Name  string   `json:"name" binding:"required" db:"name"`
+	Hex   string   `json:"hex" binding:"required" db:"hex"`
+	Price *float64 `json:"price" binding:"required" db:"price"`
+}
+
 // @Summary Update color
 // @Tags colors-actions
 // @Description update color
 // @Accept json
 // @Produce json
 // @Param id path int true "color id"
-// @Param input body models.Color true "input body"
+// @Param input body updateColorInput true "input body"
 // @Success 200 ""
 // @Failure 400,404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
@@ -73,7 +78,7 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 		return
 	}
 
-	var color models.Color
+	var color updateColorInput
 	if err := ctx.BindJSON(&color); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "wrong input body"})
 		return
@@ -87,7 +92,7 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.services.Colors.Update(colorId, color.Name, color.Hex, color.Price); err != nil {
+	if err := h.services.Colors.Update(colorId, color.Name, color.Hex, *color.Price); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
