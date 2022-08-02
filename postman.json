@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "d56b85c9-333e-459c-bc62-e494aca69c0c",
+		"_postman_id": "deb372ae-ab91-4701-8e4d-3e63c4591d37",
 		"name": "Shop",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -9,13 +9,34 @@
 			"name": "colors",
 			"item": [
 				{
+					"name": "get all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/v1/colors/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"v1",
+								"colors",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "create",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"red\",\n    \"hex\": \"#fff\",\n    \"price\": 24.2\n}",
+							"raw": "{\n    \"name\": \"red\",\n    \"hex\": \"#fff\",\n    \"price\": 0\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -44,14 +65,13 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8000/api/v1/colors/addToItems/5",
+							"raw": "http://localhost:8000/v1/colors/addToItems/5",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8000",
 							"path": [
-								"api",
 								"v1",
 								"colors",
 								"addToItems",
@@ -62,22 +82,30 @@
 					"response": []
 				},
 				{
-					"name": "delete",
+					"name": "update",
 					"request": {
-						"method": "DELETE",
+						"method": "PUT",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"orange\",\n    \"hex\": \"#BUBA\",\n    \"price\": 10\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "http://localhost:8000/api/v1/colors/2",
+							"raw": "http://localhost:8000/v1/colors/3",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8000",
 							"path": [
-								"api",
 								"v1",
 								"colors",
-								"2"
+								"3"
 							]
 						}
 					},
@@ -107,21 +135,12 @@
 					"response": []
 				},
 				{
-					"name": "update",
+					"name": "delete",
 					"request": {
-						"method": "PUT",
+						"method": "DELETE",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"orange\",\n    \"hex\": \"#BUBA\",\n    \"price\": 22341.25\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
-							"raw": "http://localhost:8000/api/v1/colors/3",
+							"raw": "http://localhost:8000/api/v1/colors/2",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -131,29 +150,7 @@
 								"api",
 								"v1",
 								"colors",
-								"3"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "get all",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8000/api/v1/colors/",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"api",
-								"v1",
-								"colors",
-								""
+								"2"
 							]
 						}
 					},
@@ -165,13 +162,128 @@
 			"name": "items",
 			"item": [
 				{
+					"name": "get by id",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"новая лодочка\",\n    \"description\": \"описание для новой лодочки\",\n    \"categoryId\": 1,\n    \"colors\": [2],\n    \"price\": 241.24,\n    \"sku\": \"232329\",\n    \"tags\": [\"tag2\"],\n    \"images\": [2, 1]\n    \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8000/v1/items/12",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"v1",
+								"items",
+								"12"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get by sku",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8000/v1/items/sku/416",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"v1",
+								"items",
+								"sku",
+								"416"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get by category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8000/v1/items/category/1",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"v1",
+								"items",
+								"category",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get by tag",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8000/v1/items/tag/tag2",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"v1",
+								"items",
+								"tag",
+								"tag2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get new",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8000/v1/items/new",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"v1",
+								"items",
+								"new"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "create",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"новая лодочка\",\n    \"description\": \"описание для новой лодочки\",\n    \"categoryId\": 1,\n    \"colors\": [2],\n    \"price\": 241.24,\n    \"sku\": \"232329\",\n    \"tags\": [\"tag2\"],\n    \"images\": [2, 1]\n    \n}",
+							"raw": "{\n    \"name\": \"новая лодочка 5\",\n    \"description\": \"описание для новой лодочки\",\n    \"categoryId\": 1,\n    \"colors\": [2],\n    \"price\": 241.24,\n    \"sku\": \"4221226\",\n    \"tags\": [\"tag2\"],\n    \"images\": [2, 1]\n    \n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -195,13 +307,21 @@
 					"response": []
 				},
 				{
-					"name": "get by id",
+					"name": "update",
 					"request": {
-						"method": "GET",
+						"method": "PUT",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"new boat\",\n    \"description\": \"description\",\n    \"categoryId\": 6,\n    \"colors\": [3,1],\n    \"price\": 2242.02,\n    \"sku\": \"newsku\",\n    \"images\": [3]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "http://localhost:8000/v1/items/3",
-							"protocol": "http",
+							"raw": "localhost:8000/v1/items/4",
 							"host": [
 								"localhost"
 							],
@@ -209,53 +329,7 @@
 							"path": [
 								"v1",
 								"items",
-								"3"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "get by sku",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8000/api/v1/items/sku/F23d22",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"api",
-								"v1",
-								"items",
-								"sku",
-								"F23d22"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "get by category",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8000/api/v1/items/category/2",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"api",
-								"v1",
-								"items",
-								"category",
-								"2"
+								"4"
 							]
 						}
 					},
@@ -295,7 +369,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Лодки\" \n}",
+							"raw": "{\n    \"name\": \"Лодки2223\" \n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -382,7 +456,7 @@
 								{
 									"key": "photo",
 									"type": "file",
-									"src": "/Users/user/Desktop/1.png"
+									"src": "/home/hwndrer/files/XVlBzgbaiCMRAjWw.jpg"
 								}
 							]
 						},
