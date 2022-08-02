@@ -57,7 +57,11 @@ type Items interface {
 	GetColors(itemId int) ([]models.Color, error)
 	GetTags(itemId int) ([]models.Tag, error)
 	GetImages(itemId int) ([]models.Image, error)
+	Update(itemId int, name, description string, categoryId int, price float64, sku string) error
 	Delete(itemId int) error
+	DeleteTags(itemId int) error
+	DeleteImages(itemId int) error
+	DeleteColors(itemId int) error
 	Exist(itemId int) (bool, error)
 }
 

@@ -126,8 +126,36 @@ func (r *ItemsRepo) GetImages(itemId int) ([]models.Image, error) {
 	return images, nil
 }
 
+func (r *ItemsRepo) Update(itemId int, name, description string, categoryId int, price float64, sku string) error {
+	query := fmt.Sprintf("UPDATE %s SET name=$1,description=$2,category_id=$3,price=$4,sku=$5 WHERE id=$6;", itemsTable)
+	_, err := r.db.Exec(query, name, description, categoryId, price, sku, itemId)
+
+	return err
+}
+
 func (r *ItemsRepo) Delete(itemId int) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", itemsTable)
+	_, err := r.db.Exec(query, itemId)
+
+	return err
+}
+
+func (r *ItemsRepo) DeleteTags(itemId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE item_id=$1;", tagsTable)
+	_, err := r.db.Exec(query, itemId)
+
+	return err
+}
+
+func (r *ItemsRepo) DeleteImages(itemId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE item_id=$1;", itemsImagesTable)
+	_, err := r.db.Exec(query, itemId)
+
+	return err
+}
+
+func (r *ItemsRepo) DeleteColors(itemId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE item_id=$1;", itemsColorsTable)
 	_, err := r.db.Exec(query, itemId)
 
 	return err

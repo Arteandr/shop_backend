@@ -37,6 +37,7 @@ type Categories interface {
 
 type Items interface {
 	Create(name, description string, categoryId int, sku string, price float64) (int, error)
+	Update(id int, name, description string, categoryId int, tags []string, colorsId []int, price float64, sku string, imagesId []int) error
 	LinkColor(itemId int, colorId int) error
 	LinkTags(itemId int, tags []string) error
 	LinkImages(itemId int, imagesId []int) error
