@@ -3,4 +3,4 @@ migrate_up:
 migrate_down:
 	migrate -path ./schema -database 'postgres://admin:pgsqlpassword@localhost:5433/shop?sslmode=disable' down
 up:
-	docker-compose down && docker-compose build && docker-compose up -d
+	 docker-compose build && docker-compose down && docker-compose up -d
