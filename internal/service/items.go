@@ -234,6 +234,46 @@ func (s *ItemsService) GetByTag(tag string) ([]models.Item, error) {
 	return items, err
 }
 
+func (s *ItemsService) Update(id int, name, description string, categoryId int, tags []string, colorsId []int, price float64, sku string, imagesId []int) error {
+	if err := s.repo.Update(id, name, description, categoryId, price, sku); err != nil {
+		return err
+	}
+
+	// Update tags
+	if err := s.repo.DeleteTags(id); err != nil {
+		return err
+	}
+	if len(tags) > 0 {
+		for _, tag := range tags {
+			if err := s.repo.LinkTag(id, tag); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Update colors
+	if err := s.repo.DeleteColors(id); err != nil {
+		return err
+	}
+	for _, colorId := range colorsId {
+		if err := s.repo.LinkColor(id, colorId); err != nil {
+			return err
+		}
+	}
+
+	// Update images
+	if err := s.repo.DeleteImages(id); err != nil {
+		return err
+	}
+	for _, imageId := range imagesId {
+		if err := s.repo.LinkImage(id, imageId); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *ItemsService) Delete(itemId int) error {
 	return s.repo.Delete(itemId)
 }
