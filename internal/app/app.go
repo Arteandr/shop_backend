@@ -74,7 +74,7 @@ func Run(configPath string) {
 		TokenManager:    tokenManager,
 	})
 
-	handlers := delivery.NewHandler(services, cfg)
+	handlers := delivery.NewHandler(services, cfg, tokenManager)
 
 	// HTTP server
 	srv := server.NewServer(cfg, handlers.Init(cfg))

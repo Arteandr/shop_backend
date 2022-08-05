@@ -8,17 +8,20 @@ import (
 	"shop_backend/internal/config"
 	v1 "shop_backend/internal/delivery/http/v1"
 	"shop_backend/internal/service"
+	"shop_backend/pkg/auth"
 )
 
 type Handler struct {
-	services *service.Services
-	cfg      *config.Config
+	services     *service.Services
+	cfg          *config.Config
+	tokenManager auth.TokenManager
 }
 
-func NewHandler(services *service.Services, cfg *config.Config) *Handler {
+func NewHandler(services *service.Services, cfg *config.Config, tokenManager auth.TokenManager) *Handler {
 	return &Handler{
-		services: services,
-		cfg:      cfg,
+		services:     services,
+		cfg:          cfg,
+		tokenManager: tokenManager,
 	}
 }
 
@@ -35,7 +38,7 @@ func (h *Handler) Init(cfg *config.Config) *gin.Engine {
 }
 
 func (h *Handler) InitApi(r *gin.Engine) {
-	handlerV1 := v1.NewHandler(h.services, h.cfg)
+	handlerV1 := v1.NewHandler(h.services, h.cfg, h.tokenManager)
 	api := r.Group("/")
 	{
 		handlerV1.Init(api)
