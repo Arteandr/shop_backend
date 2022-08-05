@@ -26,3 +26,10 @@ CREATE TABLE users_shipping
     user_id    integer references users (id)   not null,
     address_id integer references address (id) not null
 );
+
+CREATE TABLE sessions
+(
+    user_id       integer references users (id) not null,
+    refresh_token varchar(255)                  not null,
+    expires_at    timestamp                     not null
+);
