@@ -52,7 +52,8 @@ func Run(configPath string) {
 		logger.Error("[MIGRATE] " + err.Error())
 		return
 	}
-	if err := m.Up(); err != nil {
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		logger.Error("[MIGRATE] " + err.Error())
 		return
 	}
