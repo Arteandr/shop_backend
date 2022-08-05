@@ -52,7 +52,7 @@ func Run(configPath string) {
 		logger.Error("[MIGRATE] " + err.Error())
 		return
 	}
-	m.Up()
+	m.Steps(4)
 
 	// Hasher
 	hasher := hash.NewSHA1Hasher(cfg.Auth.PasswordSalt)
