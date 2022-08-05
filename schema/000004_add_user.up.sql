@@ -1,9 +1,12 @@
 CREATE TABLE users
 (
-    id       serial primary key not null unique,
-    email    varchar(255)       not null,
-    login    varchar(30)        not null,
-    password varchar(255)       not null
+    id         serial primary key not null unique,
+    email      varchar(255)       not null unique,
+    login      varchar(30)        not null unique,
+    password   varchar(255)       not null,
+    first_name varchar(20),
+    last_name  varchar(20),
+    phone      varchar(13)
 );
 
 CREATE TABLE address
