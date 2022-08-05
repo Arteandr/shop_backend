@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
+	"time"
 )
 
 type UsersRepo struct {
@@ -32,6 +33,21 @@ func (r *UsersRepo) GetByCredentials(ctx context.Context, findBy, login, passwor
 	var user models.User
 	query := fmt.Sprintf("SELECT * FROM %s WHERE %s=$1 AND password=$2;", usersTable, findBy)
 	if err := r.db.QueryRow(query, login, password).Scan(&user.Id, &user.Email, &user.Login, &user.Password); err == sql.ErrNoRows {
+		return models.User{}, models.ErrUserNotFound
+	} else if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
+}
+
+//$1 = refreshToken
+//
+// $2 = time.Now()
+func (r *UsersRepo) GetByRefreshToken(ctx context.Context, refreshToken string) (models.User, error) {
+	var user models.User
+	query := fmt.Sprintf("SELECT U.* FROM %s AS S, %s AS U WHERE S.refresh_token=$1 AND S.expires_at > $2::timestamp AND U.id=S.user_id;", sessionsTable, usersTable)
+	if err := r.db.QueryRow(query, refreshToken, time.Now()).Scan(&user.Id, &user.Email, &user.Login, &user.Password); err == sql.ErrNoRows {
 		return models.User{}, models.ErrUserNotFound
 	} else if err != nil {
 		return models.User{}, err

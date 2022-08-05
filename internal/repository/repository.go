@@ -71,6 +71,7 @@ type Users interface {
 	SetSession(ctx context.Context, userId int, session models.Session) error
 	Create(ctx context.Context, user models.User) (models.User, error)
 	GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error)
+	GetByRefreshToken(ctx context.Context, refreshToken string) (models.User, error)
 }
 
 type Repositories struct {

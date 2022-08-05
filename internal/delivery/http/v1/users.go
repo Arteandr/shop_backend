@@ -15,7 +15,7 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 	{
 		users.POST("/sign-up", h.userSignUp)
 		users.POST("/sign-in", h.userSignIn)
-		users.POST("/refresh")
+		users.POST("/refresh", h.userRefresh)
 	}
 }
 
@@ -156,6 +156,16 @@ type userRefreshInput struct {
 	RefreshToken string `json:"refreshToken" binding:"required"`
 }
 
+// @Summary User Refresh Tokens
+// @Tags users-auth
+// @Description user refresh tokens
+// @Accept  json
+// @Produce  json
+// @Param input body userRefreshInput true "refresh info"
+// @Success 200 {object} models.Tokens
+// @Failure 400,404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/refresh [post]
 func (h *Handler) userRefresh(ctx *gin.Context) {
 	var body userRefreshInput
 	if err := ctx.BindJSON(&body); err != nil {
@@ -163,4 +173,16 @@ func (h *Handler) userRefresh(ctx *gin.Context) {
 		return
 	}
 
+	tokens, err := h.services.Users.RefreshTokens(ctx.Request.Context(), body.RefreshToken)
+	if err != nil {
+		if errors.Is(err, models.ErrUserNotFound) {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+			return
+		}
+
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, tokens)
 }

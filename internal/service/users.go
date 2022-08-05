@@ -93,5 +93,10 @@ func (s *UsersService) createSession(ctx context.Context, userId int) (models.To
 }
 
 func (s *UsersService) RefreshTokens(ctx context.Context, refreshToken string) (models.Tokens, error) {
-	return models.Tokens{}, nil
+	user, err := s.repo.GetByRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return models.Tokens{}, err
+	}
+
+	return s.createSession(ctx, user.Id)
 }
