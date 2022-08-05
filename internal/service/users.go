@@ -19,11 +19,13 @@ type UsersService struct {
 	refreshTokenTTL time.Duration
 }
 
-func NewUsersService(repo repository.Users, hasher hash.PasswordHasher, tokenManager auth.TokenManager) *UsersService {
+func NewUsersService(repo repository.Users, hasher hash.PasswordHasher, tokenManager auth.TokenManager, accessTokenTTL, refreshTokenTTL time.Duration) *UsersService {
 	return &UsersService{
-		repo:         repo,
-		hasher:       hasher,
-		tokenManager: tokenManager,
+		repo:            repo,
+		hasher:          hasher,
+		tokenManager:    tokenManager,
+		accessTokenTTL:  accessTokenTTL,
+		refreshTokenTTL: refreshTokenTTL,
 	}
 }
 
@@ -88,4 +90,8 @@ func (s *UsersService) createSession(ctx context.Context, userId int) (models.To
 	err = s.repo.SetSession(ctx, userId, session)
 
 	return res, err
+}
+
+func (s *UsersService) RefreshTokens(ctx context.Context, refreshToken string) (models.Tokens, error) {
+	return models.Tokens{}, nil
 }

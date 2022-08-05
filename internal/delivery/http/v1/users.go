@@ -15,6 +15,7 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 	{
 		users.POST("/sign-up", h.userSignUp)
 		users.POST("/sign-in", h.userSignIn)
+		users.POST("/refresh")
 	}
 }
 
@@ -149,4 +150,17 @@ func (h *Handler) userSignIn(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, tokens)
+}
+
+type userRefreshInput struct {
+	RefreshToken string `json:"refreshToken" binding:"required"`
+}
+
+func (h *Handler) userRefresh(ctx *gin.Context) {
+	var body userRefreshInput
+	if err := ctx.BindJSON(&body); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
 }

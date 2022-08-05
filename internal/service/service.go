@@ -54,6 +54,7 @@ type Items interface {
 type Users interface {
 	SignUp(ctx context.Context, email, login, password string) (models.User, error)
 	SignIn(ctx context.Context, findBy, login, password string) (models.Tokens, error)
+	RefreshTokens(ctx context.Context, refreshToken string) (models.Tokens, error)
 }
 
 type Services struct {
@@ -78,6 +79,6 @@ func NewServices(deps ServicesDeps) *Services {
 		Categories: NewCategoriesService(deps.Repos.Categories),
 		Colors:     NewColorsService(deps.Repos.Colors),
 		Images:     NewImagesService(deps.Repos.Images),
-		Users:      NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager),
+		Users:      NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL),
 	}
 }
