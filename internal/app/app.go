@@ -17,6 +17,7 @@ import (
 	"shop_backend/internal/repository"
 	"shop_backend/internal/server"
 	"shop_backend/internal/service"
+	"shop_backend/pkg/auth"
 	"shop_backend/pkg/hash"
 	"shop_backend/pkg/logger"
 	"syscall"
@@ -56,6 +57,13 @@ func Run(configPath string) {
 	// Hasher
 	hasher := hash.NewSHA1Hasher(cfg.Auth.PasswordSalt)
 
+	// Token manager
+	tokenManager, err := auth.NewManager(cfg.Auth.JWT.SigningKey)
+	if err != nil {
+		logger.Error("[AUTH] " + err.Error())
+		return
+	}
+
 	// Services and repositories
 	repos := repository.NewRepositories(db)
 	services := service.NewServices(service.ServicesDeps{
@@ -63,6 +71,7 @@ func Run(configPath string) {
 		Hasher:          hasher,
 		AccessTokenTTL:  cfg.Auth.AccessTokenTTL,
 		RefreshTokenTTL: cfg.Auth.RefreshTokenTTL,
+		TokenManager:    tokenManager,
 	})
 
 	handlers := delivery.NewHandler(services, cfg)

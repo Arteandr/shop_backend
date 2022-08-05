@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
 )
@@ -66,10 +67,7 @@ type Items interface {
 }
 
 type Users interface {
-	Create(user models.User) (int, error)
-	GetByCredentials(email, passwordHash string) (models.User, error)
-	GetById(id int) (models.User, error)
-	Exist(email string) bool
+	Create(ctx context.Context, user models.User) (models.User, error)
 }
 
 type Repositories struct {

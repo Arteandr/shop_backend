@@ -1,9 +1,11 @@
 package service
 
 import (
+	"context"
 	"mime/multipart"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
+	"shop_backend/pkg/auth"
 	"shop_backend/pkg/hash"
 	"time"
 )
@@ -50,6 +52,8 @@ type Items interface {
 }
 
 type Users interface {
+	SignUp(ctx context.Context, email, login, password string) (models.User, error)
+	//SignIn(ctx context.Context, login, password string) (models.Tokens, error)
 }
 
 type Services struct {
@@ -63,6 +67,7 @@ type Services struct {
 type ServicesDeps struct {
 	Repos           *repository.Repositories
 	Hasher          hash.PasswordHasher
+	TokenManager    auth.TokenManager
 	AccessTokenTTL  time.Duration
 	RefreshTokenTTL time.Duration
 }
@@ -73,5 +78,6 @@ func NewServices(deps ServicesDeps) *Services {
 		Categories: NewCategoriesService(deps.Repos.Categories),
 		Colors:     NewColorsService(deps.Repos.Colors),
 		Images:     NewImagesService(deps.Repos.Images),
+		Users:      NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager),
 	}
 }
