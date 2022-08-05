@@ -72,6 +72,7 @@ type Users interface {
 	Create(ctx context.Context, user models.User) (models.User, error)
 	GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error)
 	GetByRefreshToken(ctx context.Context, refreshToken string) (models.User, error)
+	GetById(ctx context.Context, userId int) (models.User, error)
 }
 
 type Repositories struct {

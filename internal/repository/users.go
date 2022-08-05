@@ -56,6 +56,18 @@ func (r *UsersRepo) GetByRefreshToken(ctx context.Context, refreshToken string) 
 	return user, nil
 }
 
+func (r *UsersRepo) GetById(ctx context.Context, userId int) (models.User, error) {
+	var user models.User
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", usersTable)
+	if err := r.db.QueryRow(query, userId).Scan(&user.Id, &user.Email, &user.Login, &user.Password); err == sql.ErrNoRows {
+		return models.User{}, models.ErrUserNotFound
+	} else if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
+}
+
 func (r *UsersRepo) SetSession(ctx context.Context, userId int, session models.Session) error {
 	query := fmt.Sprintf("INSERT INTO %s (user_id,refresh_token,expires_at) VALUES ($1,$2,$3);", sessionsTable)
 	_, err := r.db.Exec(query, userId, session.RefreshToken, session.ExpiresAt)

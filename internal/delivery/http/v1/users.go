@@ -16,6 +16,11 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 		users.POST("/sign-up", h.userSignUp)
 		users.POST("/sign-in", h.userSignIn)
 		users.POST("/refresh", h.userRefresh)
+
+		authenticated := users.Group("/", h.userIdentity)
+		{
+			authenticated.GET("/me", h.userGetMe)
+		}
 	}
 }
 
@@ -60,13 +65,13 @@ func (u *userSignUpInput) isValidPassword() error {
 	return nil
 }
 
-// @Summary User SignUp
+// @Summary User sign-up
 // @Tags users-auth
 // @Description create user account
 // @Accept  json
 // @Produce  json
 // @Param input body userSignUpInput true "sign up info"
-// @Success 201 {string} string "ok"
+// @Success 201 {object} models.User
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /users/sign-up [post]
@@ -185,4 +190,36 @@ func (h *Handler) userRefresh(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, tokens)
+}
+
+// @Summary Get current user
+// @Security UsersAuth
+// @Tags users-auth
+// @Description get current user by authentication header
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} models.User
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/me [get]
+func (h *Handler) userGetMe(ctx *gin.Context) {
+	id, err := getIdByContext(ctx, userCtx)
+	fmt.Println(id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	user, err := h.services.Users.GetById(ctx.Request.Context(), id)
+	if err != nil {
+		if errors.Is(err, models.ErrUserNotFound) {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+			return
+		}
+
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
 }

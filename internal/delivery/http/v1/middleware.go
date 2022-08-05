@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shop_backend/internal/models"
+	"strconv"
 	"strings"
 )
 
@@ -48,8 +49,13 @@ func getIdByContext(ctx *gin.Context, context string) (int, error) {
 		return 0, errors.New(context + " not found")
 	}
 
-	id, ok := idFromCtx.(int)
+	idStr, ok := idFromCtx.(string)
 	if !ok {
+		return 0, errors.New(context + " is of invalid type")
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
 		return 0, errors.New(context + " is of invalid type")
 	}
 

@@ -100,3 +100,15 @@ func (s *UsersService) RefreshTokens(ctx context.Context, refreshToken string) (
 
 	return s.createSession(ctx, user.Id)
 }
+
+func (s *UsersService) GetById(ctx context.Context, userId int) (models.User, error) {
+	user, err := s.repo.GetById(ctx, userId)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	// Hide password
+	user.Password = ""
+
+	return user, nil
+}
