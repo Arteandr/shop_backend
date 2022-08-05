@@ -29,7 +29,7 @@ type Colors interface {
 }
 
 type Categories interface {
-	Exist(colorId int) (bool, error)
+	Exist(categoryId int) (bool, error)
 	GetAll() ([]models.Category, error)
 	Create(name string) (int, error)
 	Delete(categoryId int) error

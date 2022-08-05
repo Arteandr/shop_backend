@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shop_backend/internal/models"
@@ -11,6 +12,7 @@ func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 	categories := api.Group("/categories")
 	{
 		categories.GET("/", h.getAllCategories)
+		categories.GET("/:id", h.getCategoryById)
 		categories.POST("/create", h.createCategory)
 		categories.DELETE("/:id", h.deleteCategory)
 	}
@@ -70,6 +72,40 @@ func (h *Handler) deleteCategory(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+// @Summary Get category by id
+// @Tags categories-actions
+// @Description get category by id
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Category
+// @Failure 400,404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /categories/{id} [get]
+func (h *Handler) getCategoryById(ctx *gin.Context) {
+	strCategoryId := ctx.Param("id")
+	categoryId, err := strconv.Atoi(strCategoryId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if exist, err := h.services.Categories.Exist(categoryId); !exist {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: fmt.Sprintf("wrong category %d id", categoryId)})
+		return
+	} else if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	category, err := h.services.Categories.GetById(categoryId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, category)
 }
 
 // @Summary Get all categories
