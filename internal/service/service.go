@@ -53,7 +53,7 @@ type Items interface {
 
 type Users interface {
 	SignUp(ctx context.Context, email, login, password string) (models.User, error)
-	//SignIn(ctx context.Context, login, password string) (models.Tokens, error)
+	SignIn(ctx context.Context, findBy, login, password string) (models.Tokens, error)
 }
 
 type Services struct {

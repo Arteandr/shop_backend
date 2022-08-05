@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"net/mail"
 	"regexp"
+	"shop_backend/internal/models"
 )
 
 func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 	users := api.Group("/users")
 	{
 		users.POST("/sign-up", h.userSignUp)
-		users.POST("/sign-in")
+		users.POST("/sign-in", h.userSignIn)
 	}
 }
 
@@ -23,35 +24,35 @@ type userSignUpInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func (user *userSignUpInput) isValidEmail() error {
-	if _, err := mail.ParseAddress(user.Email); err != nil {
+func (u *userSignUpInput) isValidEmail() error {
+	if _, err := mail.ParseAddress(u.Email); err != nil {
 		return errors.New("wrong email")
 	}
 
 	const emailLength = 30
-	if len(user.Email) > emailLength {
+	if len(u.Email) > emailLength {
 		return errors.New(fmt.Sprintf("email length must not exceed %d characters", emailLength))
 	}
 
 	return nil
 }
 
-func (user *userSignUpInput) isValidLogin() error {
-	if len(user.Login) < 2 || len(user.Login) > 15 {
+func (u *userSignUpInput) isValidLogin() error {
+	if len(u.Login) < 2 || len(u.Login) > 15 {
 		return errors.New("wrong login length")
 	}
 
 	// Include all latin alphabet and numbers 0-9
 	const loginPattern = `^[A-Za-z0-9]+$`
-	if matched, _ := regexp.MatchString(loginPattern, user.Login); !matched {
+	if matched, _ := regexp.MatchString(loginPattern, u.Login); !matched {
 		return errors.New("wrong login")
 	}
 
 	return nil
 }
 
-func (user *userSignUpInput) isValidPassword() error {
-	if len(user.Password) < 6 || len(user.Password) > 16 {
+func (u *userSignUpInput) isValidPassword() error {
+	if len(u.Password) < 6 || len(u.Password) > 16 {
 		return errors.New("wrong password length")
 	}
 
@@ -98,4 +99,45 @@ func (h *Handler) userSignUp(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, user)
+}
+
+type userSignInInput struct {
+	Login    string `json:"login" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+func (u *userSignInInput) loginIsEmail() bool {
+	if _, err := mail.ParseAddress(u.Login); err == nil {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (h *Handler) userSignIn(ctx *gin.Context) {
+	var body userSignInInput
+	if err := ctx.BindJSON(&body); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	var findBy string
+	if body.loginIsEmail() {
+		findBy = "email"
+	} else {
+		findBy = "login"
+	}
+
+	tokens, err := h.services.Users.SignIn(ctx.Request.Context(), findBy, body.Login, body.Password)
+	if err != nil {
+		if errors.Is(err, models.ErrUserNotFound) {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+			return
+		}
+
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, tokens)
 }

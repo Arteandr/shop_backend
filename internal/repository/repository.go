@@ -15,6 +15,7 @@ const (
 	tagsTable        = "tags"
 	imagesTable      = "images"
 	itemsImagesTable = "items_images"
+	sessionsTable    = "sessions"
 )
 
 type Images interface {
@@ -67,7 +68,9 @@ type Items interface {
 }
 
 type Users interface {
+	SetSession(ctx context.Context, userId int, session models.Session) error
 	Create(ctx context.Context, user models.User) (models.User, error)
+	GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error)
 }
 
 type Repositories struct {
