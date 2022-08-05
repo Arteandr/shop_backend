@@ -62,7 +62,6 @@ func (u *userSignUpInput) isValidPassword() error {
 // @Summary User SignUp
 // @Tags users-auth
 // @Description create user account
-// @ModuleID userSignUp
 // @Accept  json
 // @Produce  json
 // @Param input body userSignUpInput true "sign up info"
@@ -114,6 +113,16 @@ func (u *userSignInInput) loginIsEmail() bool {
 	}
 }
 
+// @Summary User SignIn
+// @Tags users-auth
+// @Description login into user account
+// @Accept  json
+// @Produce  json
+// @Param input body userSignInInput true "sign in info"
+// @Success 200 {object} models.Tokens
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/sign-in [post]
 func (h *Handler) userSignIn(ctx *gin.Context) {
 	var body userSignInInput
 	if err := ctx.BindJSON(&body); err != nil {
