@@ -9,15 +9,15 @@ import (
 
 type Handler struct {
 	services     *service.Services
-	tokenManager auth.TokenManager
 	cfg          *config.Config
+	tokenManager auth.TokenManager
 }
 
-func NewHandler(services *service.Services, tokenManager auth.TokenManager, cfg *config.Config) *Handler {
+func NewHandler(services *service.Services, cfg *config.Config, tokenManager auth.TokenManager) *Handler {
 	return &Handler{
 		services:     services,
-		tokenManager: tokenManager,
 		cfg:          cfg,
+		tokenManager: tokenManager,
 	}
 }
 

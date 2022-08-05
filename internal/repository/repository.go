@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
 )
@@ -14,6 +15,7 @@ const (
 	tagsTable        = "tags"
 	imagesTable      = "images"
 	itemsImagesTable = "items_images"
+	sessionsTable    = "sessions"
 )
 
 type Images interface {
@@ -66,10 +68,10 @@ type Items interface {
 }
 
 type Users interface {
-	Create(user models.User) (int, error)
-	GetByCredentials(email, passwordHash string) (models.User, error)
-	GetById(id int) (models.User, error)
-	Exist(email string) bool
+	SetSession(ctx context.Context, userId int, session models.Session) error
+	Create(ctx context.Context, user models.User) (models.User, error)
+	GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error)
+	GetByRefreshToken(ctx context.Context, refreshToken string) (models.User, error)
 }
 
 type Repositories struct {

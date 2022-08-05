@@ -21,10 +21,3 @@ CREATE TABLE tags
     item_id int references items (id) on delete cascade not null,
     name    varchar(255)                                not null
 );
-
-CREATE TABLE users
-(
-    id       serial primary key not null unique,
-    email    varchar(255)       not null unique check ( length(email) > 3 ),
-    password varchar(255)       not null
-);

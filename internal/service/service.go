@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"mime/multipart"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
@@ -51,10 +52,9 @@ type Items interface {
 }
 
 type Users interface {
-	EmailExist(email string) bool
-	SignUp(email, password string) (int, error)
-	SignIn(email, password string) (models.Tokens, error)
-	GetUserById(id int) (models.User, error)
+	SignUp(ctx context.Context, email, login, password string) (models.User, error)
+	SignIn(ctx context.Context, findBy, login, password string) (models.Tokens, error)
+	RefreshTokens(ctx context.Context, refreshToken string) (models.Tokens, error)
 }
 
 type Services struct {
@@ -67,18 +67,18 @@ type Services struct {
 
 type ServicesDeps struct {
 	Repos           *repository.Repositories
-	TokenManager    auth.TokenManager
 	Hasher          hash.PasswordHasher
+	TokenManager    auth.TokenManager
 	AccessTokenTTL  time.Duration
 	RefreshTokenTTL time.Duration
 }
 
 func NewServices(deps ServicesDeps) *Services {
 	return &Services{
-		Users:      NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL),
 		Items:      NewItemsService(deps.Repos.Items),
 		Categories: NewCategoriesService(deps.Repos.Categories),
 		Colors:     NewColorsService(deps.Repos.Colors),
 		Images:     NewImagesService(deps.Repos.Images),
+		Users:      NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL),
 	}
 }

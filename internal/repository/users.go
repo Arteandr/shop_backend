@@ -1,9 +1,12 @@
 package repository
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
+	"time"
 )
 
 type UsersRepo struct {
@@ -16,46 +19,46 @@ func NewUsersRepo(db *sqlx.DB) *UsersRepo {
 	}
 }
 
-func (r *UsersRepo) Create(user models.User) (int, error) {
-	var id int
-	query := fmt.Sprintf("INSERT INTO %s (email, password) VALUES ($1, $2) RETURNING id;", usersTable)
-	row := r.db.QueryRow(query, user.Email, user.Password)
-	if err := row.Scan(&id); err != nil {
-		return 0, err
+func (r *UsersRepo) Create(ctx context.Context, user models.User) (models.User, error) {
+	var newUser models.User
+	query := fmt.Sprintf("INSERT INTO %s (login, email, password) VALUES ($1,$2,$3) RETURNING *;", usersTable)
+	if err := r.db.QueryRow(query, user.Login, user.Email, user.Password).Scan(&newUser.Id, &newUser.Email, &newUser.Login, &newUser.Password); err != nil {
+		return models.User{}, err
 	}
 
-	return id, nil
+	return newUser, nil
 }
 
-func (r *UsersRepo) Exist(email string) bool {
+func (r *UsersRepo) GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error) {
 	var user models.User
-	query := fmt.Sprintf("SELECT * from %s where email=$1;", usersTable)
-	err := r.db.Get(&user, query, email)
-	if err != nil {
-		return false
-	}
-
-	return true
-}
-
-func (r *UsersRepo) GetByCredentials(email, passwordHash string) (models.User, error) {
-	var user models.User
-	query := fmt.Sprintf("SELECT id, email FROM %s WHERE password=$1 and email=$2", usersTable)
-	err := r.db.Get(&user, query, passwordHash, email)
-	if err != nil {
+	query := fmt.Sprintf("SELECT * FROM %s WHERE %s=$1 AND password=$2;", usersTable, findBy)
+	if err := r.db.QueryRow(query, login, password).Scan(&user.Id, &user.Email, &user.Login, &user.Password); err == sql.ErrNoRows {
+		return models.User{}, models.ErrUserNotFound
+	} else if err != nil {
 		return models.User{}, err
 	}
 
 	return user, nil
 }
 
-func (r *UsersRepo) GetById(id int) (models.User, error) {
+//$1 = refreshToken
+//
+// $2 = time.Now()
+func (r *UsersRepo) GetByRefreshToken(ctx context.Context, refreshToken string) (models.User, error) {
 	var user models.User
-	query := fmt.Sprintf("SELECT id, email FROM %s WHERE id=$1", usersTable)
-	err := r.db.Get(&user, query, id)
-	if err != nil {
+	query := fmt.Sprintf("SELECT U.* FROM %s AS S, %s AS U WHERE S.refresh_token=$1 AND S.expires_at > $2::timestamp AND U.id=S.user_id;", sessionsTable, usersTable)
+	if err := r.db.QueryRow(query, refreshToken, time.Now()).Scan(&user.Id, &user.Email, &user.Login, &user.Password); err == sql.ErrNoRows {
+		return models.User{}, models.ErrUserNotFound
+	} else if err != nil {
 		return models.User{}, err
 	}
 
 	return user, nil
+}
+
+func (r *UsersRepo) SetSession(ctx context.Context, userId int, session models.Session) error {
+	query := fmt.Sprintf("INSERT INTO %s (user_id,refresh_token,expires_at) VALUES ($1,$2,$3);", sessionsTable)
+	_, err := r.db.Exec(query, userId, session.RefreshToken, session.ExpiresAt)
+
+	return err
 }

@@ -57,10 +57,10 @@ func Run(configPath string) {
 	// Hasher
 	hasher := hash.NewSHA1Hasher(cfg.Auth.PasswordSalt)
 
-	// JWT token manager
-	manager, err := auth.NewAuthManager(cfg.Auth.JWT.SigningKey)
+	// Token manager
+	tokenManager, err := auth.NewManager(cfg.Auth.JWT.SigningKey)
 	if err != nil {
-		logger.Error(err)
+		logger.Error("[AUTH] " + err.Error())
 		return
 	}
 
@@ -68,13 +68,13 @@ func Run(configPath string) {
 	repos := repository.NewRepositories(db)
 	services := service.NewServices(service.ServicesDeps{
 		Repos:           repos,
-		TokenManager:    manager,
 		Hasher:          hasher,
 		AccessTokenTTL:  cfg.Auth.AccessTokenTTL,
 		RefreshTokenTTL: cfg.Auth.RefreshTokenTTL,
+		TokenManager:    tokenManager,
 	})
 
-	handlers := delivery.NewHandler(services, manager, cfg)
+	handlers := delivery.NewHandler(services, cfg, tokenManager)
 
 	// HTTP server
 	srv := server.NewServer(cfg, handlers.Init(cfg))
