@@ -41,3 +41,17 @@ func (h *Handler) parseAuthHeader(ctx *gin.Context) (string, error) {
 
 	return h.tokenManager.Parse(headerParts[1])
 }
+
+func getIdByContext(ctx *gin.Context, context string) (int, error) {
+	idFromCtx, ok := ctx.Get(context)
+	if !ok {
+		return 0, errors.New(context + " not found")
+	}
+
+	id, ok := idFromCtx.(int)
+	if !ok {
+		return 0, errors.New(context + " is of invalid type")
+	}
+
+	return id, nil
+}
