@@ -39,6 +39,7 @@ func (s *UsersService) SignUp(ctx context.Context, email, login, password string
 		return models.User{}, err
 	}
 
+	// Hide password
 	newUser.Password = ""
 
 	return newUser, err

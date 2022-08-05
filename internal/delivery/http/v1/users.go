@@ -18,6 +18,17 @@ type userSignUpInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
+// @Summary User SignUp
+// @Tags users-auth
+// @Description create user account
+// @ModuleID userSignUp
+// @Accept  json
+// @Produce  json
+// @Param input body userSignUpInput true "sign up info"
+// @Success 201 {string} string "ok"
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/sign-up [post]
 func (h *Handler) userSignUp(ctx *gin.Context) {
 	var body userSignUpInput
 	if err := ctx.BindJSON(&body); err != nil {
@@ -31,5 +42,5 @@ func (h *Handler) userSignUp(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(http.StatusCreated, user)
 }
