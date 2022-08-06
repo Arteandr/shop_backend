@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	"shop_backend/pkg/auth"
@@ -64,6 +65,13 @@ func (s *UsersService) SignIn(ctx context.Context, findBy, login, password strin
 	}
 
 	return s.createSession(ctx, user.Id)
+}
+
+func (s *UsersService) Logout(ctx context.Context, userId int) error {
+	if err := s.repo.DeleteSession(ctx, userId); err != nil && err != sql.ErrNoRows {
+		return err
+	}
+	return nil
 }
 
 func (s *UsersService) createSession(ctx context.Context, userId int) (models.Tokens, error) {

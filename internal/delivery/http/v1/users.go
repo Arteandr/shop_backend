@@ -19,6 +19,7 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 
 		authenticated := users.Group("/", h.userIdentity)
 		{
+			authenticated.POST("/logout", h.userLogout)
 			authenticated.GET("/me", h.userGetMe)
 		}
 	}
@@ -203,14 +204,13 @@ func (h *Handler) userRefresh(ctx *gin.Context) {
 // @Failure 500 {object} ErrorResponse
 // @Router /users/me [get]
 func (h *Handler) userGetMe(ctx *gin.Context) {
-	id, err := getIdByContext(ctx, userCtx)
-	fmt.Println(id)
+	userId, err := getIdByContext(ctx, userCtx)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	user, err := h.services.Users.GetById(ctx.Request.Context(), id)
+	user, err := h.services.Users.GetById(ctx.Request.Context(), userId)
 	if err != nil {
 		if errors.Is(err, models.ErrUserNotFound) {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
@@ -222,4 +222,28 @@ func (h *Handler) userGetMe(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, user)
+}
+
+// @Summary Logout current user
+// @Security UsersAuth
+// @Tags users-auth
+// @Description logout current user by authentication header
+// @Accept  json
+// @Produce  json
+// @Success 200 ""
+// @Failure 500 {object} ErrorResponse
+// @Router /users/logout [post]
+func (h *Handler) userLogout(ctx *gin.Context) {
+	userId, err := getIdByContext(ctx, userCtx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Users.Logout(ctx.Request.Context(), userId); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }
