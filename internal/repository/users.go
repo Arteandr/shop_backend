@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"shop_backend/internal/models"
 	"time"
 )
@@ -130,4 +131,19 @@ func (r *UsersRepo) GetAddress(ctx context.Context, typeof string, userId int) (
 	}
 
 	return address, nil
+}
+
+func (r *UsersRepo) UpdateField(ctx context.Context, field string, value interface{}, userId int) error {
+	query := fmt.Sprintf("UPDATE %s SET %s=$1 WHERE id=$2;", usersTable, field)
+	_, err := r.db.ExecContext(ctx, query, value, userId)
+	pqError, ok := err.(*pq.Error)
+	if ok {
+		if pqError.Code == "23505" {
+			return models.NewErrUniqueValue("email")
+		} else {
+			return err
+		}
+	}
+
+	return err
 }

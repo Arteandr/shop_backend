@@ -137,3 +137,7 @@ func (s *UsersService) GetById(ctx context.Context, userId int) (models.User, er
 
 	return user, nil
 }
+
+func (s *UsersService) UpdateEmail(ctx context.Context, userId int, email string) error {
+	return s.repo.UpdateField(ctx, "email", email, userId)
+}

@@ -1,6 +1,9 @@
 package models
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	ErrEmptyAuthHeader   = errors.New("empty auth header")
@@ -8,3 +11,17 @@ var (
 	ErrUserNotFound      = errors.New("user not found")
 	ErrAddressNotFound   = errors.New("address not found")
 )
+
+type ErrUniqueValue struct {
+	Field string
+}
+
+func (e ErrUniqueValue) Error() string {
+	return fmt.Sprintf("%s already exist", e.Field)
+}
+
+func NewErrUniqueValue(field string) ErrUniqueValue {
+	return ErrUniqueValue{
+		Field: field,
+	}
+}

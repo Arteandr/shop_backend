@@ -78,6 +78,7 @@ type Users interface {
 	GetByRefreshToken(ctx context.Context, refreshToken string) (models.User, error)
 	GetById(ctx context.Context, userId int) (models.User, error)
 	GetAddress(ctx context.Context, typeof string, userId int) (models.Address, error)
+	UpdateField(ctx context.Context, field string, value interface{}, userId int) error
 }
 
 type Repositories struct {

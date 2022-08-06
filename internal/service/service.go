@@ -57,6 +57,7 @@ type Users interface {
 	Logout(ctx context.Context, userId int) error
 	GetById(ctx context.Context, userId int) (models.User, error)
 	RefreshTokens(ctx context.Context, refreshToken string) (models.Tokens, error)
+	UpdateEmail(ctx context.Context, userId int, email string) error
 }
 
 type Services struct {

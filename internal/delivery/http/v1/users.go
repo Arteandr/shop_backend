@@ -21,6 +21,8 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 		{
 			authenticated.POST("/logout", h.userLogout)
 			authenticated.GET("/me", h.userGetMe)
+
+			authenticated.PUT("/email", h.userUpdateEmail)
 		}
 	}
 }
@@ -243,6 +245,65 @@ func (h *Handler) userLogout(ctx *gin.Context) {
 	if err := h.services.Users.Logout(ctx.Request.Context(), userId); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+type userUpdateEmailInput struct {
+	Email string `json:"email" binding:"required"`
+}
+
+func (u *userUpdateEmailInput) isValidEmail() error {
+	if _, err := mail.ParseAddress(u.Email); err != nil {
+		return errors.New("wrong email")
+	}
+
+	const emailLength = 30
+	if len(u.Email) > emailLength {
+		return errors.New(fmt.Sprintf("email length must not exceed %d characters", emailLength))
+	}
+
+	return nil
+}
+
+// @Summary User update email
+// @Tags users-auth
+// @Description update current user email
+// @Accept  json
+// @Produce  json
+// @Param input body userUpdateEmailInput true "email info"
+// @Success 200 ""
+// @Failure 400, 409 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/email [put]
+func (h *Handler) userUpdateEmail(ctx *gin.Context) {
+	var body userUpdateEmailInput
+	if err := ctx.BindJSON(&body); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := body.isValidEmail(); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	userId, err := getIdByContext(ctx, userCtx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Users.UpdateEmail(ctx.Request.Context(), userId, body.Email); err != nil {
+		switch err.(type) {
+		case models.ErrUniqueValue:
+			ctx.AbortWithStatusJSON(http.StatusConflict, ErrorResponse{Error: err.Error()})
+			return
+		default:
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+			return
+		}
 	}
 
 	ctx.Status(http.StatusOK)
