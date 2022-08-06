@@ -99,7 +99,15 @@ func (r *UsersRepo) GetById(ctx context.Context, userId int) (models.User, error
 // $3 = expiresAt
 func (r *UsersRepo) SetSession(ctx context.Context, userId int, session models.Session) error {
 	query := fmt.Sprintf("INSERT INTO %s (user_id,refresh_token,expires_at) VALUES ($1,$2,$3);", sessionsTable)
-	_, err := r.db.Exec(query, userId, session.RefreshToken, session.ExpiresAt)
+	_, err := r.db.ExecContext(ctx, query, userId, session.RefreshToken, session.ExpiresAt)
+
+	return err
+}
+
+// $1 = userId
+func (r *UsersRepo) DeleteSession(ctx context.Context, userId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1;", sessionsTable)
+	_, err := r.db.ExecContext(ctx, query, userId)
 
 	return err
 }

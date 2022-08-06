@@ -69,6 +69,7 @@ type Items interface {
 
 type Users interface {
 	SetSession(ctx context.Context, userId int, session models.Session) error
+	DeleteSession(ctx context.Context, userId int) error
 	Create(ctx context.Context, user models.User) (models.User, error)
 	GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error)
 	GetByRefreshToken(ctx context.Context, refreshToken string) (models.User, error)

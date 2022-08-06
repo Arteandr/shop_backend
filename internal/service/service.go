@@ -54,6 +54,7 @@ type Items interface {
 type Users interface {
 	SignUp(ctx context.Context, email, login, password string) (models.User, error)
 	SignIn(ctx context.Context, findBy, login, password string) (models.Tokens, error)
+	Logout(ctx context.Context, userId int) error
 	GetById(ctx context.Context, userId int) (models.User, error)
 	RefreshTokens(ctx context.Context, refreshToken string) (models.Tokens, error)
 }
