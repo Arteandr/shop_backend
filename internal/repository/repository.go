@@ -7,15 +7,18 @@ import (
 )
 
 const (
-	usersTable       = "users"
-	categoriesTable  = "categories"
-	itemsTable       = "items"
-	colorsTable      = "colors"
-	itemsColorsTable = "items_colors"
-	tagsTable        = "tags"
-	imagesTable      = "images"
-	itemsImagesTable = "items_images"
-	sessionsTable    = "sessions"
+	usersTable         = "users"
+	categoriesTable    = "categories"
+	itemsTable         = "items"
+	colorsTable        = "colors"
+	itemsColorsTable   = "items_colors"
+	tagsTable          = "tags"
+	imagesTable        = "images"
+	itemsImagesTable   = "items_images"
+	sessionsTable      = "sessions"
+	addressTable       = "address"
+	usersInvoiceTable  = "users_invoice"
+	usersShippingTable = "users_shipping"
 )
 
 type Images interface {
@@ -74,6 +77,7 @@ type Users interface {
 	GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error)
 	GetByRefreshToken(ctx context.Context, refreshToken string) (models.User, error)
 	GetById(ctx context.Context, userId int) (models.User, error)
+	GetAddress(ctx context.Context, typeof string, userId int) (models.Address, error)
 }
 
 type Repositories struct {

@@ -6,4 +6,5 @@ var (
 	ErrEmptyAuthHeader   = errors.New("empty auth header")
 	ErrInvalidAuthHeader = errors.New("invalid auth header")
 	ErrUserNotFound      = errors.New("user not found")
+	ErrAddressNotFound   = errors.New("address not found")
 )

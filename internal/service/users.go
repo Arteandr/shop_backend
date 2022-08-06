@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	"shop_backend/pkg/auth"
@@ -113,6 +114,22 @@ func (s *UsersService) GetById(ctx context.Context, userId int) (models.User, er
 	user, err := s.repo.GetById(ctx, userId)
 	if err != nil {
 		return models.User{}, err
+	}
+
+	invoiceAddress, err := s.repo.GetAddress(ctx, "invoice", user.Id)
+	if err != nil && !errors.Is(err, models.ErrAddressNotFound) {
+		return models.User{}, err
+	}
+	if invoiceAddress != (models.Address{}) {
+		user.InvoiceAddress = &invoiceAddress
+	}
+
+	shippingAddress, err := s.repo.GetAddress(ctx, "shipping", user.Id)
+	if err != nil && !errors.Is(err, models.ErrAddressNotFound) {
+		return models.User{}, err
+	}
+	if shippingAddress != (models.Address{}) {
+		user.ShippingAddress = &shippingAddress
 	}
 
 	// Hide password

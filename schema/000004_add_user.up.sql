@@ -13,8 +13,8 @@ CREATE TABLE address
 (
     id      serial primary key not null unique,
     country varchar(255)       not null,
-    street  varchar(255)       not null,
     city    varchar(255)       not null,
+    street  varchar(255)       not null,
     zip     integer            not null
 );
 
