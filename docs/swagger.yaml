@@ -339,6 +339,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Delete category
       tags:
       - categories-actions
@@ -395,6 +397,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
       summary: Create a new category
       tags:
       - categories-actions
@@ -443,6 +448,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Delete colors
       tags:
       - colors-actions
@@ -509,6 +516,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Update color
       tags:
       - colors-actions
@@ -536,6 +545,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Delete color from all items
       tags:
       - colors-actions
@@ -566,6 +577,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Add color to all items
       tags:
       - colors-actions
@@ -596,6 +609,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Create a new color
       tags:
       - colors-actions
@@ -617,6 +632,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Get all images
       tags:
       - images-actions
@@ -645,6 +662,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Upload image
       tags:
       - images-actions
@@ -672,6 +691,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Delete image
       tags:
       - images-actions
@@ -699,6 +720,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Delete item
       tags:
       - items-actions
@@ -761,6 +784,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Update item
       tags:
       - items-actions
@@ -818,6 +843,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: Create a new item
       tags:
       - items-actions
@@ -1150,6 +1177,10 @@ paths:
       tags:
       - users-auth
 securityDefinitions:
+  AdminAuth:
+    in: context
+    name: Admin authorization
+    type: apiKey
   UsersAuth:
     in: header
     name: Authorization

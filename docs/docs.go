@@ -50,6 +50,14 @@ const docTemplate = `{
         },
         "/categories/create": {
             "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
                 "description": "create a new category",
                 "consumes": [
                     "application/json"
@@ -135,6 +143,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "delete category by id",
                 "consumes": [
                     "application/json"
@@ -208,6 +221,11 @@ const docTemplate = `{
         },
         "/colors/all/{id}": {
             "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "Add color by id to all items",
                 "consumes": [
                     "application/json"
@@ -253,6 +271,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "delete color by id from all items",
                 "consumes": [
                     "application/json"
@@ -294,6 +317,11 @@ const docTemplate = `{
         },
         "/colors/create": {
             "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "create a new color",
                 "consumes": [
                     "application/json"
@@ -385,6 +413,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "update color",
                 "consumes": [
                     "application/json"
@@ -439,6 +472,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "delete color by id",
                 "consumes": [
                     "application/json"
@@ -480,6 +518,11 @@ const docTemplate = `{
         },
         "/images/": {
             "get": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "get all images",
                 "consumes": [
                     "application/json"
@@ -510,6 +553,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "upload image",
                 "consumes": [
                     "application/json"
@@ -554,6 +602,11 @@ const docTemplate = `{
         },
         "/images/{id}": {
             "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "delete image by id",
                 "consumes": [
                     "application/json"
@@ -636,6 +689,11 @@ const docTemplate = `{
         },
         "/items/create": {
             "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "create a new item",
                 "consumes": [
                     "application/json"
@@ -841,6 +899,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "update item",
                 "consumes": [
                     "application/json"
@@ -892,6 +955,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "delete item by id",
                 "consumes": [
                     "application/json"
@@ -1757,6 +1825,11 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
+        "AdminAuth": {
+            "type": "apiKey",
+            "name": "Admin authorization",
+            "in": "context"
+        },
         "UsersAuth": {
             "type": "apiKey",
             "name": "Authorization",

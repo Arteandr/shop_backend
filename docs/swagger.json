@@ -43,6 +43,14 @@
         },
         "/categories/create": {
             "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
                 "description": "create a new category",
                 "consumes": [
                     "application/json"
@@ -128,6 +136,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "delete category by id",
                 "consumes": [
                     "application/json"
@@ -201,6 +214,11 @@
         },
         "/colors/all/{id}": {
             "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "Add color by id to all items",
                 "consumes": [
                     "application/json"
@@ -246,6 +264,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "delete color by id from all items",
                 "consumes": [
                     "application/json"
@@ -287,6 +310,11 @@
         },
         "/colors/create": {
             "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "create a new color",
                 "consumes": [
                     "application/json"
@@ -378,6 +406,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "update color",
                 "consumes": [
                     "application/json"
@@ -432,6 +465,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "delete color by id",
                 "consumes": [
                     "application/json"
@@ -473,6 +511,11 @@
         },
         "/images/": {
             "get": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "get all images",
                 "consumes": [
                     "application/json"
@@ -503,6 +546,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "upload image",
                 "consumes": [
                     "application/json"
@@ -547,6 +595,11 @@
         },
         "/images/{id}": {
             "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "delete image by id",
                 "consumes": [
                     "application/json"
@@ -629,6 +682,11 @@
         },
         "/items/create": {
             "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "create a new item",
                 "consumes": [
                     "application/json"
@@ -834,6 +892,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "update item",
                 "consumes": [
                     "application/json"
@@ -885,6 +948,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "delete item by id",
                 "consumes": [
                     "application/json"
@@ -1750,6 +1818,11 @@
         }
     },
     "securityDefinitions": {
+        "AdminAuth": {
+            "type": "apiKey",
+            "name": "Admin authorization",
+            "in": "context"
+        },
         "UsersAuth": {
             "type": "apiKey",
             "name": "Authorization",
