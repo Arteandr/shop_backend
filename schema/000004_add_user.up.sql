@@ -5,8 +5,14 @@ CREATE TABLE users
     login      varchar(30)        not null unique,
     password   varchar(255)       not null,
     first_name varchar(20),
-    last_name  varchar(20),
-    phone      varchar(13)
+    last_name  varchar(20)
+);
+
+CREATE TABLE phone_numbers
+(
+    user_id integer references users (id) not null unique,
+    code    varchar(5),
+    number  varchar(15)
 );
 
 CREATE TABLE address

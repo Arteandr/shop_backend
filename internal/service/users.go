@@ -48,6 +48,10 @@ func (s *UsersService) SignUp(ctx context.Context, email, login, password string
 		return models.User{}, err
 	}
 
+	if err := s.repo.CreatePhone(ctx, newUser.Id); err != nil {
+		return models.User{}, err
+	}
+
 	// Hide password
 	newUser.Password = ""
 
@@ -163,6 +167,38 @@ func (s *UsersService) UpdatePassword(ctx context.Context, userId int, oldPasswo
 	}
 
 	if err := s.repo.UpdateField(ctx, "password", newPasswordHash, userId); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UsersService) UpdateInfo(ctx context.Context, userId int, login, firstName, lastName, phoneCode, phoneNumber string) error {
+	user, err := s.repo.GetById(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	if user.Login != login {
+		if err := s.repo.UpdateField(ctx, "login", login, userId); err != nil {
+			return err
+		}
+	}
+
+	if err := s.repo.UpdateField(ctx, "first_name", firstName, userId); err != nil {
+		return err
+	}
+
+	if err := s.repo.UpdateField(ctx, "last_name", lastName, userId); err != nil {
+		return err
+	}
+
+	phone := models.Phone{
+		Code:   phoneCode,
+		Number: phoneNumber,
+	}
+
+	if err := s.repo.UpdatePhone(ctx, phone, userId); err != nil {
 		return err
 	}
 

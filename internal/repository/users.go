@@ -33,6 +33,13 @@ func (r *UsersRepo) Create(ctx context.Context, user models.User) (models.User, 
 	return newUser, nil
 }
 
+func (r *UsersRepo) CreatePhone(ctx context.Context, userId int) error {
+	query := fmt.Sprintf("INSERT INTO %s (user_id) VALUES ($1);", phonesTable)
+	_, err := r.db.ExecContext(ctx, query, userId)
+
+	return err
+}
+
 // $1 = login
 // $2 = password
 func (r *UsersRepo) GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error) {
@@ -133,17 +140,29 @@ func (r *UsersRepo) GetAddress(ctx context.Context, typeof string, userId int) (
 	return address, nil
 }
 
+// $1 = value
+// $2 = userId
 func (r *UsersRepo) UpdateField(ctx context.Context, field string, value interface{}, userId int) error {
 	query := fmt.Sprintf("UPDATE %s SET %s=$1 WHERE id=$2;", usersTable, field)
 	_, err := r.db.ExecContext(ctx, query, value, userId)
 	pqError, ok := err.(*pq.Error)
 	if ok {
 		if pqError.Code == "23505" {
-			return models.NewErrUniqueValue("email")
+			return models.NewErrUniqueValue(field)
 		} else {
 			return err
 		}
 	}
+
+	return err
+}
+
+// $1 = code
+// $2 = number
+// $3 = userId
+func (r *UsersRepo) UpdatePhone(ctx context.Context, phone models.Phone, userId int) error {
+	query := fmt.Sprintf("UPDATE %s SET code=$1,number=$2 WHERE user_id=$3;", phonesTable)
+	_, err := r.db.ExecContext(ctx, query, phone.Code, phone.Number, userId)
 
 	return err
 }

@@ -19,6 +19,7 @@ const (
 	addressTable       = "address"
 	usersInvoiceTable  = "users_invoice"
 	usersShippingTable = "users_shipping"
+	phonesTable        = "phone_numbers"
 )
 
 type Images interface {
@@ -74,11 +75,13 @@ type Users interface {
 	SetSession(ctx context.Context, userId int, session models.Session) error
 	DeleteSession(ctx context.Context, userId int) error
 	Create(ctx context.Context, user models.User) (models.User, error)
+	CreatePhone(ctx context.Context, userId int) error
 	GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error)
 	GetByRefreshToken(ctx context.Context, refreshToken string) (models.User, error)
 	GetById(ctx context.Context, userId int) (models.User, error)
 	GetAddress(ctx context.Context, typeof string, userId int) (models.Address, error)
 	UpdateField(ctx context.Context, field string, value interface{}, userId int) error
+	UpdatePhone(ctx context.Context, phone models.Phone, userId int) error
 }
 
 type Repositories struct {

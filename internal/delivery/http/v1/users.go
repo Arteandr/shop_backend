@@ -24,6 +24,7 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 
 			authenticated.PUT("/email", h.userUpdateEmail)
 			authenticated.PUT("/password", h.userUpdatePassword)
+			authenticated.PUT("/info", h.userUpdateInfo)
 		}
 	}
 }
@@ -357,6 +358,69 @@ func (h *Handler) userUpdatePassword(ctx *gin.Context) {
 			return
 		}
 
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+type userUpdateInfoInput struct {
+	Login       string `json:"login" binding:"required"`
+	FirstName   string `json:"firstName" binding:"required"`
+	LastName    string `json:"lastName" binding:"required"`
+	PhoneCode   string `json:"phoneCode" binding:"required"`
+	PhoneNumber string `json:"phoneNumber" binding:"required"`
+}
+
+func (u *userUpdateInfoInput) isValidInfo() error {
+	// Check login
+	if len(u.Login) < 2 || len(u.Login) > 15 {
+		return errors.New("wrong login length")
+	}
+	const loginPattern = `^[A-Za-z0-9]+$`
+	if matched, _ := regexp.MatchString(loginPattern, u.Login); !matched {
+		return errors.New("wrong login")
+	}
+	// Check first name
+	if len(u.FirstName) < 1 || len(u.FirstName) > 20 {
+		return errors.New("wrong first name length")
+	}
+	// Check last name
+	if len(u.FirstName) < 1 || len(u.FirstName) > 20 {
+		return errors.New("wrong first name length")
+	}
+	// Check phone code
+	if len(u.PhoneCode) < 1 || len(u.PhoneCode) > 5 {
+		return errors.New("wrong phone code length")
+	}
+	// Check phone number
+	if len(u.PhoneNumber) < 1 || len(u.PhoneNumber) > 15 {
+		return errors.New("wrong phone number length")
+	}
+
+	return nil
+}
+
+func (h *Handler) userUpdateInfo(ctx *gin.Context) {
+	var body userUpdateInfoInput
+	if err := ctx.BindJSON(&body); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := body.isValidInfo(); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	userId, err := getIdByContext(ctx, userCtx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Users.UpdateInfo(ctx, userId, body.Login, body.FirstName, body.LastName, body.PhoneCode, body.PhoneNumber); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
