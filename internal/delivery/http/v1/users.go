@@ -174,7 +174,7 @@ func (h *Handler) userSignIn(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} models.Tokens
-// @Failure 400,404 {object} ErrorResponse
+// @Failure 400,404,401 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /users/refresh [post]
 func (h *Handler) userRefresh(ctx *gin.Context) {
