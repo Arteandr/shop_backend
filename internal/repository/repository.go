@@ -74,6 +74,7 @@ type Items interface {
 type Users interface {
 	SetSession(ctx context.Context, userId int, session models.Session) error
 	DeleteSession(ctx context.Context, userId int) error
+	Delete(ctx context.Context, userId int) error
 	Create(ctx context.Context, user models.User) (models.User, error)
 	CreatePhone(ctx context.Context, userId int) error
 	CreateDefaultAddress(ctx context.Context, table string, userId int) error

@@ -88,6 +88,10 @@ func (s *UsersService) Logout(ctx context.Context, userId int) error {
 	return nil
 }
 
+func (s *UsersService) DeleteMe(ctx context.Context, userId int) error {
+	return s.repo.Delete(ctx, userId)
+}
+
 func (s *UsersService) createSession(ctx context.Context, userId int) (models.Tokens, error) {
 	var (
 		res models.Tokens

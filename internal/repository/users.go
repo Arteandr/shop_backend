@@ -168,6 +168,14 @@ func (r *UsersRepo) DeleteSession(ctx context.Context, userId int) error {
 }
 
 // $1 = userId
+func (r *UsersRepo) Delete(ctx context.Context, userId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1;", usersTable)
+	_, err := r.db.ExecContext(ctx, query, userId)
+
+	return err
+}
+
+// $1 = userId
 func (r *UsersRepo) GetAddress(ctx context.Context, typeof string, userId int) (models.Address, error) {
 	var address models.Address
 	query := fmt.Sprintf("SELECT A.* FROM %s AS A, users_%s as U_A WHERE U_A.user_id=$1 AND U_A.address_id=A.id LIMIT 1;", addressTable, typeof)

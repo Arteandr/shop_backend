@@ -22,6 +22,7 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 		{
 			authenticated.POST("/logout", h.userLogout)
 			authenticated.GET("/me", h.userGetMe)
+			authenticated.DELETE("/me", h.userDeleteMe)
 
 			authenticated.PUT("/email", h.userUpdateEmail)
 			authenticated.PUT("/password", h.userUpdatePassword)
@@ -253,6 +254,8 @@ func (h *Handler) userLogout(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
+
+	ctx.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
 
 	ctx.Status(http.StatusOK)
 }
@@ -492,6 +495,32 @@ func (h *Handler) userUpdateAddress(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
+
+	ctx.Status(http.StatusOK)
+}
+
+// @Summary Delete current user
+// @Security UsersAuth
+// @Tags users-auth
+// @Description Delete current user
+// @Accept  json
+// @Produce  json
+// @Success 200 ""
+// @Failure 500 {object} ErrorResponse
+// @Router /users/me [delete]
+func (h *Handler) userDeleteMe(ctx *gin.Context) {
+	userId, err := getIdByContext(ctx, userCtx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Users.DeleteMe(ctx.Request.Context(), userId); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
 
 	ctx.Status(http.StatusOK)
 }

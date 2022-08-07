@@ -61,6 +61,7 @@ type Users interface {
 	UpdatePassword(ctx context.Context, userId int, oldPassword, newPassword string) error
 	UpdateInfo(ctx context.Context, userId int, login, firstName, lastName, phoneCode, phoneNumber string) error
 	UpdateAddress(ctx context.Context, userId int, different bool, invoiceAddress models.Address, shippingAddress models.Address) error
+	DeleteMe(ctx context.Context, userId int) error
 }
 
 type Services struct {
