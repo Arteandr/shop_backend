@@ -70,7 +70,7 @@ func (r *UsersRepo) LinkAddress(ctx context.Context, table string, userId int, a
 // $2 = password
 func (r *UsersRepo) GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error) {
 	var user models.User
-	query := fmt.Sprintf("SELECT * FROM %s WHERE %s=$1 AND password=$2;", usersTable, findBy)
+	query := fmt.Sprintf("SELECT * FROM %s WHERE %s=$1 AND password=$2 LIMIT 1;", usersTable, findBy)
 	rows, err := r.db.QueryxContext(ctx, query, login, password)
 	if err == sql.ErrNoRows {
 		return models.User{}, models.ErrUserNotFound
@@ -82,6 +82,10 @@ func (r *UsersRepo) GetByCredentials(ctx context.Context, findBy, login, passwor
 		if err := rows.StructScan(&user); err != nil {
 			return models.User{}, err
 		}
+	}
+
+	if user == (models.User{}) {
+		return models.User{}, models.ErrUserNotFound
 	}
 
 	return user, nil
@@ -139,7 +143,6 @@ func (r *UsersRepo) GetPhone(ctx context.Context, userId int) (models.Phone, err
 
 	for rows.Next() {
 		if err := rows.StructScan(&phone); err != nil {
-			fmt.Println("test")
 			return models.Phone{}, err
 		}
 	}
@@ -153,7 +156,6 @@ func (r *UsersRepo) GetPhone(ctx context.Context, userId int) (models.Phone, err
 func (r *UsersRepo) SetSession(ctx context.Context, userId int, session models.Session) error {
 	query := fmt.Sprintf("INSERT INTO %s (user_id,refresh_token,expires_at) VALUES ($1,$2,$3);", sessionsTable)
 	_, err := r.db.ExecContext(ctx, query, userId, session.RefreshToken, session.ExpiresAt)
-
 	return err
 }
 
