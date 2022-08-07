@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -15,6 +16,7 @@ func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 		{
 			admins.POST("/create", h.createCategory)
 			admins.DELETE("/:id", h.deleteCategory)
+			admins.PUT("/:id", h.updateCategory)
 		}
 		categories.GET("/", h.getAllCategories)
 		categories.GET("/:id", h.getCategoryById)
@@ -74,6 +76,67 @@ func (h *Handler) deleteCategory(ctx *gin.Context) {
 	}
 
 	if err := h.services.Categories.Delete(categoryId); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+type updateCategoryInput struct {
+	Name string `json:"name" binding:"required"`
+}
+
+func (u *updateCategoryInput) isValid() error {
+	if len(u.Name) < 1 || len(u.Name) > 15 {
+		return errors.New("wrong name length")
+	}
+
+	return nil
+}
+
+// @Summary Update category
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags categories-actions
+// @Description update category by id
+// @Accept json
+// @Produce json
+// @Param id path int true "category id"
+// @Param input body updateCategoryInput true "name info"
+// @Success 200 ""
+// @Failure 400,404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /categories/{id} [put]
+func (h *Handler) updateCategory(ctx *gin.Context) {
+	var body updateCategoryInput
+	if err := ctx.BindJSON(&body); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := body.isValid(); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	strCategoryId := ctx.Param("id")
+	categoryId, err := strconv.Atoi(strCategoryId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if exist, err := h.services.Categories.Exist(categoryId); err != nil || !exist {
+		if !exist {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: fmt.Sprintf("wrong category id %d", categoryId)})
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Categories.Update(categoryId, body.Name); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}

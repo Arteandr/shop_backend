@@ -48,6 +48,7 @@ type Categories interface {
 	GetAll() ([]models.Category, error)
 	Delete(categoryId int) error
 	GetById(categoryId int) (models.Category, error)
+	Update(category models.Category) error
 }
 
 type Items interface {

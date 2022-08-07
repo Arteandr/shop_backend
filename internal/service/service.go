@@ -31,9 +31,10 @@ type Colors interface {
 type Categories interface {
 	Exist(categoryId int) (bool, error)
 	GetAll() ([]models.Category, error)
+	GetById(categoryId int) (models.Category, error)
 	Create(name string) (int, error)
 	Delete(categoryId int) error
-	GetById(categoryId int) (models.Category, error)
+	Update(categoryId int, name string) error
 }
 
 type Items interface {

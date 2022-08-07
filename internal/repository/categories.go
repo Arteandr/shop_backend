@@ -64,3 +64,12 @@ func (r *CategoriesRepo) GetById(categoryId int) (models.Category, error) {
 
 	return category, nil
 }
+
+// $1 = category.Name
+// $2 = category.Id
+func (r *CategoriesRepo) Update(category models.Category) error {
+	query := fmt.Sprintf("UPDATE %s SET name=$1 WHERE id=$2;", categoriesTable)
+	_, err := r.db.Exec(query, category.Name, category.Id)
+
+	return err
+}

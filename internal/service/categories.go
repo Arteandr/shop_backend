@@ -40,3 +40,12 @@ func (s *CategoriesService) GetAll() ([]models.Category, error) {
 func (s *CategoriesService) GetById(categoryId int) (models.Category, error) {
 	return s.repo.GetById(categoryId)
 }
+
+func (s *CategoriesService) Update(categoryId int, name string) error {
+	category := models.Category{
+		Id:   categoryId,
+		Name: name,
+	}
+
+	return s.repo.Update(category)
+}
