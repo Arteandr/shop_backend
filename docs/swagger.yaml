@@ -98,6 +98,8 @@ definitions:
     type: object
   models.User:
     properties:
+      admin:
+        type: boolean
       email:
         type: string
       firstName:
@@ -925,6 +927,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: User update email
       tags:
       - users-auth
@@ -953,6 +957,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: User update address
       tags:
       - users-auth
@@ -976,6 +982,24 @@ paths:
       tags:
       - users-auth
   /users/me:
+    delete:
+      consumes:
+      - application/json
+      description: Delete current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      summary: Delete current user
+      tags:
+      - users-auth
     get:
       consumes:
       - application/json
@@ -1029,6 +1053,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
       summary: User update password
       tags:
       - users-auth

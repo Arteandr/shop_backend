@@ -933,6 +933,11 @@ const docTemplate = `{
         },
         "/users/email": {
             "put": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "update current user email",
                 "consumes": [
                     "application/json"
@@ -982,6 +987,11 @@ const docTemplate = `{
         },
         "/users/info": {
             "put": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "update current user address",
                 "consumes": [
                     "application/json"
@@ -1092,10 +1102,44 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
+                "description": "Delete current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users-auth"
+                ],
+                "summary": "Delete current user",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/users/password": {
             "put": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
                 "description": "update current user password",
                 "consumes": [
                     "application/json"
@@ -1432,6 +1476,9 @@ const docTemplate = `{
         "models.User": {
             "type": "object",
             "properties": {
+                "admin": {
+                    "type": "boolean"
+                },
                 "email": {
                     "type": "string"
                 },
