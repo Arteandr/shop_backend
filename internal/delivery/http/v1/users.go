@@ -214,7 +214,7 @@ func (h *Handler) userGetMe(ctx *gin.Context) {
 		return
 	}
 
-	user, err := h.services.Users.GetById(ctx.Request.Context(), userId)
+	user, err := h.services.Users.GetMe(ctx.Request.Context(), userId)
 	if err != nil {
 		if errors.Is(err, models.ErrUserNotFound) {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})

@@ -114,7 +114,7 @@ func (s *UsersService) RefreshTokens(ctx context.Context, refreshToken string) (
 	return s.createSession(ctx, user.Id)
 }
 
-func (s *UsersService) GetById(ctx context.Context, userId int) (models.User, error) {
+func (s *UsersService) GetMe(ctx context.Context, userId int) (models.User, error) {
 	user, err := s.repo.GetById(ctx, userId)
 	if err != nil {
 		return models.User{}, err
@@ -134,6 +134,16 @@ func (s *UsersService) GetById(ctx context.Context, userId int) (models.User, er
 	}
 	if shippingAddress != (models.Address{}) {
 		user.ShippingAddress = &shippingAddress
+	}
+
+	phone, err := s.repo.GetPhone(ctx, user.Id)
+	if err != nil {
+		return models.User{}, err
+	}
+	if phone.Code != nil && phone.Number != nil {
+		phoneCode := *phone.Code
+		phoneNumber := *phone.Number
+		user.Phone = phoneCode + phoneNumber
 	}
 
 	// Hide password
@@ -193,12 +203,7 @@ func (s *UsersService) UpdateInfo(ctx context.Context, userId int, login, firstN
 		return err
 	}
 
-	phone := models.Phone{
-		Code:   phoneCode,
-		Number: phoneNumber,
-	}
-
-	if err := s.repo.UpdatePhone(ctx, phone, userId); err != nil {
+	if err := s.repo.UpdatePhone(ctx, phoneCode, phoneNumber, userId); err != nil {
 		return err
 	}
 

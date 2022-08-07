@@ -103,6 +103,25 @@ func (r *UsersRepo) GetById(ctx context.Context, userId int) (models.User, error
 }
 
 // $1 = userId
+func (r *UsersRepo) GetPhone(ctx context.Context, userId int) (models.Phone, error) {
+	var phone models.Phone
+	query := fmt.Sprintf("SELECT code, number FROM %s WHERE user_id=$1;", phonesTable)
+	rows, err := r.db.QueryxContext(ctx, query, userId)
+	if err != nil {
+		return models.Phone{}, err
+	}
+
+	for rows.Next() {
+		if err := rows.StructScan(&phone); err != nil {
+			fmt.Println("test")
+			return models.Phone{}, err
+		}
+	}
+
+	return phone, err
+}
+
+// $1 = userId
 // $2 = refreshToken
 // $3 = expiresAt
 func (r *UsersRepo) SetSession(ctx context.Context, userId int, session models.Session) error {
@@ -160,9 +179,9 @@ func (r *UsersRepo) UpdateField(ctx context.Context, field string, value interfa
 // $1 = code
 // $2 = number
 // $3 = userId
-func (r *UsersRepo) UpdatePhone(ctx context.Context, phone models.Phone, userId int) error {
+func (r *UsersRepo) UpdatePhone(ctx context.Context, phoneCode, phoneNumber string, userId int) error {
 	query := fmt.Sprintf("UPDATE %s SET code=$1,number=$2 WHERE user_id=$3;", phonesTable)
-	_, err := r.db.ExecContext(ctx, query, phone.Code, phone.Number, userId)
+	_, err := r.db.ExecContext(ctx, query, phoneCode, phoneNumber, userId)
 
 	return err
 }

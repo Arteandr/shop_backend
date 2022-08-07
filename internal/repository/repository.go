@@ -79,9 +79,10 @@ type Users interface {
 	GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error)
 	GetByRefreshToken(ctx context.Context, refreshToken string) (models.User, error)
 	GetById(ctx context.Context, userId int) (models.User, error)
+	GetPhone(ctx context.Context, userId int) (models.Phone, error)
 	GetAddress(ctx context.Context, typeof string, userId int) (models.Address, error)
 	UpdateField(ctx context.Context, field string, value interface{}, userId int) error
-	UpdatePhone(ctx context.Context, phone models.Phone, userId int) error
+	UpdatePhone(ctx context.Context, phoneCode, phoneNumber string, userId int) error
 }
 
 type Repositories struct {
