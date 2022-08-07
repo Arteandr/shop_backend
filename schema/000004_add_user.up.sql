@@ -11,7 +11,7 @@ CREATE TABLE users
 
 CREATE TABLE phone_numbers
 (
-    user_id integer references users (id) not null unique,
+    user_id integer references users (id) on delete cascade not null unique,
     code    varchar(5),
     number  varchar(15)
 );
@@ -27,19 +27,19 @@ CREATE TABLE address
 
 CREATE TABLE users_invoice
 (
-    user_id    integer references users (id) not null,
-    address_id integer references address (id)
+    user_id    integer references users (id) on delete cascade not null,
+    address_id integer references address (id) on delete cascade
 );
 
 CREATE TABLE users_shipping
 (
-    user_id    integer references users (id) not null,
-    address_id integer references address (id)
+    user_id    integer references users (id) on delete cascade not null,
+    address_id integer references address (id) on delete cascade
 );
 
 CREATE TABLE sessions
 (
-    user_id       integer references users (id) not null,
-    refresh_token varchar(255)                  not null,
-    expires_at    timestamp                     not null
+    user_id       integer references users (id) on delete cascade not null,
+    refresh_token varchar(255)                                    not null,
+    expires_at    timestamp                                       not null
 );
