@@ -402,6 +402,16 @@ func (u *userUpdateInfoInput) isValidInfo() error {
 	return nil
 }
 
+// @Summary User update info
+// @Tags users-auth
+// @Description update current user info
+// @Accept  json
+// @Produce  json
+// @Param input body userUpdatePasswordInput true "info body"
+// @Success 200 ""
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/info [put]
 func (h *Handler) userUpdateInfo(ctx *gin.Context) {
 	var body userUpdateInfoInput
 	if err := ctx.BindJSON(&body); err != nil {
