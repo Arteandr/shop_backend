@@ -25,6 +25,25 @@ func (h *Handler) userIdentity(ctx *gin.Context) {
 	ctx.Set(userCtx, id)
 }
 
+func (h *Handler) adminIdentify(ctx *gin.Context) {
+	id, err := getIdByContext(ctx, userCtx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	user, err := h.services.Users.GetMe(ctx.Request.Context(), id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if user.Admin != true {
+		ctx.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+}
+
 func (h *Handler) parseAuthHeader(ctx *gin.Context) (string, error) {
 	header := ctx.GetHeader(authorizationHeader)
 	if header == "" {

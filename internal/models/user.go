@@ -10,5 +10,5 @@ type User struct {
 	Phone           string   `json:"phone,omitempty" db:"phone"`
 	InvoiceAddress  *Address `json:"invoiceAddress,omitempty"`
 	ShippingAddress *Address `json:"shippingAddress,omitempty"`
-	Admin           bool     `json:"admin,omitempty" db:"required"`
+	Admin           bool     `json:"admin,omitempty" db:"admin"`
 }
