@@ -10,13 +10,17 @@ import (
 func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 	colors := api.Group("/colors")
 	{
+		admins := colors.Group("/", h.userIdentity, h.adminIdentify)
+		{
+			admins.POST("/all/:id", h.addColorToItems)
+			admins.DELETE("/all/:id", h.deleteColorFromItems)
+			admins.POST("/create", h.createColor)
+			admins.PUT("/:id", h.updateColor)
+			admins.DELETE("/:id", h.deleteColor)
+		}
+
 		colors.GET("/", h.getAllColors)
 		colors.GET("/:id", h.getColorById)
-		colors.POST("/create", h.createColor)
-		colors.POST("/all/:id", h.addColorToItems)
-		colors.DELETE("/all/:id", h.deleteColorFromItems)
-		colors.DELETE("/:id", h.deleteColor)
-		colors.PUT("/:id", h.updateColor)
 	}
 }
 

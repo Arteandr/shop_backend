@@ -7,11 +7,15 @@ import (
 )
 
 func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
-	assets := api.Group("/images")
+	images := api.Group("/images")
 	{
-		assets.POST("/", h.uploadFile)
-		assets.GET("/", h.getAllImages)
-		assets.DELETE("/:id", h.deleteImage)
+		admins := images.Group("/", h.userIdentity, h.adminIdentify)
+		{
+			admins.POST("/", h.uploadFile)
+			admins.GET("/", h.getAllImages)
+			admins.DELETE("/:id", h.deleteImage)
+		}
+
 	}
 }
 

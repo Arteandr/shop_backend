@@ -11,10 +11,13 @@ import (
 func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 	categories := api.Group("/categories")
 	{
+		admins := categories.Group("/", h.userIdentity, h.adminIdentify)
+		{
+			admins.POST("/create", h.createCategory)
+			admins.DELETE("/:id", h.deleteCategory)
+		}
 		categories.GET("/", h.getAllCategories)
 		categories.GET("/:id", h.getCategoryById)
-		categories.POST("/create", h.createCategory)
-		categories.DELETE("/:id", h.deleteCategory)
 	}
 }
 

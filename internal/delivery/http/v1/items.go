@@ -10,14 +10,19 @@ import (
 func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
 	items := api.Group("/items")
 	{
-		items.POST("/create", h.createItem)
+		admins := items.Group("/", h.userIdentity, h.adminIdentify)
+		{
+			admins.POST("/create", h.createItem)
+			admins.PUT("/:id", h.updateItems)
+			admins.DELETE("/:id", h.deleteItem)
+		}
+
 		items.GET("/new", h.getNewItems)
 		items.GET("/:id", h.getItemById)
 		items.GET("/sku/:sku", h.getItemBySku)
 		items.GET("/category/:id", h.getItemsByCategory)
 		items.GET("/tag/:name", h.getItemsByTag)
-		items.PUT("/:id", h.updateItems)
-		items.DELETE("/:id", h.deleteItem)
+
 	}
 }
 
