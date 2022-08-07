@@ -9,15 +9,15 @@ import (
 
 type Handler struct {
 	services     *service.Services
-	tokenManager auth.TokenManager
 	cfg          *config.Config
+	tokenManager auth.TokenManager
 }
 
-func NewHandler(services *service.Services, tokenManager auth.TokenManager, cfg *config.Config) *Handler {
+func NewHandler(services *service.Services, cfg *config.Config, tokenManager auth.TokenManager) *Handler {
 	return &Handler{
 		services:     services,
-		tokenManager: tokenManager,
 		cfg:          cfg,
+		tokenManager: tokenManager,
 	}
 }
 
@@ -25,5 +25,9 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 	v1 := api.Group("/v1")
 	{
 		h.InitUsersRoutes(v1)
+		h.InitItemsRoutes(v1)
+		h.InitColorsRoutes(v1)
+		h.InitCategoriesRoutes(v1)
+		h.InitImagesRoutes(v1)
 	}
 }

@@ -1,10 +1,33 @@
 version: "3.9"
+
 services:
   postgres:
     image: postgres
+    env_file:
+      ./pgsql.env
+    volumes:
+      - $HOME/pgdata:/var/lib/postgresql/data
+  backend:
+    build:
+      context: .
+    container_name: backend
+    image: shop_backend
+    env_file:
+      - ./backend.env
+      - ./pgsql.env
     environment:
-      POSTGRES_DB: "shop"
-      POSTGRES_USER: "admin"
-      POSTGRES_PASSWORD: pgsqlpassword
+      WAIT_HOSTS: postgres:5432
+    depends_on:
+      - postgres
+    volumes:
+      - ${HOME}/files:/app/files
+  nginx:
+    build: "./nginx"
+    container_name: nginx
+    image: shop_nginx
     ports:
-      - "5433:5432"
+      - "80:80"
+    depends_on:
+      - backend
+    volumes:
+      - ${HOME}/files:/var/files

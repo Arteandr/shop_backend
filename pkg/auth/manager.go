@@ -4,20 +4,21 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt"
-	"strconv"
+	"math/rand"
 	"time"
 )
 
 type TokenManager interface {
-	NewJWT(userID int, ttl time.Duration) (string, error)
+	NewJWT(userId string, ttl time.Duration) (string, error)
 	Parse(accessToken string) (string, error)
+	NewRefreshToken() (string, error)
 }
 
 type Manager struct {
 	signingKey string
 }
 
-func NewAuthManager(signingKey string) (*Manager, error) {
+func NewManager(signingKey string) (*Manager, error) {
 	if signingKey == "" {
 		return nil, errors.New("empty signing key")
 	}
@@ -25,19 +26,18 @@ func NewAuthManager(signingKey string) (*Manager, error) {
 	return &Manager{signingKey: signingKey}, nil
 }
 
-func (m *Manager) NewJWT(userID int, ttl time.Duration) (string, error) {
+func (m *Manager) NewJWT(userId string, ttl time.Duration) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(ttl).Unix(),
-		Subject:   strconv.Itoa(userID),
+		Subject:   userId,
 	})
 
 	return token.SignedString([]byte(m.signingKey))
 }
-
 func (m *Manager) Parse(accessToken string) (string, error) {
-	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (i interface{}, err error) {
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method")
 		}
 
 		return []byte(m.signingKey), nil
@@ -52,4 +52,17 @@ func (m *Manager) Parse(accessToken string) (string, error) {
 	}
 
 	return claims["sub"].(string), nil
+}
+
+func (m *Manager) NewRefreshToken() (string, error) {
+	b := make([]byte, 32)
+
+	s := rand.NewSource(time.Now().Unix())
+	r := rand.New(s)
+
+	if _, err := r.Read(b); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", b), nil
 }

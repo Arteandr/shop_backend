@@ -15,38 +15,55 @@ const (
 	userCtx = "userId"
 )
 
-func (h *Handler) userIdentify(c *gin.Context) {
-	id, err := h.parseAuthHeader(c)
+func (h *Handler) userIdentity(ctx *gin.Context) {
+	id, err := h.parseAuthHeader(ctx)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error": err.Error(),
-		})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	c.Set(userCtx, id)
+	ctx.Set(userCtx, id)
 }
 
-func (h *Handler) parseAuthHeader(c *gin.Context) (string, error) {
-	authHeader := c.GetHeader(authorizationHeader)
-	if authHeader == "" {
+func (h *Handler) adminIdentify(ctx *gin.Context) {
+	id, err := getIdByContext(ctx, userCtx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	user, err := h.services.Users.GetMe(ctx.Request.Context(), id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if user.Admin != true {
+		ctx.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+}
+
+func (h *Handler) parseAuthHeader(ctx *gin.Context) (string, error) {
+	header := ctx.GetHeader(authorizationHeader)
+	if header == "" {
 		return "", models.ErrEmptyAuthHeader
 	}
 
-	headerParts := strings.Split(authHeader, " ")
+	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
 		return "", models.ErrInvalidAuthHeader
 	}
 
 	if len(headerParts[1]) == 0 {
-		return "", models.ErrEmptyAuthHeader
+		return "", errors.New("token is empty")
 	}
 
 	return h.tokenManager.Parse(headerParts[1])
 }
 
-func getIdByContext(c *gin.Context, context string) (int, error) {
-	idFromCtx, ok := c.Get(context)
+func getIdByContext(ctx *gin.Context, context string) (int, error) {
+	idFromCtx, ok := ctx.Get(context)
 	if !ok {
 		return 0, errors.New(context + " not found")
 	}
@@ -58,7 +75,7 @@ func getIdByContext(c *gin.Context, context string) (int, error) {
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		return 0, errors.New(context + " convert failed")
+		return 0, errors.New(context + " is of invalid type")
 	}
 
 	return id, nil

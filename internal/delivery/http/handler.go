@@ -13,15 +13,15 @@ import (
 
 type Handler struct {
 	services     *service.Services
-	tokenManager auth.TokenManager
 	cfg          *config.Config
+	tokenManager auth.TokenManager
 }
 
-func NewHandler(services *service.Services, tokenManager auth.TokenManager, cfg *config.Config) *Handler {
+func NewHandler(services *service.Services, cfg *config.Config, tokenManager auth.TokenManager) *Handler {
 	return &Handler{
 		services:     services,
-		tokenManager: tokenManager,
 		cfg:          cfg,
+		tokenManager: tokenManager,
 	}
 }
 
@@ -38,8 +38,8 @@ func (h *Handler) Init(cfg *config.Config) *gin.Engine {
 }
 
 func (h *Handler) InitApi(r *gin.Engine) {
-	handlerV1 := v1.NewHandler(h.services, h.tokenManager, h.cfg)
-	api := r.Group("/api")
+	handlerV1 := v1.NewHandler(h.services, h.cfg, h.tokenManager)
+	api := r.Group("/")
 	{
 		handlerV1.Init(api)
 	}

@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"net/http"
@@ -34,17 +37,34 @@ func Run(configPath string) {
 		cfg.PGSQL.Host, cfg.PGSQL.Port, cfg.PGSQL.User, cfg.PGSQL.Password, cfg.PGSQL.DatabaseName, cfg.PGSQL.SSLMode)
 	db, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
-		logger.Error(err)
+		logger.Error("[DATABASE] " + err.Error())
+		return
+	}
+
+	// Migrations
+	instance, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		logger.Error("[DB INSTANCE] " + err.Error())
+		return
+	}
+	m, err := migrate.NewWithDatabaseInstance("file://./schema", "postgres", instance)
+	if err != nil {
+		logger.Error("[MIGRATE] " + err.Error())
+		return
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		logger.Error("[MIGRATE] " + err.Error())
 		return
 	}
 
 	// Hasher
 	hasher := hash.NewSHA1Hasher(cfg.Auth.PasswordSalt)
 
-	// JWT token manager
-	manager, err := auth.NewAuthManager(cfg.Auth.JWT.SigningKey)
+	// Token manager
+	tokenManager, err := auth.NewManager(cfg.Auth.JWT.SigningKey)
 	if err != nil {
-		logger.Error(err)
+		logger.Error("[AUTH] " + err.Error())
 		return
 	}
 
@@ -52,13 +72,13 @@ func Run(configPath string) {
 	repos := repository.NewRepositories(db)
 	services := service.NewServices(service.ServicesDeps{
 		Repos:           repos,
-		TokenManager:    manager,
 		Hasher:          hasher,
 		AccessTokenTTL:  cfg.Auth.AccessTokenTTL,
 		RefreshTokenTTL: cfg.Auth.RefreshTokenTTL,
+		TokenManager:    tokenManager,
 	})
 
-	handlers := delivery.NewHandler(services, manager, cfg)
+	handlers := delivery.NewHandler(services, cfg, tokenManager)
 
 	// HTTP server
 	srv := server.NewServer(cfg, handlers.Init(cfg))

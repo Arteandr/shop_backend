@@ -27,7 +27,7 @@ type (
 		Password     string
 		DatabaseName string `mapstructure:"dbname"`
 		SSLMode      string `mapstructure:"sslmode"`
-		Port         string `mapstructure:"port"`
+		Port         string
 	}
 
 	AuthConfig struct {
@@ -59,9 +59,15 @@ func Init(configPath string) (*Config, error) {
 
 func setEnv(cfg *Config) {
 	// PostgresSQL connection
-	cfg.PGSQL.Host = os.Getenv("PGSQL_HOST")
-	cfg.PGSQL.User = os.Getenv("PGSQL_USER")
-	cfg.PGSQL.Password = os.Getenv("PGSQL_PASS")
+	cfg.PGSQL.Host = os.Getenv("POSTGRES_HOST")
+	cfg.PGSQL.User = os.Getenv("POSTGRES_USER")
+	cfg.PGSQL.Password = os.Getenv("POSTGRES_PASSWORD")
+	val, ok := os.LookupEnv("POSTGRES_PORT")
+	if !ok {
+		cfg.PGSQL.Port = "5432"
+	} else {
+		cfg.PGSQL.Port = val
+	}
 
 	// JWT
 	cfg.Auth.JWT.SigningKey = os.Getenv("JWT_SIGNING_KEY")

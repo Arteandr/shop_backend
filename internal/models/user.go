@@ -1,7 +1,14 @@
 package models
 
 type User struct {
-	Id       int    `db:"id"`
-	Email    string `db:"email"`
-	Password string `db:"password"`
+	Id              int      `json:"id,omitempty" db:"id"`
+	Login           string   `json:"login" db:"login"`
+	Email           string   `json:"email" db:"email"`
+	Password        string   `json:"password,omitempty" db:"password"`
+	FirstName       *string  `json:"firstName,omitempty" db:"first_name"`
+	LastName        *string  `json:"lastName,omitempty" db:"last_name"`
+	Phone           string   `json:"phone,omitempty" db:"phone"`
+	InvoiceAddress  *Address `json:"invoiceAddress,omitempty"`
+	ShippingAddress *Address `json:"shippingAddress,omitempty"`
+	Admin           bool     `json:"admin,omitempty" db:"admin"`
 }

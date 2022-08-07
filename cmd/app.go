@@ -5,7 +5,7 @@ import "shop_backend/internal/app"
 const configPath = "configs"
 
 // @title FinlandShop API
-// @version 0.1
+// @version 0.5
 // @description API server
 
 // @host localhost:8000
@@ -14,6 +14,10 @@ const configPath = "configs"
 // @securityDefinitions.apikey UsersAuth
 // @in header
 // @name Authorization
+
+// @securityDefinitions.apikey AdminAuth
+// @in context
+// @name Admin authorization
 func main() {
 	app.Run(configPath)
 }
