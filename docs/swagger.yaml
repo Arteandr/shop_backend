@@ -172,6 +172,13 @@ definitions:
     - price
     - sku
     type: object
+  v1.updateCategoryInput:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
   v1.updateColorInput:
     properties:
       hex:
@@ -341,6 +348,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Delete category
       tags:
       - categories-actions
@@ -368,6 +376,45 @@ paths:
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
       summary: Get category by id
+      tags:
+      - categories-actions
+    put:
+      consumes:
+      - application/json
+      description: update category by id
+      parameters:
+      - description: category id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: name info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.updateCategoryInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Update category
       tags:
       - categories-actions
   /categories/create:
@@ -450,6 +497,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Delete colors
       tags:
       - colors-actions
@@ -518,6 +566,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Update color
       tags:
       - colors-actions
@@ -547,6 +596,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Delete color from all items
       tags:
       - colors-actions
@@ -579,6 +629,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Add color to all items
       tags:
       - colors-actions
@@ -611,6 +662,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Create a new color
       tags:
       - colors-actions
@@ -634,6 +686,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Get all images
       tags:
       - images-actions
@@ -664,6 +717,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Upload image
       tags:
       - images-actions
@@ -693,6 +747,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Delete image
       tags:
       - images-actions
@@ -722,6 +777,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Delete item
       tags:
       - items-actions
@@ -786,6 +842,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Update item
       tags:
       - items-actions
@@ -845,6 +902,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
+      - AdminAuth: []
       summary: Create a new item
       tags:
       - items-actions

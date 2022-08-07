@@ -142,10 +142,75 @@ const docTemplate = `{
                     }
                 }
             },
+            "put": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "update category by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categories-actions"
+                ],
+                "summary": "Update category",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "category id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "name info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.updateCategoryInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "delete category by id",
@@ -224,6 +289,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "Add color by id to all items",
@@ -274,6 +342,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "delete color by id from all items",
@@ -320,6 +391,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "create a new color",
@@ -416,6 +490,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "update color",
@@ -475,6 +552,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "delete color by id",
@@ -521,6 +601,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "get all images",
@@ -556,6 +639,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "upload image",
@@ -605,6 +691,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "delete image by id",
@@ -692,6 +781,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "create a new item",
@@ -902,6 +994,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "update item",
@@ -958,6 +1053,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
                     }
                 ],
                 "description": "delete item by id",
@@ -1652,6 +1750,17 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "v1.updateCategoryInput": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
                 }
             }
         },
