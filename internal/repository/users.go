@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"shop_backend/internal/models"
 	"time"
 )
@@ -30,6 +31,39 @@ func (r *UsersRepo) Create(ctx context.Context, user models.User) (models.User, 
 	}
 
 	return newUser, nil
+}
+
+func (r *UsersRepo) CreatePhone(ctx context.Context, userId int) error {
+	query := fmt.Sprintf("INSERT INTO %s (user_id) VALUES ($1);", phonesTable)
+	_, err := r.db.ExecContext(ctx, query, userId)
+
+	return err
+}
+
+func (r *UsersRepo) CreateAddress(ctx context.Context, address models.Address) (models.Address, error) {
+	var newAddress models.Address
+	query := fmt.Sprintf("INSERT INTO %s (country,city,street,zip) VALUES ($1,$2,$3,$4) RETURNING *;", addressTable)
+	rows, err := r.db.QueryxContext(ctx, query, address.Country, address.City, address.Street, address.Zip)
+	if err != nil {
+		return models.Address{}, err
+	}
+
+	for rows.Next() {
+		if err := rows.StructScan(&newAddress); err != nil {
+			return models.Address{}, err
+		}
+	}
+
+	return newAddress, nil
+}
+
+// $1 = addressId
+// $2 = userId
+func (r *UsersRepo) LinkAddress(ctx context.Context, table string, userId int, addressId int) error {
+	query := fmt.Sprintf("UPDATE users_%s SET address_id=$1 WHERE user_id=$2;", table)
+	_, err := r.db.ExecContext(ctx, query, addressId, userId)
+
+	return err
 }
 
 // $1 = login
@@ -95,6 +129,25 @@ func (r *UsersRepo) GetById(ctx context.Context, userId int) (models.User, error
 }
 
 // $1 = userId
+func (r *UsersRepo) GetPhone(ctx context.Context, userId int) (models.Phone, error) {
+	var phone models.Phone
+	query := fmt.Sprintf("SELECT code, number FROM %s WHERE user_id=$1;", phonesTable)
+	rows, err := r.db.QueryxContext(ctx, query, userId)
+	if err != nil {
+		return models.Phone{}, err
+	}
+
+	for rows.Next() {
+		if err := rows.StructScan(&phone); err != nil {
+			fmt.Println("test")
+			return models.Phone{}, err
+		}
+	}
+
+	return phone, err
+}
+
+// $1 = userId
 // $2 = refreshToken
 // $3 = expiresAt
 func (r *UsersRepo) SetSession(ctx context.Context, userId int, session models.Session) error {
@@ -130,4 +183,39 @@ func (r *UsersRepo) GetAddress(ctx context.Context, typeof string, userId int) (
 	}
 
 	return address, nil
+}
+
+// $1 = value
+// $2 = userId
+func (r *UsersRepo) UpdateField(ctx context.Context, field string, value interface{}, userId int) error {
+	query := fmt.Sprintf("UPDATE %s SET %s=$1 WHERE id=$2;", usersTable, field)
+	_, err := r.db.ExecContext(ctx, query, value, userId)
+	pqError, ok := err.(*pq.Error)
+	if ok {
+		if pqError.Code == "23505" {
+			return models.NewErrUniqueValue(field)
+		} else {
+			return err
+		}
+	}
+
+	return err
+}
+
+// $1 = code
+// $2 = number
+// $3 = userId
+func (r *UsersRepo) UpdatePhone(ctx context.Context, phoneCode, phoneNumber string, userId int) error {
+	query := fmt.Sprintf("UPDATE %s SET code=$1,number=$2 WHERE user_id=$3;", phonesTable)
+	_, err := r.db.ExecContext(ctx, query, phoneCode, phoneNumber, userId)
+
+	return err
+}
+
+// $1 = userId
+func (r *UsersRepo) CreateDefaultAddress(ctx context.Context, table string, userId int) error {
+	query := fmt.Sprintf("INSERT INTO users_%s (user_id) VALUES($1);", table)
+	_, err := r.db.ExecContext(ctx, query, userId)
+
+	return err
 }

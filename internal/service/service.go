@@ -55,8 +55,12 @@ type Users interface {
 	SignUp(ctx context.Context, email, login, password string) (models.User, error)
 	SignIn(ctx context.Context, findBy, login, password string) (models.Tokens, error)
 	Logout(ctx context.Context, userId int) error
-	GetById(ctx context.Context, userId int) (models.User, error)
+	GetMe(ctx context.Context, userId int) (models.User, error)
 	RefreshTokens(ctx context.Context, refreshToken string) (models.Tokens, error)
+	UpdateEmail(ctx context.Context, userId int, email string) error
+	UpdatePassword(ctx context.Context, userId int, oldPassword, newPassword string) error
+	UpdateInfo(ctx context.Context, userId int, login, firstName, lastName, phoneCode, phoneNumber string) error
+	UpdateAddress(ctx context.Context, userId int, different bool, invoiceAddress models.Address, shippingAddress models.Address) error
 }
 
 type Services struct {
