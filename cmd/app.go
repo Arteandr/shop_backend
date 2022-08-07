@@ -14,6 +14,10 @@ const configPath = "configs"
 // @securityDefinitions.apikey UsersAuth
 // @in header
 // @name Authorization
+
+// @securityDefinitions.apikey AdminAuth
+// @in context
+// @name Admin authorization
 func main() {
 	app.Run(configPath)
 }
