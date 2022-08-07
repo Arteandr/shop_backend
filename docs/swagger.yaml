@@ -1,5 +1,23 @@
 basePath: /api/v1
 definitions:
+  models.Address:
+    properties:
+      city:
+        type: string
+      country:
+        type: string
+      id:
+        type: integer
+      street:
+        type: string
+      zip:
+        type: integer
+    required:
+    - city
+    - country
+    - street
+    - zip
+    type: object
   models.Category:
     properties:
       id:
@@ -24,18 +42,33 @@ definitions:
     - name
     - price
     type: object
+  models.Image:
+    properties:
+      createdAt:
+        type: string
+      filename:
+        type: string
+      id:
+        type: integer
+    type: object
   models.Item:
     properties:
-      categoryId:
-        type: integer
+      category:
+        $ref: '#/definitions/models.Category'
       colors:
         items:
           $ref: '#/definitions/models.Color'
         type: array
+      createdAt:
+        type: string
       description:
         type: string
       id:
         type: integer
+      images:
+        items:
+          $ref: '#/definitions/models.Image'
+        type: array
       name:
         type: string
       price:
@@ -63,6 +96,27 @@ definitions:
       refreshToken:
         type: string
     type: object
+  models.User:
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: integer
+      invoiceAddress:
+        $ref: '#/definitions/models.Address'
+      lastName:
+        type: string
+      login:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      shippingAddress:
+        $ref: '#/definitions/models.Address'
+    type: object
   v1.CreateCategoryResult:
     properties:
       categoryId:
@@ -78,30 +132,10 @@ definitions:
       error:
         type: string
     type: object
-  v1.SignUpResponse:
+  v1.UploadFileResponse:
     properties:
       id:
         type: integer
-    type: object
-  v1.UserResponse:
-    properties:
-      email:
-        type: string
-      id:
-        type: integer
-    type: object
-  v1.authInput:
-    properties:
-      email:
-        maxLength: 255
-        type: string
-      password:
-        maxLength: 64
-        minLength: 6
-        type: string
-    required:
-    - email
-    - password
     type: object
   v1.createItemInput:
     properties:
@@ -113,6 +147,10 @@ definitions:
         type: array
       description:
         type: string
+      images:
+        items:
+          type: integer
+        type: array
       name:
         type: string
       price:
@@ -127,16 +165,132 @@ definitions:
     - categoryId
     - colors
     - description
+    - images
     - name
     - price
     - sku
+    type: object
+  v1.updateColorInput:
+    properties:
+      hex:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    required:
+    - hex
+    - name
+    - price
+    type: object
+  v1.updateItemInput:
+    properties:
+      categoryId:
+        type: integer
+      colors:
+        items:
+          type: integer
+        type: array
+      description:
+        type: string
+      images:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      price:
+        type: number
+      sku:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+    required:
+    - categoryId
+    - colors
+    - description
+    - images
+    - name
+    - price
+    - sku
+    type: object
+  v1.userSignInInput:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  v1.userSignUpInput:
+    properties:
+      email:
+        type: string
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - login
+    - password
+    type: object
+  v1.userUpdateAddressInput:
+    properties:
+      invoiceAddress:
+        $ref: '#/definitions/models.Address'
+      shippingAddress:
+        $ref: '#/definitions/models.Address'
+    required:
+    - invoiceAddress
+    - shippingAddress
+    type: object
+  v1.userUpdateEmailInput:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  v1.userUpdateInfoInput:
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      login:
+        type: string
+      phoneCode:
+        type: string
+      phoneNumber:
+        type: string
+    required:
+    - firstName
+    - lastName
+    - login
+    - phoneCode
+    - phoneNumber
+    type: object
+  v1.userUpdatePasswordInput:
+    properties:
+      newPassword:
+        type: string
+      oldPassword:
+        type: string
+    required:
+    - newPassword
+    - oldPassword
     type: object
 host: localhost:8000
 info:
   contact: {}
   description: API server
   title: FinlandShop API
-  version: "0.1"
+  version: "0.5"
 paths:
   /categories/:
     get:
@@ -184,6 +338,32 @@ paths:
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
       summary: Delete category
+      tags:
+      - categories-actions
+    get:
+      consumes:
+      - application/json
+      description: get category by id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Get category by id
       tags:
       - categories-actions
   /categories/create:
@@ -309,7 +489,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.Color'
+          $ref: '#/definitions/v1.updateColorInput'
       produces:
       - application/json
       responses:
@@ -417,6 +597,82 @@ paths:
       summary: Create a new color
       tags:
       - colors-actions
+  /images/:
+    get:
+      consumes:
+      - application/json
+      description: get all images
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Image'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Get all images
+      tags:
+      - images-actions
+    post:
+      consumes:
+      - application/json
+      description: upload image
+      parameters:
+      - description: photo to upload
+        in: formData
+        name: photo
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.UploadFileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Upload image
+      tags:
+      - images-actions
+  /images/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete image by id
+      parameters:
+      - description: image id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Delete image
+      tags:
+      - images-actions
   /items/{id}:
     delete:
       consumes:
@@ -470,6 +726,40 @@ paths:
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
       summary: Get item by ID
+      tags:
+      - items-actions
+    put:
+      consumes:
+      - application/json
+      description: update item
+      parameters:
+      - description: item id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: item body
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.updateItemInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Update item
       tags:
       - items-actions
   /items/category/{id}:
@@ -529,6 +819,27 @@ paths:
       summary: Create a new item
       tags:
       - items-actions
+  /items/new:
+    get:
+      consumes:
+      - application/json
+      description: get new items
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Item'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Get new items
+      tags:
+      - items-actions
   /items/sku/{sku}:
     get:
       consumes:
@@ -585,55 +896,23 @@ paths:
       summary: Get items with tag
       tags:
       - items-actions
-  /users/auth/sign-in:
-    post:
+  /users/email:
+    put:
       consumes:
       - application/json
-      description: sign-in user to account
+      description: update current user email
       parameters:
-      - description: email and password
+      - description: email info
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/v1.authInput'
+          $ref: '#/definitions/v1.userUpdateEmailInput'
       produces:
       - application/json
       responses:
         "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Tokens'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-      summary: Login
-      tags:
-      - users-auth
-  /users/auth/sign-up:
-    post:
-      consumes:
-      - application/json
-      description: sign-up user
-      parameters:
-      - description: email and password
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/v1.authInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.SignUpResponse'
+          description: ""
         "400":
           description: Bad Request
           schema:
@@ -646,21 +925,68 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
-      summary: Register
+      summary: User update email
+      tags:
+      - users-auth
+  /users/info:
+    put:
+      consumes:
+      - application/json
+      description: update current user address
+      parameters:
+      - description: address info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.userUpdateAddressInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: User update address
+      tags:
+      - users-auth
+  /users/logout:
+    post:
+      consumes:
+      - application/json
+      description: logout current user by authentication header
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      summary: Logout current user
       tags:
       - users-auth
   /users/me:
     get:
       consumes:
       - application/json
-      description: get current user by auth token
+      description: get current user by authentication header
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.UserResponse'
+            $ref: '#/definitions/models.User'
         "404":
           description: Not Found
           schema:
@@ -673,7 +999,130 @@ paths:
       - UsersAuth: []
       summary: Get current user
       tags:
-      - users-actions
+      - users-auth
+  /users/password:
+    put:
+      consumes:
+      - application/json
+      description: update current user password
+      parameters:
+      - description: password info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.userUpdatePasswordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: User update password
+      tags:
+      - users-auth
+  /users/refresh:
+    post:
+      consumes:
+      - application/json
+      description: user refresh tokens
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Tokens'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: User Refresh Tokens
+      tags:
+      - users-auth
+  /users/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: login into user account
+      parameters:
+      - description: sign in info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.userSignInInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Tokens'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: User SignIn
+      tags:
+      - users-auth
+  /users/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: create user account
+      parameters:
+      - description: sign up info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.userSignUpInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: User sign-up
+      tags:
+      - users-auth
 securityDefinitions:
   UsersAuth:
     in: header

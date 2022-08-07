@@ -281,7 +281,7 @@ func (u *userUpdateEmailInput) isValidEmail() error {
 // @Produce  json
 // @Param input body userUpdateEmailInput true "email info"
 // @Success 200 ""
-// @Failure 400, 409 {object} ErrorResponse
+// @Failure 400,409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /users/email [put]
 func (h *Handler) userUpdateEmail(ctx *gin.Context) {
@@ -336,7 +336,7 @@ func (u *userUpdatePasswordInput) isValidPassword() error {
 // @Produce  json
 // @Param input body userUpdatePasswordInput true "password info"
 // @Success 200 ""
-// @Failure 400, 409 {object} ErrorResponse
+// @Failure 400,409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /users/password [put]
 func (h *Handler) userUpdatePassword(ctx *gin.Context) {
