@@ -20,6 +20,8 @@ func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
 }
 
 // @Summary Upload image
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags images-actions
 // @Description upload image
 // @Accept json
@@ -46,6 +48,8 @@ func (h *Handler) uploadFile(ctx *gin.Context) {
 }
 
 // @Summary Get all images
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags images-actions
 // @Description get all images
 // @Accept json
@@ -68,6 +72,8 @@ func (h *Handler) getAllImages(ctx *gin.Context) {
 }
 
 // @Summary Delete image
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags images-actions
 // @Description delete image by id
 // @Accept json

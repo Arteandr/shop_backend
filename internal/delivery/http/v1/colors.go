@@ -32,6 +32,8 @@ type createColor struct {
 }
 
 // @Summary Create a new color
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags colors-actions
 // @Description create a new color
 // @Accept json
@@ -64,6 +66,8 @@ type updateColorInput struct {
 }
 
 // @Summary Update color
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags colors-actions
 // @Description update color
 // @Accept json
@@ -105,6 +109,8 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 }
 
 // @Summary Delete colors
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags colors-actions
 // @Description delete color by id
 // @Accept json
@@ -131,6 +137,8 @@ func (h *Handler) deleteColor(ctx *gin.Context) {
 }
 
 // @Summary Delete color from all items
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags colors-actions
 // @Description delete color by id from all items
 // @Accept json
@@ -157,6 +165,8 @@ func (h *Handler) deleteColorFromItems(ctx *gin.Context) {
 }
 
 // @Summary Add color to all items
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags colors-actions
 // @Description Add color by id to all items
 // @Accept json

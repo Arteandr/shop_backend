@@ -38,6 +38,8 @@ type createItemInput struct {
 }
 
 // @Summary Create a new item
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags items-actions
 // @Description create a new item
 // @Accept json
@@ -292,6 +294,8 @@ func (h *Handler) getItemBySku(ctx *gin.Context) {
 }
 
 // @Summary Delete item
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags items-actions
 // @Description delete item by id
 // @Accept json
@@ -329,6 +333,8 @@ type updateItemInput struct {
 }
 
 // @Summary Update item
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags items-actions
 // @Description update item
 // @Accept json

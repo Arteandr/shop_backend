@@ -26,6 +26,8 @@ type CreateCategoryResult struct {
 }
 
 // @Summary Create a new category
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags categories-actions
 // @Description create a new category
 // @Accept json
@@ -52,6 +54,8 @@ func (h *Handler) createCategory(ctx *gin.Context) {
 }
 
 // @Summary Delete category
+// @Security UsersAuth
+// @Security AdminAuth
 // @Tags categories-actions
 // @Description delete category by id
 // @Accept json
