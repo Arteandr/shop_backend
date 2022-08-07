@@ -161,11 +161,11 @@ func (h *Handler) userSignIn(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, tokens)
-}
+	ctx.SetCookie("refresh_token", tokens.RefreshToken, 2592000, "/", "localhost", false, true)
 
-type userRefreshInput struct {
-	RefreshToken string `json:"refreshToken" binding:"required"`
+	// Hide refresh token
+	tokens.RefreshToken = ""
+	ctx.JSON(http.StatusOK, tokens)
 }
 
 // @Summary User Refresh Tokens
@@ -173,19 +173,18 @@ type userRefreshInput struct {
 // @Description user refresh tokens
 // @Accept  json
 // @Produce  json
-// @Param input body userRefreshInput true "refresh info"
 // @Success 200 {object} models.Tokens
 // @Failure 400,404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /users/refresh [post]
 func (h *Handler) userRefresh(ctx *gin.Context) {
-	var body userRefreshInput
-	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+	refreshToken, err := ctx.Cookie("refresh_token")
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	tokens, err := h.services.Users.RefreshTokens(ctx.Request.Context(), body.RefreshToken)
+	tokens, err := h.services.Users.RefreshTokens(ctx.Request.Context(), refreshToken)
 	if err != nil {
 		if errors.Is(err, models.ErrUserNotFound) {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
@@ -196,6 +195,10 @@ func (h *Handler) userRefresh(ctx *gin.Context) {
 		return
 	}
 
+	ctx.SetCookie("refresh_token", tokens.RefreshToken, 2592000, "/", "localhost", false, true)
+
+	// Hide refresh token
+	tokens.RefreshToken = ""
 	ctx.JSON(http.StatusOK, tokens)
 }
 
