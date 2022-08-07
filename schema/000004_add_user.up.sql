@@ -27,13 +27,13 @@ CREATE TABLE address
 CREATE TABLE users_invoice
 (
     user_id    integer references users (id)   not null,
-    address_id integer references address (id) not null
+    address_id integer references address (id)
 );
 
 CREATE TABLE users_shipping
 (
     user_id    integer references users (id)   not null,
-    address_id integer references address (id) not null
+    address_id integer references address (id)
 );
 
 CREATE TABLE sessions

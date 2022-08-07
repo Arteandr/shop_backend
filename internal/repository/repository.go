@@ -76,6 +76,9 @@ type Users interface {
 	DeleteSession(ctx context.Context, userId int) error
 	Create(ctx context.Context, user models.User) (models.User, error)
 	CreatePhone(ctx context.Context, userId int) error
+	CreateDefaultAddress(ctx context.Context, table string, userId int) error
+	LinkAddress(ctx context.Context, table string, userId int, addressId int) error
+	CreateAddress(ctx context.Context, address models.Address) (models.Address, error)
 	GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error)
 	GetByRefreshToken(ctx context.Context, refreshToken string) (models.User, error)
 	GetById(ctx context.Context, userId int) (models.User, error)

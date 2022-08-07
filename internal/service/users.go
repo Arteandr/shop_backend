@@ -52,6 +52,15 @@ func (s *UsersService) SignUp(ctx context.Context, email, login, password string
 		return models.User{}, err
 	}
 
+	if err := s.repo.CreateDefaultAddress(ctx, "invoice", newUser.Id); err != nil {
+		return models.User{}, err
+
+	}
+	if err := s.repo.CreateDefaultAddress(ctx, "shipping", newUser.Id); err != nil {
+		return models.User{}, err
+
+	}
+
 	// Hide password
 	newUser.Password = ""
 
@@ -205,6 +214,43 @@ func (s *UsersService) UpdateInfo(ctx context.Context, userId int, login, firstN
 
 	if err := s.repo.UpdatePhone(ctx, phoneCode, phoneNumber, userId); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *UsersService) UpdateAddress(ctx context.Context, userId int, different bool, invoiceAddress models.Address, shippingAddress models.Address) error {
+	if different {
+		newInvoiceAddress, err := s.repo.CreateAddress(ctx, invoiceAddress)
+		if err != nil {
+			return err
+		}
+
+		if err := s.repo.LinkAddress(ctx, "invoice", userId, newInvoiceAddress.Id); err != nil {
+			return err
+		}
+
+		newShippingAddress, err := s.repo.CreateAddress(ctx, shippingAddress)
+		if err != nil {
+			return err
+		}
+
+		if err := s.repo.LinkAddress(ctx, "shipping", userId, newShippingAddress.Id); err != nil {
+			return err
+		}
+	} else {
+		address, err := s.repo.CreateAddress(ctx, invoiceAddress)
+		if err != nil {
+			return err
+		}
+
+		if err := s.repo.LinkAddress(ctx, "invoice", userId, address.Id); err != nil {
+			return err
+		}
+
+		if err := s.repo.LinkAddress(ctx, "shipping", userId, address.Id); err != nil {
+			return err
+		}
 	}
 
 	return nil

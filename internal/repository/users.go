@@ -40,6 +40,32 @@ func (r *UsersRepo) CreatePhone(ctx context.Context, userId int) error {
 	return err
 }
 
+func (r *UsersRepo) CreateAddress(ctx context.Context, address models.Address) (models.Address, error) {
+	var newAddress models.Address
+	query := fmt.Sprintf("INSERT INTO %s (country,city,street,zip) VALUES ($1,$2,$3,$4) RETURNING *;", addressTable)
+	rows, err := r.db.QueryxContext(ctx, query, address.Country, address.City, address.Street, address.Zip)
+	if err != nil {
+		return models.Address{}, err
+	}
+
+	for rows.Next() {
+		if err := rows.StructScan(&newAddress); err != nil {
+			return models.Address{}, err
+		}
+	}
+
+	return newAddress, nil
+}
+
+// $1 = addressId
+// $2 = userId
+func (r *UsersRepo) LinkAddress(ctx context.Context, table string, userId int, addressId int) error {
+	query := fmt.Sprintf("UPDATE users_%s SET address_id=$1 WHERE user_id=$2;", table)
+	_, err := r.db.ExecContext(ctx, query, addressId, userId)
+
+	return err
+}
+
 // $1 = login
 // $2 = password
 func (r *UsersRepo) GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error) {
@@ -182,6 +208,14 @@ func (r *UsersRepo) UpdateField(ctx context.Context, field string, value interfa
 func (r *UsersRepo) UpdatePhone(ctx context.Context, phoneCode, phoneNumber string, userId int) error {
 	query := fmt.Sprintf("UPDATE %s SET code=$1,number=$2 WHERE user_id=$3;", phonesTable)
 	_, err := r.db.ExecContext(ctx, query, phoneCode, phoneNumber, userId)
+
+	return err
+}
+
+// $1 = userId
+func (r *UsersRepo) CreateDefaultAddress(ctx context.Context, table string, userId int) error {
+	query := fmt.Sprintf("INSERT INTO users_%s (user_id) VALUES($1);", table)
+	_, err := r.db.ExecContext(ctx, query, userId)
 
 	return err
 }

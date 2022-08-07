@@ -8,6 +8,7 @@ import (
 	"net/mail"
 	"regexp"
 	"shop_backend/internal/models"
+	"strings"
 )
 
 func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
@@ -25,6 +26,7 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 			authenticated.PUT("/email", h.userUpdateEmail)
 			authenticated.PUT("/password", h.userUpdatePassword)
 			authenticated.PUT("/info", h.userUpdateInfo)
+			authenticated.PUT("/address", h.userUpdateAddress)
 		}
 	}
 }
@@ -407,7 +409,7 @@ func (u *userUpdateInfoInput) isValidInfo() error {
 // @Description update current user info
 // @Accept  json
 // @Produce  json
-// @Param input body userUpdatePasswordInput true "info body"
+// @Param input body userUpdateInfoInput true "info body"
 // @Success 200 ""
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
@@ -431,6 +433,55 @@ func (h *Handler) userUpdateInfo(ctx *gin.Context) {
 	}
 
 	if err := h.services.Users.UpdateInfo(ctx, userId, body.Login, body.FirstName, body.LastName, body.PhoneCode, body.PhoneNumber); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+type userUpdateAddressInput struct {
+	InvoiceAddress  models.Address `json:"invoiceAddress" binding:"required"`
+	ShippingAddress models.Address `json:"shippingAddress" binding:"required"`
+}
+
+func (u *userUpdateAddressInput) isDiffer() bool {
+	if strings.TrimSpace(u.InvoiceAddress.Country) == strings.TrimSpace(u.ShippingAddress.Country) &&
+		strings.TrimSpace(u.InvoiceAddress.City) == strings.TrimSpace(u.ShippingAddress.City) &&
+		strings.TrimSpace(u.InvoiceAddress.Street) == strings.TrimSpace(u.ShippingAddress.Street) &&
+		u.InvoiceAddress.Zip == u.ShippingAddress.Zip {
+		return false
+	} else {
+		return true
+	}
+}
+
+// @Summary User update address
+// @Tags users-auth
+// @Description update current user address
+// @Accept  json
+// @Produce  json
+// @Param input body userUpdateAddressInput true "address info"
+// @Success 200 ""
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/info [put]
+func (h *Handler) userUpdateAddress(ctx *gin.Context) {
+	var body userUpdateAddressInput
+	if err := ctx.BindJSON(&body); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	different := body.isDiffer()
+
+	userId, err := getIdByContext(ctx, userCtx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Users.UpdateAddress(ctx, userId, different, body.InvoiceAddress, body.ShippingAddress); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
