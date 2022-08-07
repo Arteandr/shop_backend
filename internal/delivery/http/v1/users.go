@@ -23,6 +23,7 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 			authenticated.GET("/me", h.userGetMe)
 
 			authenticated.PUT("/email", h.userUpdateEmail)
+			authenticated.PUT("/password", h.userUpdatePassword)
 		}
 	}
 }
@@ -304,6 +305,60 @@ func (h *Handler) userUpdateEmail(ctx *gin.Context) {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 			return
 		}
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+type userUpdatePasswordInput struct {
+	OldPassword string `json:"oldPassword" binding:"required"`
+	NewPassword string `json:"newPassword" binding:"required"`
+}
+
+func (u *userUpdatePasswordInput) isValidPassword() error {
+	if len(u.NewPassword) < 6 || len(u.NewPassword) > 16 {
+		return errors.New("wrong new password length")
+	}
+
+	return nil
+}
+
+// @Summary User update password
+// @Tags users-auth
+// @Description update current user password
+// @Accept  json
+// @Produce  json
+// @Param input body userUpdatePasswordInput true "password info"
+// @Success 200 ""
+// @Failure 400, 409 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/password [put]
+func (h *Handler) userUpdatePassword(ctx *gin.Context) {
+	var body userUpdatePasswordInput
+	if err := ctx.BindJSON(&body); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := body.isValidPassword(); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	userId, err := getIdByContext(ctx, userCtx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Users.UpdatePassword(ctx, userId, body.OldPassword, body.NewPassword); err != nil {
+		if errors.Is(err, models.ErrOldPassword) {
+			ctx.AbortWithStatusJSON(http.StatusConflict, ErrorResponse{Error: err.Error()})
+			return
+		}
+
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
 	}
 
 	ctx.Status(http.StatusOK)

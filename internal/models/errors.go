@@ -10,6 +10,7 @@ var (
 	ErrInvalidAuthHeader = errors.New("invalid auth header")
 	ErrUserNotFound      = errors.New("user not found")
 	ErrAddressNotFound   = errors.New("address not found")
+	ErrOldPassword       = errors.New("wrong old password")
 )
 
 type ErrUniqueValue struct {

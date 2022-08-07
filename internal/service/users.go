@@ -141,3 +141,30 @@ func (s *UsersService) GetById(ctx context.Context, userId int) (models.User, er
 func (s *UsersService) UpdateEmail(ctx context.Context, userId int, email string) error {
 	return s.repo.UpdateField(ctx, "email", email, userId)
 }
+
+func (s *UsersService) UpdatePassword(ctx context.Context, userId int, oldPassword, newPassword string) error {
+	user, err := s.repo.GetById(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	oldPasswordHash, err := s.hasher.Hash(oldPassword)
+	if err != nil {
+		return err
+	}
+
+	if oldPasswordHash != user.Password {
+		return models.ErrOldPassword
+	}
+
+	newPasswordHash, err := s.hasher.Hash(newPassword)
+	if err != nil {
+		return err
+	}
+
+	if err := s.repo.UpdateField(ctx, "password", newPasswordHash, userId); err != nil {
+		return err
+	}
+
+	return nil
+}

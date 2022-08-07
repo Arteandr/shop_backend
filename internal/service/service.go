@@ -58,6 +58,7 @@ type Users interface {
 	GetById(ctx context.Context, userId int) (models.User, error)
 	RefreshTokens(ctx context.Context, refreshToken string) (models.Tokens, error)
 	UpdateEmail(ctx context.Context, userId int, email string) error
+	UpdatePassword(ctx context.Context, userId int, oldPassword, newPassword string) error
 }
 
 type Services struct {
