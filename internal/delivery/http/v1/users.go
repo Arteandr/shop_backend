@@ -275,6 +275,7 @@ func (u *userUpdateEmailInput) isValidEmail() error {
 }
 
 // @Summary User update email
+// @Security UsersAuth
 // @Tags users-auth
 // @Description update current user email
 // @Accept  json
@@ -330,6 +331,7 @@ func (u *userUpdatePasswordInput) isValidPassword() error {
 }
 
 // @Summary User update password
+// @Security UsersAuth
 // @Tags users-auth
 // @Description update current user password
 // @Accept  json
@@ -408,6 +410,7 @@ func (u *userUpdateInfoInput) isValidInfo() error {
 }
 
 // @Summary User update info
+// @Security UsersAuth
 // @Tags users-auth
 // @Description update current user info
 // @Accept  json
@@ -460,6 +463,7 @@ func (u *userUpdateAddressInput) isDiffer() bool {
 }
 
 // @Summary User update address
+// @Security UsersAuth
 // @Tags users-auth
 // @Description update current user address
 // @Accept  json
