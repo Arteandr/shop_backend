@@ -1097,6 +1097,54 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/address": {
+            "put": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
+                "description": "update current user address",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users-auth"
+                ],
+                "summary": "User update address",
+                "parameters": [
+                    {
+                        "description": "address info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.userUpdateAddressInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/email": {
             "put": {
                 "security": [
@@ -1158,7 +1206,7 @@ const docTemplate = `{
                         "UsersAuth": []
                     }
                 ],
-                "description": "update current user address",
+                "description": "update current user info",
                 "consumes": [
                     "application/json"
                 ],
@@ -1168,15 +1216,15 @@ const docTemplate = `{
                 "tags": [
                     "users-auth"
                 ],
-                "summary": "User update address",
+                "summary": "User update info",
                 "parameters": [
                     {
-                        "description": "address info",
+                        "description": "info body",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.userUpdateAddressInput"
+                            "$ref": "#/definitions/v1.userUpdateInfoInput"
                         }
                     }
                 ],

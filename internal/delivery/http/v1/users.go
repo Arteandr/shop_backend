@@ -475,7 +475,7 @@ func (u *userUpdateAddressInput) isDiffer() bool {
 // @Success 200 ""
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /users/info [put]
+// @Router /users/address [put]
 func (h *Handler) userUpdateAddress(ctx *gin.Context) {
 	var body userUpdateAddressInput
 	if err := ctx.BindJSON(&body); err != nil {

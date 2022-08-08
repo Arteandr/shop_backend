@@ -983,6 +983,36 @@ paths:
       summary: Get items with tag
       tags:
       - items-actions
+  /users/address:
+    put:
+      consumes:
+      - application/json
+      description: update current user address
+      parameters:
+      - description: address info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.userUpdateAddressInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      summary: User update address
+      tags:
+      - users-auth
   /users/email:
     put:
       consumes:
@@ -1021,14 +1051,14 @@ paths:
     put:
       consumes:
       - application/json
-      description: update current user address
+      description: update current user info
       parameters:
-      - description: address info
+      - description: info body
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/v1.userUpdateAddressInput'
+          $ref: '#/definitions/v1.userUpdateInfoInput'
       produces:
       - application/json
       responses:
@@ -1044,7 +1074,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
-      summary: User update address
+      summary: User update info
       tags:
       - users-auth
   /users/logout:
