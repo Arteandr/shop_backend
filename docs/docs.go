@@ -735,6 +735,65 @@ const docTemplate = `{
                 }
             }
         },
+        "/items/all": {
+            "get": {
+                "description": "get all items with sort options",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items-actions"
+                ],
+                "summary": "Get all items",
+                "parameters": [
+                    {
+                        "enum": [
+                            "id",
+                            "name",
+                            "description",
+                            "category_id",
+                            "price",
+                            "sku",
+                            "created_at"
+                        ],
+                        "type": "string",
+                        "description": "sort field",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "sort order",
+                        "name": "sort_order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Item"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/items/category/{id}": {
             "get": {
                 "description": "get all items with provided category id",
