@@ -56,6 +56,17 @@ func (r *ItemsRepo) GetNew(limit int) ([]int, error) {
 
 	return ids, nil
 }
+
+func (r *ItemsRepo) GetAll(sortOptions models.SortOptions) ([]int, error) {
+	var ids []int
+	query := fmt.Sprintf("SELECT I.id FROM %s AS I ORDER BY %s %s;", itemsTable, sortOptions.Field, sortOptions.Order)
+	if err := r.db.Select(&ids, query); err != nil {
+		return nil, err
+	}
+
+	return ids, nil
+}
+
 func (r *ItemsRepo) GetById(itemId int) (models.Item, error) {
 	var item models.Item
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", itemsTable)

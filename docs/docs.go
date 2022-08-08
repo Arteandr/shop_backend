@@ -737,6 +737,14 @@ const docTemplate = `{
         },
         "/items/all": {
             "get": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
                 "description": "get all items with sort options",
                 "consumes": [
                     "application/json"
@@ -783,6 +791,12 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.Item"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
                     "500": {

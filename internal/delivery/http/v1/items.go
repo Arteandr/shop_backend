@@ -15,6 +15,8 @@ func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
 			admins.POST("/create", h.createItem)
 			admins.PUT("/:id", h.updateItems)
 			admins.DELETE("/:id", h.deleteItem)
+			admins.GET("/all", h.sort("created_at", ASC), h.getAllItems)
+
 		}
 
 		items.GET("/new", h.getNewItems)
@@ -22,7 +24,6 @@ func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
 		items.GET("/sku/:sku", h.getItemBySku)
 		items.GET("/category/:id", h.getItemsByCategory)
 		items.GET("/tag/:name", h.getItemsByTag)
-
 	}
 }
 
@@ -127,6 +128,41 @@ func (h *Handler) createItem(ctx *gin.Context) {
 	item.Category = category
 
 	ctx.JSON(http.StatusOK, item)
+}
+
+// @Summary Get all items
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags items-actions
+// @Description get all items with sort options
+// @Accept json
+// @Produce json
+// @Param sort_by query string false "sort field" Enums(id,name,description,category_id,price,sku,created_at)
+// @Param sort_order query string false "sort order" Enums(asc,desc)
+// @Success 200 {array} models.Item
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /items/all [get]
+func (h *Handler) getAllItems(ctx *gin.Context) {
+	sortOptions, err := getSortOptions(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	items, err := h.services.Items.GetAll(sortOptions)
+
+	for i := range items {
+		category, err := h.services.Categories.GetById(items[i].Category.Id)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+			return
+		}
+
+		items[i].Category = category
+	}
+
+	ctx.JSON(http.StatusOK, items)
 }
 
 // @Summary Get new items
