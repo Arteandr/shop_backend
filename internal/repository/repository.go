@@ -57,6 +57,7 @@ type Items interface {
 	LinkTag(itemId int, tag string) error
 	LinkImage(itemId, imageId int) error
 	GetNew(limit int) ([]int, error)
+	GetAll(sortOptions models.SortOptions) ([]int, error)
 	GetById(itemId int) (models.Item, error)
 	GetBySku(sku string) (models.Item, error)
 	GetByCategory(categoryId int) ([]int, error)

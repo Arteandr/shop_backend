@@ -846,6 +846,54 @@ paths:
       summary: Update item
       tags:
       - items-actions
+  /items/all:
+    get:
+      consumes:
+      - application/json
+      description: get all items with sort options
+      parameters:
+      - description: sort field
+        enum:
+        - id
+        - name
+        - description
+        - category_id
+        - price
+        - sku
+        - created_at
+        in: query
+        name: sort_by
+        type: string
+      - description: sort order
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sort_order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Item'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Get all items
+      tags:
+      - items-actions
   /items/category/{id}:
     get:
       consumes:

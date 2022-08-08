@@ -43,6 +43,7 @@ type Items interface {
 	LinkColor(itemId int, colorId int) error
 	LinkTags(itemId int, tags []string) error
 	LinkImages(itemId int, imagesId []int) error
+	GetAll(sortOptions models.SortOptions) ([]models.Item, error)
 	GetNew() ([]models.Item, error)
 	GetById(itemId int) (models.Item, error)
 	GetBySku(sku string) (models.Item, error)

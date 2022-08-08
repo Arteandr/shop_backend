@@ -12,8 +12,53 @@ import (
 const (
 	authorizationHeader = "Authorization"
 
-	userCtx = "userId"
+	userCtx    = "userId"
+	optionsCtx = "options"
+
+	ASC  = "ASC"
+	DESC = "DESC"
 )
+
+func (h *Handler) sort(defaultSortField, defaultSortOrder string) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		sortBy, ok := ctx.GetQuery("sort_by")
+		if !ok {
+			sortBy = defaultSortField
+		}
+
+		sortOrder, ok := ctx.GetQuery("sort_order")
+		if !ok {
+			sortOrder = defaultSortOrder
+		} else {
+			upperSortOrder := strings.ToUpper(sortOrder)
+			if upperSortOrder != ASC && upperSortOrder != DESC {
+				ctx.Status(http.StatusBadRequest)
+				return
+			}
+		}
+
+		options := models.SortOptions{
+			Field: sortBy,
+			Order: sortOrder,
+		}
+
+		ctx.Set(optionsCtx, options)
+	}
+}
+
+func getSortOptions(ctx *gin.Context) (models.SortOptions, error) {
+	optionsFromCtx, ok := ctx.Get(optionsCtx)
+	if !ok {
+		return models.SortOptions{}, errors.New(optionsCtx + " not found")
+	}
+
+	options, ok := optionsFromCtx.(models.SortOptions)
+	if !ok {
+		return models.SortOptions{}, errors.New(optionsCtx + " is of invalid type")
+	}
+
+	return options, nil
+}
 
 func (h *Handler) userIdentity(ctx *gin.Context) {
 	id, err := h.parseAuthHeader(ctx)
