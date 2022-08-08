@@ -165,6 +165,46 @@ func (s *UsersService) GetMe(ctx context.Context, userId int) (models.User, erro
 	return user, nil
 }
 
+func (s *UsersService) GetAll(ctx context.Context) ([]models.User, error) {
+	users, err := s.repo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, user := range users {
+		invoiceAddress, err := s.repo.GetAddress(ctx, "invoice", user.Id)
+		if err != nil && !errors.Is(err, models.ErrAddressNotFound) {
+			return nil, err
+		}
+		if invoiceAddress != (models.Address{}) {
+			users[i].InvoiceAddress = &invoiceAddress
+		}
+
+		shippingAddress, err := s.repo.GetAddress(ctx, "shipping", user.Id)
+		if err != nil && !errors.Is(err, models.ErrAddressNotFound) {
+			return nil, err
+		}
+		if shippingAddress != (models.Address{}) {
+			users[i].ShippingAddress = &shippingAddress
+		}
+
+		phone, err := s.repo.GetPhone(ctx, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		if phone.Code != nil && phone.Number != nil {
+			phoneCode := *phone.Code
+			phoneNumber := *phone.Number
+			users[i].Phone = phoneCode + phoneNumber
+		}
+
+		// Hide password
+		users[i].Password = ""
+	}
+
+	return users, nil
+}
+
 func (s *UsersService) UpdateEmail(ctx context.Context, userId int, email string) error {
 	return s.repo.UpdateField(ctx, "email", email, userId)
 }

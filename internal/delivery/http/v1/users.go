@@ -28,6 +28,11 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 			authenticated.PUT("/password", h.userUpdatePassword)
 			authenticated.PUT("/info", h.userUpdateInfo)
 			authenticated.PUT("/address", h.userUpdateAddress)
+
+			admins := authenticated.Group("/")
+			{
+				admins.GET("/all", h.getAllUsers)
+			}
 		}
 	}
 }
@@ -232,6 +237,26 @@ func (h *Handler) userGetMe(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, user)
+}
+
+// @Summary Get all users
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags users-auth
+// @Description get all users
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} models.User
+// @Failure 500 {object} ErrorResponse
+// @Router /users/all [get]
+func (h *Handler) getAllUsers(ctx *gin.Context) {
+	users, err := h.services.Users.GetAll(ctx.Request.Context())
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, users)
 }
 
 // @Summary Logout current user

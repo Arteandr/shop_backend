@@ -57,6 +57,7 @@ type Users interface {
 	SignIn(ctx context.Context, findBy, login, password string) (models.Tokens, error)
 	Logout(ctx context.Context, userId int) error
 	GetMe(ctx context.Context, userId int) (models.User, error)
+	GetAll(ctx context.Context) ([]models.User, error)
 	RefreshTokens(ctx context.Context, refreshToken string) (models.Tokens, error)
 	UpdateEmail(ctx context.Context, userId int, email string) error
 	UpdatePassword(ctx context.Context, userId int, oldPassword, newPassword string) error

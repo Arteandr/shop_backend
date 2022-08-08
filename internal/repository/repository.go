@@ -86,6 +86,7 @@ type Users interface {
 	GetById(ctx context.Context, userId int) (models.User, error)
 	GetPhone(ctx context.Context, userId int) (models.Phone, error)
 	GetAddress(ctx context.Context, typeof string, userId int) (models.Address, error)
+	GetAll(ctx context.Context) ([]models.User, error)
 	UpdateField(ctx context.Context, field string, value interface{}, userId int) error
 	UpdatePhone(ctx context.Context, phoneCode, phoneNumber string, userId int) error
 }

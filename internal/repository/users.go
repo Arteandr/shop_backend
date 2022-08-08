@@ -195,6 +195,25 @@ func (r *UsersRepo) GetAddress(ctx context.Context, typeof string, userId int) (
 	return address, nil
 }
 
+func (r *UsersRepo) GetAll(ctx context.Context) ([]models.User, error) {
+	var users []models.User
+	query := fmt.Sprintf("SELECT * FROM %s ORDER BY id DESC;", usersTable)
+	rows, err := r.db.QueryxContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		u := models.User{}
+		if err := rows.StructScan(&u); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+
+	return users, nil
+}
+
 // $1 = value
 // $2 = userId
 func (r *UsersRepo) UpdateField(ctx context.Context, field string, value interface{}, userId int) error {
