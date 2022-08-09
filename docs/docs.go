@@ -596,6 +596,60 @@ const docTemplate = `{
                 }
             }
         },
+        "/delivery/create": {
+            "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "create a new delivery",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "delivery-actions"
+                ],
+                "summary": "Create a new delivery",
+                "parameters": [
+                    {
+                        "description": "delivery info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.createDeliveryInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.CreatDeliveryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/images/": {
             "get": {
                 "security": [
@@ -1835,6 +1889,14 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.CreatDeliveryResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "v1.CreateCategoryResult": {
             "type": "object",
             "properties": {
@@ -1864,6 +1926,25 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.createDeliveryInput": {
+            "type": "object",
+            "required": [
+                "companyName",
+                "name",
+                "price"
+            ],
+            "properties": {
+                "companyName": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
                 }
             }
         },

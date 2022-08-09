@@ -119,6 +119,11 @@ definitions:
       shippingAddress:
         $ref: '#/definitions/models.Address'
     type: object
+  v1.CreatDeliveryResponse:
+    properties:
+      id:
+        type: integer
+    type: object
   v1.CreateCategoryResult:
     properties:
       categoryId:
@@ -138,6 +143,19 @@ definitions:
     properties:
       id:
         type: integer
+    type: object
+  v1.createDeliveryInput:
+    properties:
+      companyName:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    required:
+    - companyName
+    - name
+    - price
     type: object
   v1.createItemInput:
     properties:
@@ -666,6 +684,39 @@ paths:
       summary: Create a new color
       tags:
       - colors-actions
+  /delivery/create:
+    post:
+      consumes:
+      - application/json
+      description: create a new delivery
+      parameters:
+      - description: delivery info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.createDeliveryInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.CreatDeliveryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Create a new delivery
+      tags:
+      - delivery-actions
   /images/:
     get:
       consumes:

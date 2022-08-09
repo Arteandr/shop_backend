@@ -11,12 +11,10 @@ import (
 func (h *Handler) InitDeliveryRoutes(api *gin.RouterGroup) {
 	delivery := api.Group("/delivery")
 	{
-		//admins := delivery.Group("/", h.userIdentity, h.adminIdentify)
-		//{
-		//	admins.POST("/", h.createDelivery)
-		//}
-		delivery.POST("/", h.createDelivery)
-
+		admins := delivery.Group("/", h.userIdentity, h.adminIdentify)
+		{
+			admins.POST("/create", h.createDelivery)
+		}
 	}
 }
 
@@ -39,6 +37,18 @@ func (i *createDeliveryInput) isValid() error {
 	return nil
 }
 
+// @Summary Create a new delivery
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags delivery-actions
+// @Description create a new delivery
+// @Accept json
+// @Produce json
+// @Param input body createDeliveryInput true "delivery info"
+// @Success 200 {object} CreatDeliveryResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /delivery/create [post]
 func (h *Handler) createDelivery(ctx *gin.Context) {
 	var body createDeliveryInput
 	if err := ctx.BindJSON(&body); err != nil {
