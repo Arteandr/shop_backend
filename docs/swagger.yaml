@@ -42,6 +42,17 @@ definitions:
     - name
     - price
     type: object
+  models.Delivery:
+    properties:
+      companyName:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   models.Image:
     properties:
       createdAt:
@@ -684,6 +695,42 @@ paths:
       summary: Create a new color
       tags:
       - colors-actions
+  /delivery/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get delivery by id
+      parameters:
+      - description: delivery id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Delivery'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Get delivery by id
+      tags:
+      - delivery-actions
   /delivery/create:
     post:
       consumes:

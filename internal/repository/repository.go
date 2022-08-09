@@ -96,6 +96,7 @@ type Delivery interface {
 	Create(ctx context.Context, delivery models.Delivery) (int, error)
 	CreateCompany(ctx context.Context, name string) error
 	ExistCompany(ctx context.Context, name string) (bool, error)
+	GetById(ctx context.Context, deliveryId int) (models.Delivery, error)
 }
 
 type Repositories struct {

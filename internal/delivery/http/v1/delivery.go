@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shop_backend/internal/models"
+	"strconv"
 	"strings"
 )
 
@@ -14,6 +15,7 @@ func (h *Handler) InitDeliveryRoutes(api *gin.RouterGroup) {
 		admins := delivery.Group("/", h.userIdentity, h.adminIdentify)
 		{
 			admins.POST("/create", h.createDelivery)
+			admins.GET("/:id", h.getDeliveryById)
 		}
 	}
 }
@@ -71,4 +73,36 @@ func (h *Handler) createDelivery(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, CreatDeliveryResponse{
 		Id: id,
 	})
+}
+
+// @Summary Get delivery by id
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags delivery-actions
+// @Description get delivery by id
+// @Accept json
+// @Produce json
+// @Param id path int true "delivery id"
+// @Success 200 {object} models.Delivery
+// @Failure 400,404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /delivery/{id} [get]
+func (h *Handler) getDeliveryById(ctx *gin.Context) {
+	strDeliveryId := ctx.Param("id")
+	deliveryId, err := strconv.Atoi(strDeliveryId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	delivery, err := h.services.Delivery.GetById(ctx.Request.Context(), deliveryId)
+	if err != nil && errors.Is(err, models.ErrDeliveryNotFound) {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		return
+	} else if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, delivery)
 }

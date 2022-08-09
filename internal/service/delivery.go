@@ -33,3 +33,12 @@ func (s *DeliveryService) Create(ctx context.Context, delivery models.Delivery) 
 
 	return id, nil
 }
+
+func (s *DeliveryService) GetById(ctx context.Context, deliveryId int) (models.Delivery, error) {
+	delivery, err := s.repo.GetById(ctx, deliveryId)
+	if err != nil {
+		return models.Delivery{}, err
+	}
+
+	return delivery, nil
+}

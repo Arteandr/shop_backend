@@ -40,11 +40,32 @@ func (r *DeliveryRepo) CreateCompany(ctx context.Context, name string) error {
 
 func (r *DeliveryRepo) ExistCompany(ctx context.Context, name string) (bool, error) {
 	var exist bool
-	queryMain := fmt.Sprintf("SELECT * FROM %s WHERE name=$1", deliveryCompanyTable)
-	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
+	subquery := fmt.Sprintf("SELECT * FROM %s WHERE name=$1", deliveryCompanyTable)
+	query := fmt.Sprintf("SELECT exists (%s)", subquery)
 	if err := r.db.QueryRowContext(ctx, query, name).Scan(&exist); err != nil {
 		return false, err
 	}
 
 	return exist, nil
+}
+
+func (r *DeliveryRepo) GetById(ctx context.Context, deliveryId int) (models.Delivery, error) {
+	var delivery models.Delivery
+	query := fmt.Sprintf("SELECT d.id, d.name, dc.name company_name, d.price FROM %s d JOIN %s dc ON dc.id=d.company_id WHERE d.id=$1 LIMIT 1;", deliveryTable, deliveryCompanyTable)
+	rows, err := r.db.QueryxContext(ctx, query, deliveryId)
+	if err != nil {
+		return models.Delivery{}, err
+	}
+
+	for rows.Next() {
+		if err := rows.StructScan(&delivery); err != nil {
+			return models.Delivery{}, err
+		}
+	}
+
+	if delivery == (models.Delivery{}) {
+		return models.Delivery{}, models.ErrDeliveryNotFound
+	}
+
+	return delivery, nil
 }
