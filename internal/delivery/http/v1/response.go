@@ -20,3 +20,7 @@ type CreateColorResult struct {
 type UploadFileResponse struct {
 	Id int `json:"id"`
 }
+
+type CreatDeliveryResponse struct {
+	Id int `json:"id"`
+}

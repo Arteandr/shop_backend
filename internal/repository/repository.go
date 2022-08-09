@@ -7,19 +7,19 @@ import (
 )
 
 const (
-	usersTable         = "users"
-	categoriesTable    = "categories"
-	itemsTable         = "items"
-	colorsTable        = "colors"
-	itemsColorsTable   = "items_colors"
-	tagsTable          = "tags"
-	imagesTable        = "images"
-	itemsImagesTable   = "items_images"
-	sessionsTable      = "sessions"
-	addressTable       = "address"
-	usersInvoiceTable  = "users_invoice"
-	usersShippingTable = "users_shipping"
-	phonesTable        = "phone_numbers"
+	usersTable           = "users"
+	categoriesTable      = "categories"
+	itemsTable           = "items"
+	colorsTable          = "colors"
+	itemsColorsTable     = "items_colors"
+	tagsTable            = "tags"
+	imagesTable          = "images"
+	itemsImagesTable     = "items_images"
+	sessionsTable        = "sessions"
+	addressTable         = "address"
+	phonesTable          = "phone_numbers"
+	deliveryTable        = "delivery"
+	deliveryCompanyTable = "delivery_company"
 )
 
 type Images interface {
@@ -92,12 +92,19 @@ type Users interface {
 	UpdatePhone(ctx context.Context, phoneCode, phoneNumber string, userId int) error
 }
 
+type Delivery interface {
+	Create(ctx context.Context, delivery models.Delivery) (int, error)
+	CreateCompany(ctx context.Context, name string) error
+	ExistCompany(ctx context.Context, name string) (bool, error)
+}
+
 type Repositories struct {
 	Users      Users
 	Items      Items
 	Categories Categories
 	Colors     Colors
 	Images     Images
+	Delivery   Delivery
 }
 
 func NewRepositories(db *sqlx.DB) *Repositories {
@@ -107,5 +114,6 @@ func NewRepositories(db *sqlx.DB) *Repositories {
 		Categories: NewCategoriesRepo(db),
 		Colors:     NewColorsRepo(db),
 		Images:     NewImagesRepo(db),
+		Delivery:   NewDeliveryRepo(db),
 	}
 }

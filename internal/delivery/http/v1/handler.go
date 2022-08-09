@@ -29,5 +29,6 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 		h.InitColorsRoutes(v1)
 		h.InitCategoriesRoutes(v1)
 		h.InitImagesRoutes(v1)
+		h.InitDeliveryRoutes(v1)
 	}
 }

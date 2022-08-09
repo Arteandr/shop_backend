@@ -67,12 +67,17 @@ type Users interface {
 	DeleteMe(ctx context.Context, userId int) error
 }
 
+type Delivery interface {
+	Create(ctx context.Context, delivery models.Delivery) (int, error)
+}
+
 type Services struct {
 	Users      Users
 	Items      Items
 	Categories Categories
 	Colors     Colors
 	Images     Images
+	Delivery   Delivery
 }
 
 type ServicesDeps struct {
@@ -89,6 +94,7 @@ func NewServices(deps ServicesDeps) *Services {
 		Categories: NewCategoriesService(deps.Repos.Categories),
 		Colors:     NewColorsService(deps.Repos.Colors),
 		Images:     NewImagesService(deps.Repos.Images),
+		Delivery:   NewDeliveryService(deps.Repos.Delivery),
 		Users:      NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL),
 	}
 }
