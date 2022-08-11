@@ -42,6 +42,17 @@ definitions:
     - name
     - price
     type: object
+  models.Delivery:
+    properties:
+      companyName:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   models.Image:
     properties:
       createdAt:
@@ -119,6 +130,11 @@ definitions:
       shippingAddress:
         $ref: '#/definitions/models.Address'
     type: object
+  v1.CreatDeliveryResponse:
+    properties:
+      id:
+        type: integer
+    type: object
   v1.CreateCategoryResult:
     properties:
       categoryId:
@@ -138,6 +154,19 @@ definitions:
     properties:
       id:
         type: integer
+    type: object
+  v1.createDeliveryInput:
+    properties:
+      companyName:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    required:
+    - companyName
+    - name
+    - price
     type: object
   v1.createItemInput:
     properties:
@@ -666,6 +695,154 @@ paths:
       summary: Create a new color
       tags:
       - colors-actions
+  /delivery/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete delivery by id
+      parameters:
+      - description: delivery id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Delete delivery by id
+      tags:
+      - delivery-actions
+    get:
+      consumes:
+      - application/json
+      description: get delivery by id
+      parameters:
+      - description: delivery id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Delivery'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Get delivery by id
+      tags:
+      - delivery-actions
+    put:
+      consumes:
+      - application/json
+      description: update delivery by id
+      parameters:
+      - description: delivery id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Update delivery by id
+      tags:
+      - delivery-actions
+  /delivery/all:
+    get:
+      consumes:
+      - application/json
+      description: get all delivery
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Delivery'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Get all delivery
+      tags:
+      - delivery-actions
+  /delivery/create:
+    post:
+      consumes:
+      - application/json
+      description: create a new delivery
+      parameters:
+      - description: delivery info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.createDeliveryInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.CreatDeliveryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Create a new delivery
+      tags:
+      - delivery-actions
   /images/:
     get:
       consumes:

@@ -2,24 +2,25 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
 )
 
 const (
-	usersTable         = "users"
-	categoriesTable    = "categories"
-	itemsTable         = "items"
-	colorsTable        = "colors"
-	itemsColorsTable   = "items_colors"
-	tagsTable          = "tags"
-	imagesTable        = "images"
-	itemsImagesTable   = "items_images"
-	sessionsTable      = "sessions"
-	addressTable       = "address"
-	usersInvoiceTable  = "users_invoice"
-	usersShippingTable = "users_shipping"
-	phonesTable        = "phone_numbers"
+	usersTable           = "users"
+	categoriesTable      = "categories"
+	itemsTable           = "items"
+	colorsTable          = "colors"
+	itemsColorsTable     = "items_colors"
+	tagsTable            = "tags"
+	imagesTable          = "images"
+	itemsImagesTable     = "items_images"
+	sessionsTable        = "sessions"
+	addressTable         = "address"
+	phonesTable          = "phone_numbers"
+	deliveryTable        = "delivery"
+	deliveryCompanyTable = "delivery_company"
 )
 
 type Images interface {
@@ -92,12 +93,24 @@ type Users interface {
 	UpdatePhone(ctx context.Context, phoneCode, phoneNumber string, userId int) error
 }
 
+type Delivery interface {
+	Create(ctx context.Context, delivery models.Delivery) (int, error)
+	CreateCompany(ctx context.Context, name string) error
+	ExistCompany(ctx context.Context, name string) (bool, error)
+	GetById(ctx context.Context, deliveryId int) (models.Delivery, error)
+	GetAll(ctx context.Context) ([]models.Delivery, error)
+	Update(ctx context.Context, delivery models.Delivery) error
+	Delete(ctx context.Context, deliveryId int) error
+	Transactor
+}
+
 type Repositories struct {
 	Users      Users
 	Items      Items
 	Categories Categories
 	Colors     Colors
 	Images     Images
+	Delivery   Delivery
 }
 
 func NewRepositories(db *sqlx.DB) *Repositories {
@@ -107,5 +120,11 @@ func NewRepositories(db *sqlx.DB) *Repositories {
 		Categories: NewCategoriesRepo(db),
 		Colors:     NewColorsRepo(db),
 		Images:     NewImagesRepo(db),
+		Delivery:   NewDeliveryRepo(db),
 	}
+}
+
+type SqlxDB interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 }
