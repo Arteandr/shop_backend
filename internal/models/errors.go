@@ -12,6 +12,7 @@ var (
 	ErrAddressNotFound   = errors.New("address not found")
 	ErrDeliveryNotFound  = errors.New("delivery not found")
 	ErrOldPassword       = errors.New("wrong old password")
+	ErrFileExtension     = errors.New("wrong file extension")
 )
 
 type ErrUniqueValue struct {

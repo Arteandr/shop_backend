@@ -24,7 +24,7 @@ const (
 )
 
 type Images interface {
-	Upload(filename string) (int, error)
+	Upload(ctx context.Context, filename string) error
 	GetAll() ([]models.Image, error)
 	GetById(ctx context.Context, imageId int) (models.Image, error)
 	Exist(imageId int) (bool, error)

@@ -11,7 +11,7 @@ import (
 )
 
 type Images interface {
-	Upload(image *multipart.FileHeader) (int, error)
+	Upload(ctx context.Context, images []*multipart.FileHeader) error
 	GetAll() ([]models.Image, error)
 	Exist(imageId int) (bool, error)
 	Delete(ctx context.Context, imagesId []int) error

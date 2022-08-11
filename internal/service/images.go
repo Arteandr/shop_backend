@@ -20,28 +20,38 @@ func NewImagesService(repo repository.Images) *ImagesService {
 	return &ImagesService{repo: repo}
 }
 
-func (s *ImagesService) Upload(image *multipart.FileHeader) (int, error) {
-	ext := filepath.Ext(image.Filename)
-	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
-		return 0, errors.New("wrong file extension")
-	}
+func (s *ImagesService) Upload(ctx context.Context, images []*multipart.FileHeader) error {
+	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		for _, image := range images {
+			ext := filepath.Ext(image.Filename)
+			if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
+				return models.ErrFileExtension
+			}
 
-	var filename string
-LOOP:
-	for {
-		filename = fn.Generate() + ext
-		if _, err := os.Stat("./files/" + filename); errors.Is(err, os.ErrNotExist) {
-			break LOOP
-		} else {
-			continue LOOP
+			var filename string
+		LOOP:
+			for {
+				filename = fn.Generate() + ext
+				if _, err := os.Stat("./files/" + filename); errors.Is(err, os.ErrNotExist) {
+					break LOOP
+				} else {
+					continue LOOP
+				}
+			}
+
+			if err := s.saveFile(image, "./files/"+filename); err != nil {
+				return err
+			}
+
+			if err := s.repo.Upload(ctx, filename); err != nil {
+				s.deleteFile(filename)
+				return err
+			}
+
 		}
-	}
+		return nil
+	})
 
-	if err := s.saveFile(image, "./files/"+filename); err != nil {
-		return 0, err
-	}
-
-	return s.repo.Upload(filename)
 }
 
 func (s *ImagesService) saveFile(file *multipart.FileHeader, dst string) error {
@@ -61,6 +71,10 @@ func (s *ImagesService) saveFile(file *multipart.FileHeader, dst string) error {
 	return err
 }
 
+func (s *ImagesService) deleteFile(fileName string) error {
+	return os.Remove("./files/" + fileName)
+}
+
 func (s *ImagesService) Delete(ctx context.Context, imagesId []int) error {
 	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		for _, imageId := range imagesId {
@@ -69,7 +83,7 @@ func (s *ImagesService) Delete(ctx context.Context, imagesId []int) error {
 				return err
 			}
 
-			if err := os.Remove("./files/" + image.Filename); err != nil && !errors.Is(err, os.ErrNotExist) {
+			if err := s.deleteFile(image.Filename); err != nil && !errors.Is(err, os.ErrNotExist) {
 				return err
 			}
 

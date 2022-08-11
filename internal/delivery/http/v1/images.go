@@ -11,7 +11,7 @@ func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
 	{
 		admins := images.Group("/", h.userIdentity, h.adminIdentify)
 		{
-			admins.POST("/", h.uploadFile)
+			admins.POST("/", h.uploadImage)
 			admins.GET("/", h.getAllImages)
 			admins.DELETE("/", h.deleteImages)
 		}
@@ -19,32 +19,37 @@ func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
 	}
 }
 
-// @Summary Upload image
+// @Summary Upload images
 // @Security UsersAuth
 // @Security AdminAuth
 // @Tags images-actions
-// @Description upload image
+// @Description upload images
 // @Accept json
 // @Produce json
-// @Param photo formData file true "photo to upload"
-// @Success 200 {object} IdResponse
+// @Param photo formData file true "photos to upload"
+// @Success 200 ""
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /images/ [post]
-func (h *Handler) uploadFile(ctx *gin.Context) {
-	photo, err := ctx.FormFile("photo")
+func (h *Handler) uploadImage(ctx *gin.Context) {
+	form, err := ctx.MultipartForm()
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	id, err := h.services.Images.Upload(photo)
-	if err != nil {
+	files := form.File["photo"]
+	if len(files) < 1 {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Images.Upload(ctx.Request.Context(), files); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, IdResponse{Id: id})
+	ctx.Status(http.StatusOK)
 }
 
 // @Summary Get all images

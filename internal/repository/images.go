@@ -39,14 +39,12 @@ func (r *ImagesRepo) GetInstance(ctx context.Context) SqlxDB {
 	return r.db
 }
 
-func (r *ImagesRepo) Upload(filename string) (int, error) {
-	var id int
+func (r *ImagesRepo) Upload(ctx context.Context, filename string) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("INSERT INTO %s (filename) VALUES($1) RETURNING id;", imagesTable)
-	if err := r.db.QueryRow(query, filename).Scan(&id); err != nil {
-		return 0, err
-	}
+	_, err := db.ExecContext(ctx, query, filename)
 
-	return id, nil
+	return err
 }
 
 func (r *ImagesRepo) GetById(ctx context.Context, imageId int) (models.Image, error) {
