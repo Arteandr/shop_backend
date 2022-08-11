@@ -96,10 +96,10 @@ func (s *ImagesService) Delete(ctx context.Context, imagesId []int) error {
 	})
 }
 
-func (s *ImagesService) GetAll() ([]models.Image, error) {
-	return s.repo.GetAll()
+func (s *ImagesService) GetAll(ctx context.Context) ([]models.Image, error) {
+	return s.repo.GetAll(ctx)
 }
 
-func (s *ImagesService) Exist(imageId int) (bool, error) {
-	return s.repo.Exist(imageId)
+func (s *ImagesService) Exist(ctx context.Context, imageId int) (bool, error) {
+	return s.repo.Exist(ctx, imageId)
 }

@@ -49,7 +49,7 @@ func (h *Handler) createColor(ctx *gin.Context) {
 		return
 	}
 
-	colorId, err := h.services.Colors.Create(color.Name, color.Hex, *color.Price)
+	colorId, err := h.services.Colors.Create(ctx.Request.Context(), color.Name, color.Hex, *color.Price)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
@@ -91,7 +91,7 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 		return
 	}
 
-	if exist, err := h.services.Colors.Exist(colorId); err != nil || !exist {
+	if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
 		if !exist {
 			err = errors.New("wrong color id")
 		}
@@ -99,7 +99,7 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.services.Colors.Update(colorId, color.Name, color.Hex, *color.Price); err != nil {
+	if err := h.services.Colors.Update(ctx.Request.Context(), colorId, color.Name, color.Hex, *color.Price); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -127,7 +127,7 @@ func (h *Handler) deleteColor(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.services.Colors.Delete(colorId); err != nil {
+	if err := h.services.Colors.Delete(ctx.Request.Context(), colorId); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -155,7 +155,7 @@ func (h *Handler) deleteColorFromItems(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.services.Colors.DeleteFromItems(colorId); err != nil {
+	if err := h.services.Colors.DeleteFromItems(ctx.Request.Context(), colorId); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -183,7 +183,7 @@ func (h *Handler) addColorToItems(ctx *gin.Context) {
 		return
 	}
 
-	if exist, err := h.services.Colors.Exist(colorId); err != nil || !exist {
+	if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
 		if !exist {
 			err = errors.New("wrong color id")
 		}
@@ -191,7 +191,7 @@ func (h *Handler) addColorToItems(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.services.Colors.AddToItems(colorId); err != nil {
+	if err := h.services.Colors.AddToItems(ctx.Request.Context(), colorId); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -217,7 +217,7 @@ func (h *Handler) getColorById(ctx *gin.Context) {
 		return
 	}
 
-	if exist, err := h.services.Colors.Exist(colorId); err != nil || !exist {
+	if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
 		if !exist {
 			err = errors.New("wrong color id")
 		}
@@ -225,7 +225,7 @@ func (h *Handler) getColorById(ctx *gin.Context) {
 		return
 	}
 
-	color, err := h.services.Colors.GetById(colorId)
+	color, err := h.services.Colors.GetById(ctx.Request.Context(), colorId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
@@ -243,7 +243,7 @@ func (h *Handler) getColorById(ctx *gin.Context) {
 // @Failure 500 {object} ErrorResponse
 // @Router /colors/ [get]
 func (h *Handler) getAllColors(ctx *gin.Context) {
-	colors, err := h.services.Colors.GetAll()
+	colors, err := h.services.Colors.GetAll(ctx.Request.Context())
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return

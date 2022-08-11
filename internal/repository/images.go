@@ -57,7 +57,7 @@ func (r *ImagesRepo) GetById(ctx context.Context, imageId int) (models.Image, er
 	return image, nil
 }
 
-func (r *ImagesRepo) GetAll() ([]models.Image, error) {
+func (r *ImagesRepo) GetAll(context.Context) ([]models.Image, error) {
 	var images []models.Image
 	query := fmt.Sprintf("SELECT * FROM %s ORDER BY created_at DESC;", imagesTable)
 	if err := r.db.Select(&images, query); err != nil {
@@ -67,7 +67,7 @@ func (r *ImagesRepo) GetAll() ([]models.Image, error) {
 	return images, nil
 }
 
-func (r *ImagesRepo) Exist(imageId int) (bool, error) {
+func (r *ImagesRepo) Exist(ctx context.Context, imageId int) (bool, error) {
 	var exist bool
 	queryMain := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", imagesTable)
 	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
@@ -86,7 +86,7 @@ func (r *ImagesRepo) Delete(ctx context.Context, imageId int) error {
 	return err
 }
 
-func (r *ImagesRepo) DeleteFromItems(imageId int) error {
+func (r *ImagesRepo) DeleteFromItems(ctx context.Context, imageId int) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE image_id=$1;", itemsImagesTable)
 	_, err := r.db.Exec(query, imageId)
 

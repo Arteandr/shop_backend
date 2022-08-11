@@ -14,7 +14,7 @@ func NewItemsService(repo repository.Items) *ItemsService {
 	return &ItemsService{repo: repo}
 }
 
-func (s *ItemsService) Create(name, description string, categoryId int, sku string, price float64) (int, error) {
+func (s *ItemsService) Create(ctx context.Context, name, description string, categoryId int, sku string, price float64) (int, error) {
 	item := models.Item{
 		Name:        name,
 		Description: description,
@@ -23,7 +23,7 @@ func (s *ItemsService) Create(name, description string, categoryId int, sku stri
 		Sku:         sku,
 	}
 
-	id, err := s.repo.Create(item)
+	id, err := s.repo.Create(ctx, item)
 	if err != nil {
 		return 0, err
 	}
@@ -31,13 +31,13 @@ func (s *ItemsService) Create(name, description string, categoryId int, sku stri
 	return id, err
 }
 
-func (s *ItemsService) LinkColor(itemId int, colorId int) error {
-	return s.repo.LinkColor(itemId, colorId)
+func (s *ItemsService) LinkColor(ctx context.Context, itemId int, colorId int) error {
+	return s.repo.LinkColor(ctx, itemId, colorId)
 }
 
-func (s *ItemsService) LinkImages(itemId int, imagesId []int) error {
+func (s *ItemsService) LinkImages(ctx context.Context, itemId int, imagesId []int) error {
 	for _, imageId := range imagesId {
-		if err := s.repo.LinkImage(itemId, imageId); err != nil {
+		if err := s.repo.LinkImage(ctx, itemId, imageId); err != nil {
 			return err
 		}
 	}
@@ -45,41 +45,41 @@ func (s *ItemsService) LinkImages(itemId int, imagesId []int) error {
 	return nil
 }
 
-func (s *ItemsService) LinkTags(itemId int, tags []string) error {
+func (s *ItemsService) LinkTags(ctx context.Context, itemId int, tags []string) error {
 	for _, tag := range tags {
-		if err := s.repo.LinkTag(itemId, tag); err != nil {
+		if err := s.repo.LinkTag(ctx, itemId, tag); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s *ItemsService) GetAll(sortOptions models.SortOptions) ([]models.Item, error) {
+func (s *ItemsService) GetAll(ctx context.Context, sortOptions models.SortOptions) ([]models.Item, error) {
 	var items []models.Item
-	ids, err := s.repo.GetAll(sortOptions)
+	ids, err := s.repo.GetAll(ctx, sortOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, id := range ids {
-		item, err := s.repo.GetById(id)
+		item, err := s.repo.GetById(ctx, id)
 		if err != nil {
 			return nil, err
 		}
 
-		colors, err := s.repo.GetColors(item.Id)
+		colors, err := s.repo.GetColors(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
 		item.Colors = colors
 
-		tags, err := s.repo.GetTags(item.Id)
+		tags, err := s.repo.GetTags(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
 		item.Tags = tags
 
-		images, err := s.repo.GetImages(item.Id)
+		images, err := s.repo.GetImages(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -94,32 +94,32 @@ func (s *ItemsService) GetAll(sortOptions models.SortOptions) ([]models.Item, er
 	return items, nil
 }
 
-func (s *ItemsService) GetNew() ([]models.Item, error) {
+func (s *ItemsService) GetNew(ctx context.Context) ([]models.Item, error) {
 	var items []models.Item
-	ids, err := s.repo.GetNew(4)
+	ids, err := s.repo.GetNew(ctx, 4)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, id := range ids {
-		item, err := s.repo.GetById(id)
+		item, err := s.repo.GetById(ctx, id)
 		if err != nil {
 			return nil, err
 		}
 
-		colors, err := s.repo.GetColors(item.Id)
+		colors, err := s.repo.GetColors(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
 		item.Colors = colors
 
-		tags, err := s.repo.GetTags(item.Id)
+		tags, err := s.repo.GetTags(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
 		item.Tags = tags
 
-		images, err := s.repo.GetImages(item.Id)
+		images, err := s.repo.GetImages(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -134,25 +134,25 @@ func (s *ItemsService) GetNew() ([]models.Item, error) {
 	return items, nil
 }
 
-func (s *ItemsService) GetById(itemId int) (models.Item, error) {
-	item, err := s.repo.GetById(itemId)
+func (s *ItemsService) GetById(ctx context.Context, itemId int) (models.Item, error) {
+	item, err := s.repo.GetById(ctx, itemId)
 	if err != nil {
 		return models.Item{}, err
 	}
 
-	colors, err := s.repo.GetColors(item.Id)
+	colors, err := s.repo.GetColors(ctx, item.Id)
 	if err != nil {
 		return models.Item{}, err
 	}
 	item.Colors = colors
 
-	tags, err := s.repo.GetTags(item.Id)
+	tags, err := s.repo.GetTags(ctx, item.Id)
 	if err != nil {
 		return models.Item{}, err
 	}
 	item.Tags = tags
 
-	images, err := s.repo.GetImages(item.Id)
+	images, err := s.repo.GetImages(ctx, item.Id)
 	if err != nil {
 		return models.Item{}, err
 	}
@@ -164,25 +164,25 @@ func (s *ItemsService) GetById(itemId int) (models.Item, error) {
 	return item, nil
 }
 
-func (s *ItemsService) GetBySku(sku string) (models.Item, error) {
-	item, err := s.repo.GetBySku(sku)
+func (s *ItemsService) GetBySku(ctx context.Context, sku string) (models.Item, error) {
+	item, err := s.repo.GetBySku(ctx, sku)
 	if err != nil {
 		return models.Item{}, err
 	}
 
-	colors, err := s.repo.GetColors(item.Id)
+	colors, err := s.repo.GetColors(ctx, item.Id)
 	if err != nil {
 		return models.Item{}, err
 	}
 	item.Colors = colors
 
-	tags, err := s.repo.GetTags(item.Id)
+	tags, err := s.repo.GetTags(ctx, item.Id)
 	if err != nil {
 		return models.Item{}, err
 	}
 	item.Tags = tags
 
-	images, err := s.repo.GetImages(item.Id)
+	images, err := s.repo.GetImages(ctx, item.Id)
 	if err != nil {
 		return models.Item{}, err
 	}
@@ -194,31 +194,31 @@ func (s *ItemsService) GetBySku(sku string) (models.Item, error) {
 	return item, nil
 }
 
-func (s *ItemsService) GetByCategory(categoryId int) ([]models.Item, error) {
+func (s *ItemsService) GetByCategory(ctx context.Context, categoryId int) ([]models.Item, error) {
 	var items []models.Item
-	ids, err := s.repo.GetByCategory(categoryId)
+	ids, err := s.repo.GetByCategory(ctx, categoryId)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, id := range ids {
-		item, err := s.repo.GetById(id)
+		item, err := s.repo.GetById(ctx, id)
 		if err != nil {
 			return nil, err
 		}
-		colors, err := s.repo.GetColors(item.Id)
+		colors, err := s.repo.GetColors(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
 		item.Colors = colors
 
-		tags, err := s.repo.GetTags(item.Id)
+		tags, err := s.repo.GetTags(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
 		item.Tags = tags
 
-		images, err := s.repo.GetImages(item.Id)
+		images, err := s.repo.GetImages(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -233,31 +233,31 @@ func (s *ItemsService) GetByCategory(categoryId int) ([]models.Item, error) {
 	return items, err
 }
 
-func (s *ItemsService) GetByTag(tag string) ([]models.Item, error) {
+func (s *ItemsService) GetByTag(ctx context.Context, tag string) ([]models.Item, error) {
 	var items []models.Item
-	ids, err := s.repo.GetByTag(tag)
+	ids, err := s.repo.GetByTag(ctx, tag)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, id := range ids {
-		item, err := s.repo.GetById(id)
+		item, err := s.repo.GetById(ctx, id)
 		if err != nil {
 			return nil, err
 		}
-		colors, err := s.repo.GetColors(item.Id)
+		colors, err := s.repo.GetColors(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
 		item.Colors = colors
 
-		tags, err := s.repo.GetTags(item.Id)
+		tags, err := s.repo.GetTags(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
 		item.Tags = tags
 
-		images, err := s.repo.GetImages(item.Id)
+		images, err := s.repo.GetImages(ctx, item.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -272,39 +272,39 @@ func (s *ItemsService) GetByTag(tag string) ([]models.Item, error) {
 	return items, err
 }
 
-func (s *ItemsService) Update(id int, name, description string, categoryId int, tags []string, colorsId []int, price float64, sku string, imagesId []int) error {
-	if err := s.repo.Update(id, name, description, categoryId, price, sku); err != nil {
+func (s *ItemsService) Update(ctx context.Context, id int, name, description string, categoryId int, tags []string, colorsId []int, price float64, sku string, imagesId []int) error {
+	if err := s.repo.Update(ctx, id, name, description, categoryId, price, sku); err != nil {
 		return err
 	}
 
 	// Update tags
-	if err := s.repo.DeleteTags(id); err != nil {
+	if err := s.repo.DeleteTags(ctx, id); err != nil {
 		return err
 	}
 	if len(tags) > 0 {
 		for _, tag := range tags {
-			if err := s.repo.LinkTag(id, tag); err != nil {
+			if err := s.repo.LinkTag(ctx, id, tag); err != nil {
 				return err
 			}
 		}
 	}
 
 	// Update colors
-	if err := s.repo.DeleteColors(id); err != nil {
+	if err := s.repo.DeleteColors(ctx, id); err != nil {
 		return err
 	}
 	for _, colorId := range colorsId {
-		if err := s.repo.LinkColor(id, colorId); err != nil {
+		if err := s.repo.LinkColor(ctx, id, colorId); err != nil {
 			return err
 		}
 	}
 
 	// Update images
-	if err := s.repo.DeleteImages(id); err != nil {
+	if err := s.repo.DeleteImages(ctx, id); err != nil {
 		return err
 	}
 	for _, imageId := range imagesId {
-		if err := s.repo.LinkImage(id, imageId); err != nil {
+		if err := s.repo.LinkImage(ctx, id, imageId); err != nil {
 			return err
 		}
 	}
@@ -324,6 +324,6 @@ func (s *ItemsService) Delete(ctx context.Context, itemsId []int) error {
 	})
 }
 
-func (s *ItemsService) Exist(itemId int) (bool, error) {
-	return s.repo.Exist(itemId)
+func (s *ItemsService) Exist(ctx context.Context, itemId int) (bool, error) {
+	return s.repo.Exist(ctx, itemId)
 }

@@ -38,7 +38,7 @@ func (r *ItemsRepo) GetInstance(ctx context.Context) SqlxDB {
 	return r.db
 }
 
-func (r *ItemsRepo) Create(item models.Item) (int, error) {
+func (r *ItemsRepo) Create(ctx context.Context, item models.Item) (int, error) {
 	var id int
 	query := fmt.Sprintf("INSERT INTO %s (name,description,category_id,sku,price) VALUES ($1,$2,$3,$4,$5) RETURNING id;", itemsTable)
 	row := r.db.QueryRow(query, item.Name, item.Description, item.Category.Id, item.Sku, item.Price)
@@ -49,28 +49,28 @@ func (r *ItemsRepo) Create(item models.Item) (int, error) {
 	return id, nil
 }
 
-func (r *ItemsRepo) LinkColor(itemId int, colorId int) error {
+func (r *ItemsRepo) LinkColor(ctx context.Context, itemId int, colorId int) error {
 	query := fmt.Sprintf("INSERT INTO %s (item_id,color_id) VALUES ($1,$2);", itemsColorsTable)
 	_, err := r.db.Exec(query, itemId, colorId)
 
 	return err
 }
 
-func (r *ItemsRepo) LinkTag(itemId int, tag string) error {
+func (r *ItemsRepo) LinkTag(ctx context.Context, itemId int, tag string) error {
 	query := fmt.Sprintf("INSERT INTO %s (item_id, name) VALUES($1,$2);", tagsTable)
 	_, err := r.db.Exec(query, itemId, tag)
 
 	return err
 }
 
-func (r *ItemsRepo) LinkImage(itemId, imageId int) error {
+func (r *ItemsRepo) LinkImage(ctx context.Context, itemId, imageId int) error {
 	query := fmt.Sprintf("INSERT INTO %s (item_id, image_id) VALUES ($1, $2);", itemsImagesTable)
 	_, err := r.db.Exec(query, itemId, imageId)
 
 	return err
 }
 
-func (r *ItemsRepo) GetNew(limit int) ([]int, error) {
+func (r *ItemsRepo) GetNew(ctx context.Context, limit int) ([]int, error) {
 	var ids []int
 	query := fmt.Sprintf("SELECT I.id FROM %s AS I ORDER BY created_at DESC LIMIT $1;", itemsTable)
 	if err := r.db.Select(&ids, query, limit); err != nil {
@@ -80,7 +80,7 @@ func (r *ItemsRepo) GetNew(limit int) ([]int, error) {
 	return ids, nil
 }
 
-func (r *ItemsRepo) GetAll(sortOptions models.SortOptions) ([]int, error) {
+func (r *ItemsRepo) GetAll(ctx context.Context, sortOptions models.SortOptions) ([]int, error) {
 	var ids []int
 	query := fmt.Sprintf("SELECT I.id FROM %s AS I ORDER BY %s %s;", itemsTable, sortOptions.Field, sortOptions.Order)
 	if err := r.db.Select(&ids, query); err != nil {
@@ -90,7 +90,7 @@ func (r *ItemsRepo) GetAll(sortOptions models.SortOptions) ([]int, error) {
 	return ids, nil
 }
 
-func (r *ItemsRepo) GetById(itemId int) (models.Item, error) {
+func (r *ItemsRepo) GetById(ctx context.Context, itemId int) (models.Item, error) {
 	var item models.Item
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", itemsTable)
 	if err := r.db.QueryRow(query, itemId).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku, &item.CreatedAt); err != nil {
@@ -100,7 +100,7 @@ func (r *ItemsRepo) GetById(itemId int) (models.Item, error) {
 	return item, nil
 }
 
-func (r *ItemsRepo) GetBySku(sku string) (models.Item, error) {
+func (r *ItemsRepo) GetBySku(ctx context.Context, sku string) (models.Item, error) {
 	var item models.Item
 	query := fmt.Sprintf("SELECT * FROM %s where sku=$1;", itemsTable)
 	if err := r.db.QueryRow(query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku, &item.CreatedAt); err != nil {
@@ -110,7 +110,7 @@ func (r *ItemsRepo) GetBySku(sku string) (models.Item, error) {
 	return item, nil
 }
 
-func (r *ItemsRepo) GetByCategory(categoryId int) ([]int, error) {
+func (r *ItemsRepo) GetByCategory(ctx context.Context, categoryId int) ([]int, error) {
 	var ids []int
 	query := fmt.Sprintf("SELECT I.id FROM %s AS I WHERE category_id=$1;", itemsTable)
 	if err := r.db.Select(&ids, query, categoryId); err != nil {
@@ -120,7 +120,7 @@ func (r *ItemsRepo) GetByCategory(categoryId int) ([]int, error) {
 	return ids, nil
 }
 
-func (r *ItemsRepo) GetByTag(tag string) ([]int, error) {
+func (r *ItemsRepo) GetByTag(ctx context.Context, tag string) ([]int, error) {
 	var ids []int
 	query := fmt.Sprintf("SELECT I.id FROM %s AS I, %s AS T WHERE T.name = $1 AND I.id = T.item_id;", itemsTable, tagsTable)
 	if err := r.db.Select(&ids, query, tag); err != nil {
@@ -130,7 +130,7 @@ func (r *ItemsRepo) GetByTag(tag string) ([]int, error) {
 	return ids, nil
 }
 
-func (r *ItemsRepo) GetColors(itemId int) ([]models.Color, error) {
+func (r *ItemsRepo) GetColors(ctx context.Context, itemId int) ([]models.Color, error) {
 	var colors []models.Color
 	query := fmt.Sprintf("SELECT colors.id, colors.name, colors.hex, colors.price FROM %s, %s WHERE colors.id = %s.color_id AND %s.item_id = $1;", colorsTable, itemsColorsTable, itemsColorsTable, itemsColorsTable)
 	if err := r.db.Select(&colors, query, itemId); err != nil {
@@ -140,7 +140,7 @@ func (r *ItemsRepo) GetColors(itemId int) ([]models.Color, error) {
 	return colors, nil
 }
 
-func (r *ItemsRepo) GetTags(itemId int) ([]models.Tag, error) {
+func (r *ItemsRepo) GetTags(ctx context.Context, itemId int) ([]models.Tag, error) {
 	var tags []models.Tag
 	query := fmt.Sprintf("SELECT * FROM %s WHERE tags.item_id = $1;", tagsTable)
 	if err := r.db.Select(&tags, query, itemId); err != nil && err != sql.ErrNoRows {
@@ -150,7 +150,7 @@ func (r *ItemsRepo) GetTags(itemId int) ([]models.Tag, error) {
 	return tags, nil
 }
 
-func (r *ItemsRepo) GetImages(itemId int) ([]models.Image, error) {
+func (r *ItemsRepo) GetImages(ctx context.Context, itemId int) ([]models.Image, error) {
 	var images []models.Image
 	query := fmt.Sprintf("SELECT images.id, images.filename, images.created_at FROM %s, %s WHERE images.id = %s.image_id AND %s.item_id = $1;", imagesTable, itemsImagesTable, itemsImagesTable, itemsImagesTable)
 	if err := r.db.Select(&images, query, itemId); err != nil && err != sql.ErrNoRows {
@@ -160,7 +160,7 @@ func (r *ItemsRepo) GetImages(itemId int) ([]models.Image, error) {
 	return images, nil
 }
 
-func (r *ItemsRepo) Update(itemId int, name, description string, categoryId int, price float64, sku string) error {
+func (r *ItemsRepo) Update(ctx context.Context, itemId int, name, description string, categoryId int, price float64, sku string) error {
 	query := fmt.Sprintf("UPDATE %s SET name=$1,description=$2,category_id=$3,price=$4,sku=$5 WHERE id=$6;", itemsTable)
 	_, err := r.db.Exec(query, name, description, categoryId, price, sku, itemId)
 
@@ -175,28 +175,28 @@ func (r *ItemsRepo) Delete(ctx context.Context, itemId int) error {
 	return err
 }
 
-func (r *ItemsRepo) DeleteTags(itemId int) error {
+func (r *ItemsRepo) DeleteTags(ctx context.Context, itemId int) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE item_id=$1;", tagsTable)
 	_, err := r.db.Exec(query, itemId)
 
 	return err
 }
 
-func (r *ItemsRepo) DeleteImages(itemId int) error {
+func (r *ItemsRepo) DeleteImages(ctx context.Context, itemId int) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE item_id=$1;", itemsImagesTable)
 	_, err := r.db.Exec(query, itemId)
 
 	return err
 }
 
-func (r *ItemsRepo) DeleteColors(itemId int) error {
+func (r *ItemsRepo) DeleteColors(ctx context.Context, itemId int) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE item_id=$1;", itemsColorsTable)
 	_, err := r.db.Exec(query, itemId)
 
 	return err
 }
 
-func (r *ItemsRepo) Exist(itemId int) (bool, error) {
+func (r *ItemsRepo) Exist(ctx context.Context, itemId int) (bool, error) {
 	var exist bool
 	queryMain := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", itemsTable)
 	query := fmt.Sprintf("SELECT exists (%s)", queryMain)

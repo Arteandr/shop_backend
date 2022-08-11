@@ -63,7 +63,7 @@ func (h *Handler) uploadImage(ctx *gin.Context) {
 // @Failure 500 {object} ErrorResponse
 // @Router /images/ [get]
 func (h *Handler) getAllImages(ctx *gin.Context) {
-	images, err := h.services.Images.GetAll()
+	images, err := h.services.Images.GetAll(ctx.Request.Context())
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return

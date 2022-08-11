@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 )
@@ -13,14 +14,14 @@ func NewColorsService(repo repository.Colors) *ColorsService {
 	return &ColorsService{repo: repo}
 }
 
-func (s *ColorsService) Create(name, hex string, price float64) (int, error) {
+func (s *ColorsService) Create(ctx context.Context, name, hex string, price float64) (int, error) {
 	color := models.Color{
 		Name:  name,
 		Hex:   hex,
 		Price: price,
 	}
 
-	id, err := s.repo.Create(color)
+	id, err := s.repo.Create(ctx, color)
 	if err != nil {
 		return 0, err
 	}
@@ -28,23 +29,23 @@ func (s *ColorsService) Create(name, hex string, price float64) (int, error) {
 	return id, nil
 }
 
-func (s *ColorsService) Exist(colorId int) (bool, error) {
-	return s.repo.Exist(colorId)
+func (s *ColorsService) Exist(ctx context.Context, colorId int) (bool, error) {
+	return s.repo.Exist(ctx, colorId)
 }
 
-func (s *ColorsService) Delete(colorId int) error {
-	return s.repo.Delete(colorId)
+func (s *ColorsService) Delete(ctx context.Context, colorId int) error {
+	return s.repo.Delete(ctx, colorId)
 }
 
-func (s *ColorsService) DeleteFromItems(colorId int) error {
-	return s.repo.DeleteFromItems(colorId)
+func (s *ColorsService) DeleteFromItems(ctx context.Context, colorId int) error {
+	return s.repo.DeleteFromItems(ctx, colorId)
 }
 
-func (s *ColorsService) AddToItems(colorId int) error {
-	return s.repo.AddToItems(colorId)
+func (s *ColorsService) AddToItems(ctx context.Context, colorId int) error {
+	return s.repo.AddToItems(ctx, colorId)
 }
 
-func (s *ColorsService) Update(id int, name, hex string, price float64) error {
+func (s *ColorsService) Update(ctx context.Context, id int, name, hex string, price float64) error {
 	color := models.Color{
 		Id:    id,
 		Name:  name,
@@ -52,13 +53,13 @@ func (s *ColorsService) Update(id int, name, hex string, price float64) error {
 		Price: price,
 	}
 
-	return s.repo.Update(color)
+	return s.repo.Update(ctx, color)
 }
 
-func (s *ColorsService) GetById(colorId int) (models.Color, error) {
-	return s.repo.GetById(colorId)
+func (s *ColorsService) GetById(ctx context.Context, colorId int) (models.Color, error) {
+	return s.repo.GetById(ctx, colorId)
 }
 
-func (s *ColorsService) GetAll() ([]models.Color, error) {
-	return s.repo.GetAll()
+func (s *ColorsService) GetAll(ctx context.Context) ([]models.Color, error) {
+	return s.repo.GetAll(ctx)
 }

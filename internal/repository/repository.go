@@ -25,54 +25,56 @@ const (
 
 type Images interface {
 	Upload(ctx context.Context, filename string) error
-	GetAll() ([]models.Image, error)
+	GetAll(ctx context.Context) ([]models.Image, error)
 	GetById(ctx context.Context, imageId int) (models.Image, error)
-	Exist(imageId int) (bool, error)
+	Exist(ctx context.Context, imageId int) (bool, error)
 	Delete(ctx context.Context, imageId int) error
-	DeleteFromItems(imageId int) error
+	DeleteFromItems(ctx context.Context, imageId int) error
 	Transactor
 }
 
 type Colors interface {
-	Exist(colorId int) (bool, error)
-	GetById(colorId int) (models.Color, error)
-	GetAll() ([]models.Color, error)
-	Create(color models.Color) (int, error)
-	Update(color models.Color) error
-	Delete(colorId int) error
-	DeleteFromItems(colorId int) error
-	AddToItems(colorId int) error
+	Exist(ctx context.Context, colorId int) (bool, error)
+	GetById(ctx context.Context, colorId int) (models.Color, error)
+	GetAll(ctx context.Context) ([]models.Color, error)
+	Create(ctx context.Context, color models.Color) (int, error)
+	Update(ctx context.Context, color models.Color) error
+	Delete(ctx context.Context, colorId int) error
+	DeleteFromItems(ctx context.Context, colorId int) error
+	AddToItems(ctx context.Context, colorId int) error
+	Transactor
 }
 
 type Categories interface {
-	Exist(categoryId int) (bool, error)
-	Create(category models.Category) (int, error)
-	GetAll() ([]models.Category, error)
-	Delete(categoryId int) error
-	GetById(categoryId int) (models.Category, error)
-	Update(category models.Category) error
+	Exist(ctx context.Context, categoryId int) (bool, error)
+	Create(ctx context.Context, category models.Category) (int, error)
+	GetAllC(ctx context.Context) ([]models.Category, error)
+	Delete(ctx context.Context, categoryId int) error
+	GetById(ctx context.Context, categoryId int) (models.Category, error)
+	Update(ctx context.Context, category models.Category) error
+	Transactor
 }
 
 type Items interface {
-	Create(item models.Item) (int, error)
-	LinkColor(itemId, colorId int) error
-	LinkTag(itemId int, tag string) error
-	LinkImage(itemId, imageId int) error
-	GetNew(limit int) ([]int, error)
-	GetAll(sortOptions models.SortOptions) ([]int, error)
-	GetById(itemId int) (models.Item, error)
-	GetBySku(sku string) (models.Item, error)
-	GetByCategory(categoryId int) ([]int, error)
-	GetByTag(tag string) ([]int, error)
-	GetColors(itemId int) ([]models.Color, error)
-	GetTags(itemId int) ([]models.Tag, error)
-	GetImages(itemId int) ([]models.Image, error)
-	Update(itemId int, name, description string, categoryId int, price float64, sku string) error
+	Create(ctx context.Context, item models.Item) (int, error)
+	LinkColor(ctx context.Context, itemId int, colorId int) error
+	LinkTag(ctx context.Context, itemId int, tag string) error
+	LinkImage(ctx context.Context, itemId, imageId int) error
+	GetNew(ctx context.Context, limit int) ([]int, error)
+	GetAll(ctx context.Context, sortOptions models.SortOptions) ([]int, error)
+	GetById(ctx context.Context, itemId int) (models.Item, error)
+	GetBySku(ctx context.Context, sku string) (models.Item, error)
+	GetByCategory(ctx context.Context, categoryId int) ([]int, error)
+	GetByTag(ctx context.Context, tag string) ([]int, error)
+	GetColors(ctx context.Context, itemId int) ([]models.Color, error)
+	GetTags(ctx context.Context, itemId int) ([]models.Tag, error)
+	GetImages(ctx context.Context, itemId int) ([]models.Image, error)
+	Update(ctx context.Context, itemId int, name, description string, categoryId int, price float64, sku string) error
 	Delete(ctx context.Context, itemId int) error
-	DeleteTags(itemId int) error
-	DeleteImages(itemId int) error
-	DeleteColors(itemId int) error
-	Exist(itemId int) (bool, error)
+	DeleteTags(ctx context.Context, itemId int) error
+	DeleteImages(ctx context.Context, itemId int) error
+	DeleteColors(ctx context.Context, itemId int) error
+	Exist(ctx context.Context, itemId int) (bool, error)
 	Transactor
 }
 
@@ -93,6 +95,7 @@ type Users interface {
 	GetAll(ctx context.Context) ([]models.User, error)
 	UpdateField(ctx context.Context, field string, value interface{}, userId int) error
 	UpdatePhone(ctx context.Context, phoneCode, phoneNumber string, userId int) error
+	Transactor
 }
 
 type Delivery interface {

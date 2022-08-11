@@ -12,45 +12,45 @@ import (
 
 type Images interface {
 	Upload(ctx context.Context, images []*multipart.FileHeader) error
-	GetAll() ([]models.Image, error)
-	Exist(imageId int) (bool, error)
+	GetAll(ctx context.Context) ([]models.Image, error)
+	Exist(ctx context.Context, imageId int) (bool, error)
 	Delete(ctx context.Context, imagesId []int) error
 }
 
 type Colors interface {
-	Exist(colorId int) (bool, error)
-	GetById(colorId int) (models.Color, error)
-	GetAll() ([]models.Color, error)
-	Create(name, hex string, price float64) (int, error)
-	Update(id int, name, hex string, price float64) error
-	Delete(colorId int) error
-	DeleteFromItems(colorId int) error
-	AddToItems(colorId int) error
+	Exist(ctx context.Context, colorId int) (bool, error)
+	GetById(ctx context.Context, colorId int) (models.Color, error)
+	GetAll(ctx context.Context) ([]models.Color, error)
+	Create(ctx context.Context, name, hex string, price float64) (int, error)
+	Update(ctx context.Context, id int, name, hex string, price float64) error
+	Delete(ctx context.Context, colorId int) error
+	DeleteFromItems(ctx context.Context, colorId int) error
+	AddToItems(ctx context.Context, colorId int) error
 }
 
 type Categories interface {
-	Exist(categoryId int) (bool, error)
-	GetAll() ([]models.Category, error)
-	GetById(categoryId int) (models.Category, error)
-	Create(name string) (int, error)
-	Delete(categoryId int) error
-	Update(categoryId int, name string) error
+	Exist(ctx context.Context, categoryId int) (bool, error)
+	GetAll(ctx context.Context) ([]models.Category, error)
+	GetById(ctx context.Context, categoryId int) (models.Category, error)
+	Create(ctx context.Context, name string) (int, error)
+	Delete(ctx context.Context, categoryId int) error
+	Update(ctx context.Context, categoryId int, name string) error
 }
 
 type Items interface {
-	Create(name, description string, categoryId int, sku string, price float64) (int, error)
-	Update(id int, name, description string, categoryId int, tags []string, colorsId []int, price float64, sku string, imagesId []int) error
-	LinkColor(itemId int, colorId int) error
-	LinkTags(itemId int, tags []string) error
-	LinkImages(itemId int, imagesId []int) error
-	GetAll(sortOptions models.SortOptions) ([]models.Item, error)
-	GetNew() ([]models.Item, error)
-	GetById(itemId int) (models.Item, error)
-	GetBySku(sku string) (models.Item, error)
-	GetByCategory(categoryId int) ([]models.Item, error)
-	GetByTag(tag string) ([]models.Item, error)
+	Create(ctx context.Context, name, description string, categoryId int, sku string, price float64) (int, error)
+	Update(ctx context.Context, id int, name, description string, categoryId int, tags []string, colorsId []int, price float64, sku string, imagesId []int) error
+	LinkColor(ctx context.Context, itemId int, colorId int) error
+	LinkTags(ctx context.Context, itemId int, tags []string) error
+	LinkImages(ctx context.Context, itemId int, imagesId []int) error
+	GetAll(ctx context.Context, sortOptions models.SortOptions) ([]models.Item, error)
+	GetNew(ctx context.Context) ([]models.Item, error)
+	GetById(ctx context.Context, itemId int) (models.Item, error)
+	GetBySku(ctx context.Context, sku string) (models.Item, error)
+	GetByCategory(ctx context.Context, categoryId int) ([]models.Item, error)
+	GetByTag(ctx context.Context, tag string) ([]models.Item, error)
 	Delete(ctx context.Context, itemsId []int) error
-	Exist(itemId int) (bool, error)
+	Exist(ctx context.Context, itemId int) (bool, error)
 }
 
 type Users interface {
