@@ -201,6 +201,24 @@ definitions:
     - price
     - sku
     type: object
+  v1.deleteImagesInput:
+    properties:
+      imagesId:
+        items:
+          type: integer
+        type: array
+    required:
+    - imagesId
+    type: object
+  v1.deleteItemsInput:
+    properties:
+      itemsId:
+        items:
+          type: integer
+        type: array
+    required:
+    - itemsId
+    type: object
   v1.updateCategoryInput:
     properties:
       name:
@@ -844,6 +862,36 @@ paths:
       tags:
       - delivery-actions
   /images/:
+    delete:
+      consumes:
+      - application/json
+      description: delete images by id
+      parameters:
+      - description: images id info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.deleteImagesInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Delete images
+      tags:
+      - images-actions
     get:
       consumes:
       - application/json
@@ -898,17 +946,18 @@ paths:
       summary: Upload image
       tags:
       - images-actions
-  /images/{id}:
+  /items:
     delete:
       consumes:
       - application/json
-      description: delete image by id
+      description: delete items by id
       parameters:
-      - description: image id
-        in: path
-        name: id
+      - description: items id info
+        in: body
+        name: input
         required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/v1.deleteItemsInput'
       produces:
       - application/json
       responses:
@@ -925,39 +974,10 @@ paths:
       security:
       - UsersAuth: []
       - AdminAuth: []
-      summary: Delete image
-      tags:
-      - images-actions
-  /items/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: delete item by id
-      parameters:
-      - description: item id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ""
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-      security:
-      - UsersAuth: []
-      - AdminAuth: []
-      summary: Delete item
+      summary: Delete items
       tags:
       - items-actions
+  /items/{id}:
     get:
       consumes:
       - application/json

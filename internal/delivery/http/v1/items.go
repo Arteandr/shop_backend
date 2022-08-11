@@ -14,7 +14,7 @@ func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
 		{
 			admins.POST("/create", h.createItem)
 			admins.PUT("/:id", h.updateItems)
-			admins.DELETE("/:id", h.deleteItem)
+			admins.DELETE("/", h.deleteItems)
 			admins.GET("/all", h.sort("created_at", ASC), h.getAllItems)
 
 		}
@@ -329,27 +329,43 @@ func (h *Handler) getItemBySku(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, item)
 }
 
-// @Summary Delete item
+type deleteItemsInput struct {
+	ItemsId []int `json:"itemsId" binding:"required"`
+}
+
+func (i *deleteItemsInput) isValid() error {
+	if len(i.ItemsId) < 1 {
+		return fmt.Errorf("wrong items id length %d", len(i.ItemsId))
+	}
+
+	return nil
+}
+
+// @Summary Delete items
 // @Security UsersAuth
 // @Security AdminAuth
 // @Tags items-actions
-// @Description delete item by id
+// @Description delete items by id
 // @Accept json
 // @Produce json
-// @Param id path int true "item id"
+// @Param input body deleteItemsInput true "items id info"
 // @Success 200 ""
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /items/{id} [delete]
-func (h *Handler) deleteItem(ctx *gin.Context) {
-	strItemId := ctx.Param("id")
-	itemId, err := strconv.Atoi(strItemId)
-	if err != nil {
+// @Router /items [delete]
+func (h *Handler) deleteItems(ctx *gin.Context) {
+	var body deleteItemsInput
+	if err := ctx.BindJSON(&body); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	if err := h.services.Items.Delete(itemId); err != nil {
+	if err := body.isValid(); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Items.Delete(ctx.Request.Context(), body.ItemsId); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}

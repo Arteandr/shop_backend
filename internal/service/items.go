@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 )
@@ -311,8 +312,16 @@ func (s *ItemsService) Update(id int, name, description string, categoryId int, 
 	return nil
 }
 
-func (s *ItemsService) Delete(itemId int) error {
-	return s.repo.Delete(itemId)
+func (s *ItemsService) Delete(ctx context.Context, itemsId []int) error {
+	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		for _, itemId := range itemsId {
+			if err := s.repo.Delete(ctx, itemId); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 func (s *ItemsService) Exist(itemId int) (bool, error) {

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -13,6 +14,28 @@ type ItemsRepo struct {
 
 func NewItemsRepo(db *sqlx.DB) *ItemsRepo {
 	return &ItemsRepo{db: db}
+}
+
+func (r *ItemsRepo) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("begin transcation: %w", err)
+	}
+
+	if err := tFunc(injectTx(ctx, tx)); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
+func (r *ItemsRepo) GetInstance(ctx context.Context) SqlxDB {
+	tx := extractTx(ctx)
+	if tx != nil {
+		return tx
+	}
+	return r.db
 }
 
 func (r *ItemsRepo) Create(item models.Item) (int, error) {
@@ -144,9 +167,10 @@ func (r *ItemsRepo) Update(itemId int, name, description string, categoryId int,
 	return err
 }
 
-func (r *ItemsRepo) Delete(itemId int) error {
+func (r *ItemsRepo) Delete(ctx context.Context, itemId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", itemsTable)
-	_, err := r.db.Exec(query, itemId)
+	_, err := db.ExecContext(ctx, query, itemId)
 
 	return err
 }

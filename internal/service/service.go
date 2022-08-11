@@ -49,7 +49,7 @@ type Items interface {
 	GetBySku(sku string) (models.Item, error)
 	GetByCategory(categoryId int) ([]models.Item, error)
 	GetByTag(tag string) ([]models.Item, error)
-	Delete(itemId int) error
+	Delete(ctx context.Context, itemsId []int) error
 	Exist(itemId int) (bool, error)
 }
 

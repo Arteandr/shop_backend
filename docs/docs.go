@@ -922,9 +922,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/images/{id}": {
+            },
             "delete": {
                 "security": [
                     {
@@ -934,7 +932,7 @@ const docTemplate = `{
                         "AdminAuth": []
                     }
                 ],
-                "description": "delete image by id",
+                "description": "delete images by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -944,14 +942,67 @@ const docTemplate = `{
                 "tags": [
                     "images-actions"
                 ],
-                "summary": "Delete image",
+                "summary": "Delete images",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "image id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
+                        "description": "images id info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.deleteImagesInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items": {
+            "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "delete items by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items-actions"
+                ],
+                "summary": "Delete items",
+                "parameters": [
+                    {
+                        "description": "items id info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.deleteItemsInput"
+                        }
                     }
                 ],
                 "responses": {
@@ -1345,53 +1396,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.Item"
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "UsersAuth": []
-                    },
-                    {
-                        "AdminAuth": []
-                    }
-                ],
-                "description": "delete item by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "items-actions"
-                ],
-                "summary": "Delete item",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "item id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2192,6 +2196,34 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                }
+            }
+        },
+        "v1.deleteImagesInput": {
+            "type": "object",
+            "required": [
+                "imagesId"
+            ],
+            "properties": {
+                "imagesId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "v1.deleteItemsInput": {
+            "type": "object",
+            "required": [
+                "itemsId"
+            ],
+            "properties": {
+                "itemsId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
                     }
                 }
             }
