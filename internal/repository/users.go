@@ -97,9 +97,7 @@ func (r *UsersRepo) GetByRefreshToken(ctx context.Context, refreshToken string) 
 	var user models.User
 	query := fmt.Sprintf("SELECT U.* FROM %s AS S, %s AS U WHERE S.refresh_token=$1 AND S.expires_at > $2::timestamp AND U.id=S.user_id;", sessionsTable, usersTable)
 	rows, err := r.db.QueryxContext(ctx, query, refreshToken, time.Now())
-	if err == sql.ErrNoRows {
-		return models.User{}, models.ErrUserNotFound
-	} else if err != nil {
+	if err != nil {
 		return models.User{}, err
 	}
 
@@ -107,6 +105,10 @@ func (r *UsersRepo) GetByRefreshToken(ctx context.Context, refreshToken string) 
 		if err := rows.StructScan(&user); err != nil {
 			return models.User{}, err
 		}
+	}
+
+	if user == (models.User{}) {
+		return models.User{}, models.ErrUserNotFound
 	}
 
 	return user, nil
