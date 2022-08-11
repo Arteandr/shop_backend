@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
@@ -16,6 +17,28 @@ func NewImagesRepo(db *sqlx.DB) *ImagesRepo {
 	}
 }
 
+func (r *ImagesRepo) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("begin transcation: %w", err)
+	}
+
+	if err := tFunc(injectTx(ctx, tx)); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
+func (r *ImagesRepo) GetInstance(ctx context.Context) SqlxDB {
+	tx := extractTx(ctx)
+	if tx != nil {
+		return tx
+	}
+	return r.db
+}
+
 func (r *ImagesRepo) Upload(filename string) (int, error) {
 	var id int
 	query := fmt.Sprintf("INSERT INTO %s (filename) VALUES($1) RETURNING id;", imagesTable)
@@ -26,7 +49,7 @@ func (r *ImagesRepo) Upload(filename string) (int, error) {
 	return id, nil
 }
 
-func (r *ImagesRepo) GetById(imageId int) (models.Image, error) {
+func (r *ImagesRepo) GetById(ctx context.Context, imageId int) (models.Image, error) {
 	var image models.Image
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", imagesTable)
 	if err := r.db.QueryRow(query, imageId).Scan(&image.Id, &image.Filename, &image.CreatedAt); err != nil {
@@ -57,9 +80,10 @@ func (r *ImagesRepo) Exist(imageId int) (bool, error) {
 	return exist, nil
 }
 
-func (r *ImagesRepo) Delete(imageId int) error {
+func (r *ImagesRepo) Delete(ctx context.Context, imageId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1;", imagesTable)
-	_, err := r.db.Exec(query, imageId)
+	_, err := db.ExecContext(ctx, query, imageId)
 
 	return err
 }

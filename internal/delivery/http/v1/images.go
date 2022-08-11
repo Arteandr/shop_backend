@@ -1,9 +1,9 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 )
 
 func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
@@ -13,7 +13,7 @@ func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
 		{
 			admins.POST("/", h.uploadFile)
 			admins.GET("/", h.getAllImages)
-			admins.DELETE("/:id", h.deleteImage)
+			admins.DELETE("/", h.deleteImages)
 		}
 
 	}
@@ -71,27 +71,43 @@ func (h *Handler) getAllImages(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, images)
 }
 
-// @Summary Delete image
+type deleteImagesInput struct {
+	ImagesId []int `json:"imagesId" binding:"required"`
+}
+
+func (i *deleteImagesInput) isValid() error {
+	if len(i.ImagesId) < 1 {
+		return fmt.Errorf("wrong images id length %d", len(i.ImagesId))
+	}
+
+	return nil
+}
+
+// @Summary Delete images
 // @Security UsersAuth
 // @Security AdminAuth
 // @Tags images-actions
-// @Description delete image by id
+// @Description delete images by id
 // @Accept json
 // @Produce json
-// @Param id path int true "image id"
+// @Param input body deleteImagesInput true "images id info"
 // @Success 200 ""
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /images/{id} [delete]
-func (h *Handler) deleteImage(ctx *gin.Context) {
-	strImageId := ctx.Param("id")
-	imageId, err := strconv.Atoi(strImageId)
-	if err != nil {
+// @Router /images/ [delete]
+func (h *Handler) deleteImages(ctx *gin.Context) {
+	var body deleteImagesInput
+	if err := ctx.BindJSON(&body); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	if err := h.services.Images.Delete(imageId); err != nil {
+	if err := body.isValid(); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Images.Delete(ctx.Request.Context(), body.ImagesId); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
