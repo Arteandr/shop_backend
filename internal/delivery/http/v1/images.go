@@ -30,7 +30,7 @@ func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
 // @Success 200 ""
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /images/ [post]
+// @Router /images [post]
 func (h *Handler) uploadImage(ctx *gin.Context) {
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -61,7 +61,7 @@ func (h *Handler) uploadImage(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {array} models.Image
 // @Failure 500 {object} ErrorResponse
-// @Router /images/ [get]
+// @Router /images [get]
 func (h *Handler) getAllImages(ctx *gin.Context) {
 	images, err := h.services.Images.GetAll(ctx.Request.Context())
 	if err != nil {
@@ -99,7 +99,7 @@ func (i *deleteImagesInput) isValid() error {
 // @Success 200 ""
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /images/ [delete]
+// @Router /images [delete]
 func (h *Handler) deleteImages(ctx *gin.Context) {
 	var body deleteImagesInput
 	if err := ctx.BindJSON(&body); err != nil {

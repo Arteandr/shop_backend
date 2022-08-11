@@ -181,7 +181,7 @@ func (h *Handler) getCategoryById(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {array} models.Category
 // @Failure 500 {object} ErrorResponse
-// @Router /categories/ [get]
+// @Router /categories [get]
 func (h *Handler) getAllCategories(ctx *gin.Context) {
 	categories, err := h.services.Categories.GetAll(ctx.Request.Context())
 	if err != nil {

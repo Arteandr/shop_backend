@@ -130,27 +130,12 @@ definitions:
       shippingAddress:
         $ref: '#/definitions/models.Address'
     type: object
-  v1.CreatDeliveryResponse:
-    properties:
-      id:
-        type: integer
-    type: object
-  v1.CreateCategoryResult:
-    properties:
-      categoryId:
-        type: integer
-    type: object
-  v1.CreateColorResult:
-    properties:
-      colorId:
-        type: integer
-    type: object
   v1.ErrorResponse:
     properties:
       error:
         type: string
     type: object
-  v1.UploadFileResponse:
+  v1.IdResponse:
     properties:
       id:
         type: integer
@@ -464,7 +449,7 @@ paths:
       summary: Update category
       tags:
       - categories-actions
-  /categories/create:
+  /categories/create/:
     post:
       consumes:
       - application/json
@@ -482,7 +467,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.CreateCategoryResult'
+            $ref: '#/definitions/v1.IdResponse'
         "400":
           description: Bad Request
           schema:
@@ -680,7 +665,7 @@ paths:
       summary: Add color to all items
       tags:
       - colors-actions
-  /colors/create:
+  /colors/create/:
     post:
       consumes:
       - application/json
@@ -698,7 +683,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.CreateColorResult'
+            $ref: '#/definitions/v1.IdResponse'
         "400":
           description: Bad Request
           schema:
@@ -846,7 +831,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.CreatDeliveryResponse'
+            $ref: '#/definitions/v1.IdResponse'
         "400":
           description: Bad Request
           schema:
@@ -918,9 +903,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: upload image
+      description: upload images
       parameters:
-      - description: photo to upload
+      - description: photos to upload
         in: formData
         name: photo
         required: true
@@ -929,9 +914,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.UploadFileResponse'
+          description: ""
         "400":
           description: Bad Request
           schema:
@@ -943,7 +926,7 @@ paths:
       security:
       - UsersAuth: []
       - AdminAuth: []
-      summary: Upload image
+      summary: Upload images
       tags:
       - images-actions
   /items:

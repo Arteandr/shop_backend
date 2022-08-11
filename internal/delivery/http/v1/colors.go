@@ -241,7 +241,7 @@ func (h *Handler) getColorById(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {array} models.Color
 // @Failure 500 {object} ErrorResponse
-// @Router /colors/ [get]
+// @Router /colors [get]
 func (h *Handler) getAllColors(ctx *gin.Context) {
 	colors, err := h.services.Colors.GetAll(ctx.Request.Context())
 	if err != nil {

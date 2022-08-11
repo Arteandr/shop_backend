@@ -48,7 +48,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/categories/create": {
+        "/categories/create/": {
             "post": {
                 "security": [
                     {
@@ -84,7 +84,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.CreateCategoryResult"
+                            "$ref": "#/definitions/v1.IdResponse"
                         }
                     },
                     "400": {
@@ -386,7 +386,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/colors/create": {
+        "/colors/create/": {
             "post": {
                 "security": [
                     {
@@ -422,7 +422,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.CreateColorResult"
+                            "$ref": "#/definitions/v1.IdResponse"
                         }
                     },
                     "400": {
@@ -664,7 +664,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.CreatDeliveryResponse"
+                            "$ref": "#/definitions/v1.IdResponse"
                         }
                     },
                     "400": {
@@ -882,7 +882,7 @@ const docTemplate = `{
                         "AdminAuth": []
                     }
                 ],
-                "description": "upload image",
+                "description": "upload images",
                 "consumes": [
                     "application/json"
                 ],
@@ -892,11 +892,11 @@ const docTemplate = `{
                 "tags": [
                     "images-actions"
                 ],
-                "summary": "Upload image",
+                "summary": "Upload images",
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "photo to upload",
+                        "description": "photos to upload",
                         "name": "photo",
                         "in": "formData",
                         "required": true
@@ -904,10 +904,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.UploadFileResponse"
-                        }
+                        "description": ""
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2094,30 +2091,6 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.CreatDeliveryResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "v1.CreateCategoryResult": {
-            "type": "object",
-            "properties": {
-                "categoryId": {
-                    "type": "integer"
-                }
-            }
-        },
-        "v1.CreateColorResult": {
-            "type": "object",
-            "properties": {
-                "colorId": {
-                    "type": "integer"
-                }
-            }
-        },
         "v1.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -2126,7 +2099,7 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.UploadFileResponse": {
+        "v1.IdResponse": {
             "type": "object",
             "properties": {
                 "id": {
