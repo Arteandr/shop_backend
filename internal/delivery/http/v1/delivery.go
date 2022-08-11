@@ -16,8 +16,8 @@ func (h *Handler) InitDeliveryRoutes(api *gin.RouterGroup) {
 		{
 			admins.POST("/create", h.createDelivery)
 			admins.GET("/:id", h.getDeliveryById)
+			admins.PUT("/:id", h.updateDelivery)
 		}
-		delivery.PUT("/:id", h.updateDelivery)
 	}
 }
 
@@ -108,6 +108,18 @@ func (h *Handler) getDeliveryById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, delivery)
 }
 
+// @Summary Update delivery by id
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags delivery-actions
+// @Description update delivery by id
+// @Accept json
+// @Produce json
+// @Param id path int true "delivery id"
+// @Success 200 ""
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /delivery/{id} [put]
 func (h *Handler) updateDelivery(ctx *gin.Context) {
 	var body createDeliveryInput
 	if err := ctx.BindJSON(&body); err != nil {
