@@ -9,22 +9,6 @@ type UserResponse struct {
 	Email string `json:"email"`
 }
 
-type SignUpResponse struct {
+type IdResponse struct {
 	Id int `json:"id"`
-}
-
-type CreateColorResult struct {
-	ColorId int `json:"colorId"`
-}
-
-type UploadFileResponse struct {
-	Id int `json:"id"`
-}
-
-type CreatDeliveryResponse struct {
-	Id int `json:"id"`
-}
-
-type CreateCategoryResponse struct {
-	CategoryId int `json:"categoryId"`
 }

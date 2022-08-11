@@ -31,7 +31,7 @@ func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 // @Accept json
 // @Produce json
 // @Param input body models.Category true "input body"
-// @Success 200 {object} CreateCategoryResponse
+// @Success 200 {object} IdResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /categories/create [post]
@@ -48,7 +48,7 @@ func (h *Handler) createCategory(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, CreateCategoryResponse{CategoryId: categoryId})
+	ctx.JSON(http.StatusOK, IdResponse{Id: categoryId})
 }
 
 // @Summary Delete category

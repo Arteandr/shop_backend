@@ -50,7 +50,7 @@ func (i *createDeliveryInput) isValid() error {
 // @Accept json
 // @Produce json
 // @Param input body createDeliveryInput true "delivery info"
-// @Success 200 {object} CreatDeliveryResponse
+// @Success 200 {object} IdResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /delivery/create [post]
@@ -73,9 +73,7 @@ func (h *Handler) createDelivery(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, CreatDeliveryResponse{
-		Id: id,
-	})
+	ctx.JSON(http.StatusOK, IdResponse{Id: id})
 }
 
 // @Summary Get delivery by id

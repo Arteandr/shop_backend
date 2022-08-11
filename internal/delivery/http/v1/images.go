@@ -27,7 +27,7 @@ func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
 // @Accept json
 // @Produce json
 // @Param photo formData file true "photo to upload"
-// @Success 200 {object} UploadFileResponse
+// @Success 200 {object} IdResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /images/ [post]
@@ -44,7 +44,7 @@ func (h *Handler) uploadFile(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, UploadFileResponse{Id: id})
+	ctx.JSON(http.StatusOK, IdResponse{Id: id})
 }
 
 // @Summary Get all images

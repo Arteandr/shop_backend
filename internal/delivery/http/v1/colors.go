@@ -38,7 +38,7 @@ type createColorInput struct {
 // @Accept json
 // @Produce json
 // @Param input body models.Color true "input body"
-// @Success 200 {object} CreateColorResult
+// @Success 200 {object} IdResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /colors/create [post]
@@ -55,7 +55,7 @@ func (h *Handler) createColor(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, CreateColorResult{ColorId: colorId})
+	ctx.JSON(http.StatusOK, IdResponse{Id: colorId})
 }
 
 type updateColorInput struct {
