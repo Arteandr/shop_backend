@@ -81,7 +81,7 @@ func Run(configPath string) {
 	handlers := delivery.NewHandler(services, cfg, tokenManager)
 
 	// HTTP server
-	srv := server.NewServer(cfg, handlers.Init(cfg))
+	srv := server.NewServer(cfg, handlers.Init())
 
 	go func() {
 		if err := srv.Run(); !errors.Is(err, http.ErrServerClosed) {

@@ -25,7 +25,7 @@ func NewHandler(services *service.Services, cfg *config.Config, tokenManager aut
 	}
 }
 
-func (h *Handler) Init(cfg *config.Config) *gin.Engine {
+func (h *Handler) Init() *gin.Engine {
 	r := gin.Default()
 
 	r.Use(corsMiddleware)
