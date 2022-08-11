@@ -46,9 +46,10 @@ func (r *UsersRepo) GetInstance(ctx context.Context) SqlxDB {
 // $2 = email
 // $3 = password
 func (r *UsersRepo) Create(ctx context.Context, user models.User) (models.User, error) {
+	db := r.GetInstance(ctx)
 	var newUser models.User
 	query := fmt.Sprintf("INSERT INTO %s (login, email, password) VALUES ($1,$2,$3) RETURNING id, email, login;", usersTable)
-	if err := r.db.QueryRowContext(ctx, query, user.Login, user.Email, user.Password).Scan(&newUser.Id, &newUser.Email, &newUser.Login); err != nil {
+	if err := db.QueryRowContext(ctx, query, user.Login, user.Email, user.Password).Scan(&newUser.Id, &newUser.Email, &newUser.Login); err != nil {
 		return models.User{}, err
 	}
 
@@ -56,16 +57,18 @@ func (r *UsersRepo) Create(ctx context.Context, user models.User) (models.User, 
 }
 
 func (r *UsersRepo) CreatePhone(ctx context.Context, userId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("INSERT INTO %s (user_id) VALUES ($1);", phonesTable)
-	_, err := r.db.ExecContext(ctx, query, userId)
+	_, err := db.ExecContext(ctx, query, userId)
 
 	return err
 }
 
 func (r *UsersRepo) CreateAddress(ctx context.Context, address models.Address) (models.Address, error) {
+	db := r.GetInstance(ctx)
 	var newAddress models.Address
 	query := fmt.Sprintf("INSERT INTO %s (country,city,street,zip) VALUES ($1,$2,$3,$4) RETURNING *;", addressTable)
-	rows, err := r.db.QueryxContext(ctx, query, address.Country, address.City, address.Street, address.Zip)
+	rows, err := db.QueryxContext(ctx, query, address.Country, address.City, address.Street, address.Zip)
 	if err != nil {
 		return models.Address{}, err
 	}
@@ -82,8 +85,9 @@ func (r *UsersRepo) CreateAddress(ctx context.Context, address models.Address) (
 // $1 = addressId
 // $2 = userId
 func (r *UsersRepo) LinkAddress(ctx context.Context, table string, userId int, addressId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("UPDATE users_%s SET address_id=$1 WHERE user_id=$2;", table)
-	_, err := r.db.ExecContext(ctx, query, addressId, userId)
+	_, err := db.ExecContext(ctx, query, addressId, userId)
 
 	return err
 }
@@ -91,9 +95,10 @@ func (r *UsersRepo) LinkAddress(ctx context.Context, table string, userId int, a
 // $1 = login
 // $2 = password
 func (r *UsersRepo) GetByCredentials(ctx context.Context, findBy, login, password string) (models.User, error) {
+	db := r.GetInstance(ctx)
 	var user models.User
 	query := fmt.Sprintf("SELECT * FROM %s WHERE %s=$1 AND password=$2 LIMIT 1;", usersTable, findBy)
-	rows, err := r.db.QueryxContext(ctx, query, login, password)
+	rows, err := db.QueryxContext(ctx, query, login, password)
 	if err == sql.ErrNoRows {
 		return models.User{}, models.ErrUserNotFound
 	} else if err != nil {
@@ -138,9 +143,10 @@ func (r *UsersRepo) GetByRefreshToken(ctx context.Context, refreshToken string) 
 
 // $1 = userId
 func (r *UsersRepo) GetById(ctx context.Context, userId int) (models.User, error) {
+	db := r.GetInstance(ctx)
 	var user models.User
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", usersTable)
-	rows, err := r.db.QueryxContext(ctx, query, userId)
+	rows, err := db.QueryxContext(ctx, query, userId)
 	if err == sql.ErrNoRows {
 		return models.User{}, models.ErrUserNotFound
 	} else if err != nil {
@@ -158,9 +164,10 @@ func (r *UsersRepo) GetById(ctx context.Context, userId int) (models.User, error
 
 // $1 = userId
 func (r *UsersRepo) GetPhone(ctx context.Context, userId int) (models.Phone, error) {
+	db := r.GetInstance(ctx)
 	var phone models.Phone
 	query := fmt.Sprintf("SELECT code, number FROM %s WHERE user_id=$1;", phonesTable)
-	rows, err := r.db.QueryxContext(ctx, query, userId)
+	rows, err := db.QueryxContext(ctx, query, userId)
 	if err != nil {
 		return models.Phone{}, err
 	}
@@ -178,8 +185,9 @@ func (r *UsersRepo) GetPhone(ctx context.Context, userId int) (models.Phone, err
 // $2 = refreshToken
 // $3 = expiresAt
 func (r *UsersRepo) SetSession(ctx context.Context, userId int, session models.Session) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("INSERT INTO %s (user_id,refresh_token,expires_at) VALUES ($1,$2,$3);", sessionsTable)
-	_, err := r.db.ExecContext(ctx, query, userId, session.RefreshToken, session.ExpiresAt)
+	_, err := db.ExecContext(ctx, query, userId, session.RefreshToken, session.ExpiresAt)
 	return err
 }
 
@@ -201,9 +209,10 @@ func (r *UsersRepo) Delete(ctx context.Context, userId int) error {
 
 // $1 = userId
 func (r *UsersRepo) GetAddress(ctx context.Context, typeof string, userId int) (models.Address, error) {
+	db := r.GetInstance(ctx)
 	var address models.Address
 	query := fmt.Sprintf("SELECT A.* FROM %s AS A, users_%s as U_A WHERE U_A.user_id=$1 AND U_A.address_id=A.id LIMIT 1;", addressTable, typeof)
-	rows, err := r.db.QueryxContext(ctx, query, userId)
+	rows, err := db.QueryxContext(ctx, query, userId)
 	if err == sql.ErrNoRows {
 		return models.Address{}, models.ErrAddressNotFound
 	} else if err != nil {
@@ -241,8 +250,9 @@ func (r *UsersRepo) GetAll(ctx context.Context) ([]models.User, error) {
 // $1 = value
 // $2 = userId
 func (r *UsersRepo) UpdateField(ctx context.Context, field string, value interface{}, userId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("UPDATE %s SET %s=$1 WHERE id=$2;", usersTable, field)
-	_, err := r.db.ExecContext(ctx, query, value, userId)
+	_, err := db.ExecContext(ctx, query, value, userId)
 	pqError, ok := err.(*pq.Error)
 	if ok {
 		if pqError.Code == "23505" {
@@ -259,16 +269,18 @@ func (r *UsersRepo) UpdateField(ctx context.Context, field string, value interfa
 // $2 = number
 // $3 = userId
 func (r *UsersRepo) UpdatePhone(ctx context.Context, phoneCode, phoneNumber string, userId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("UPDATE %s SET code=$1,number=$2 WHERE user_id=$3;", phonesTable)
-	_, err := r.db.ExecContext(ctx, query, phoneCode, phoneNumber, userId)
+	_, err := db.ExecContext(ctx, query, phoneCode, phoneNumber, userId)
 
 	return err
 }
 
 // $1 = userId
 func (r *UsersRepo) CreateDefaultAddress(ctx context.Context, table string, userId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("INSERT INTO users_%s (user_id) VALUES($1);", table)
-	_, err := r.db.ExecContext(ctx, query, userId)
+	_, err := db.ExecContext(ctx, query, userId)
 
 	return err
 }
