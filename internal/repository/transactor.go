@@ -6,6 +6,7 @@ import (
 )
 
 type Transactor interface {
+	GetInstance(ctx context.Context) SqlxDB
 	WithinTransaction(context.Context, func(ctx context.Context) error) error
 }
 
