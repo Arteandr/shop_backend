@@ -43,34 +43,24 @@ type userSignUpInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func (u *userSignUpInput) isValidEmail() error {
+func (u *userSignUpInput) isValid() error {
 	if _, err := mail.ParseAddress(u.Email); err != nil {
 		return errors.New("wrong email")
 	}
-
 	const emailLength = 30
 	if len(u.Email) > emailLength {
 		return errors.New(fmt.Sprintf("email length must not exceed %d characters", emailLength))
 	}
 
-	return nil
-}
-
-func (u *userSignUpInput) isValidLogin() error {
 	if len(u.Login) < 2 || len(u.Login) > 15 {
 		return errors.New("wrong login length")
 	}
-
 	// Include all latin alphabet and numbers 0-9
 	const loginPattern = `^[A-Za-z0-9]+$`
 	if matched, _ := regexp.MatchString(loginPattern, u.Login); !matched {
 		return errors.New("wrong login")
 	}
 
-	return nil
-}
-
-func (u *userSignUpInput) isValidPassword() error {
 	if len(u.Password) < 6 || len(u.Password) > 16 {
 		return errors.New("wrong password length")
 	}
@@ -95,17 +85,7 @@ func (h *Handler) userSignUp(ctx *gin.Context) {
 		return
 	}
 
-	if err := body.isValidEmail(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	if err := body.isValidLogin(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	if err := body.isValidPassword(); err != nil {
+	if err := body.isValid(); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -289,7 +269,7 @@ type userUpdateEmailInput struct {
 	Email string `json:"email" binding:"required"`
 }
 
-func (u *userUpdateEmailInput) isValidEmail() error {
+func (u *userUpdateEmailInput) isValid() error {
 	if _, err := mail.ParseAddress(u.Email); err != nil {
 		return errors.New("wrong email")
 	}
@@ -320,7 +300,7 @@ func (h *Handler) userUpdateEmail(ctx *gin.Context) {
 		return
 	}
 
-	if err := body.isValidEmail(); err != nil {
+	if err := body.isValid(); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -350,7 +330,7 @@ type userUpdatePasswordInput struct {
 	NewPassword string `json:"newPassword" binding:"required"`
 }
 
-func (u *userUpdatePasswordInput) isValidPassword() error {
+func (u *userUpdatePasswordInput) isValid() error {
 	if len(u.NewPassword) < 6 || len(u.NewPassword) > 16 {
 		return errors.New("wrong new password length")
 	}
@@ -376,7 +356,7 @@ func (h *Handler) userUpdatePassword(ctx *gin.Context) {
 		return
 	}
 
-	if err := body.isValidPassword(); err != nil {
+	if err := body.isValid(); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -408,7 +388,7 @@ type userUpdateInfoInput struct {
 	PhoneNumber string `json:"phoneNumber" binding:"required"`
 }
 
-func (u *userUpdateInfoInput) isValidInfo() error {
+func (u *userUpdateInfoInput) isValid() error {
 	// Check login
 	if len(u.Login) < 2 || len(u.Login) > 15 {
 		return errors.New("wrong login length")
@@ -455,7 +435,7 @@ func (h *Handler) userUpdateInfo(ctx *gin.Context) {
 		return
 	}
 
-	if err := body.isValidInfo(); err != nil {
+	if err := body.isValid(); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}

@@ -24,3 +24,7 @@ type UploadFileResponse struct {
 type CreatDeliveryResponse struct {
 	Id int `json:"id"`
 }
+
+type CreateCategoryResponse struct {
+	CategoryId int `json:"categoryId"`
+}

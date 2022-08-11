@@ -24,8 +24,7 @@ func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 	}
 }
 
-type createColor struct {
-	Id    int      `json:"id,omitempty"`
+type createColorInput struct {
 	Name  string   `json:"name" binding:"required"`
 	Hex   string   `json:"hex" binding:"required"`
 	Price *float64 `json:"price" binding:"required"`
@@ -44,7 +43,7 @@ type createColor struct {
 // @Failure 500 {object} ErrorResponse
 // @Router /colors/create [post]
 func (h *Handler) createColor(ctx *gin.Context) {
-	var color createColor
+	var color createColorInput
 	if err := ctx.BindJSON(&color); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
@@ -60,9 +59,9 @@ func (h *Handler) createColor(ctx *gin.Context) {
 }
 
 type updateColorInput struct {
-	Name  string   `json:"name" binding:"required" db:"name"`
-	Hex   string   `json:"hex" binding:"required" db:"hex"`
-	Price *float64 `json:"price" binding:"required" db:"price"`
+	Name  string   `json:"name" binding:"required"`
+	Hex   string   `json:"hex" binding:"required"`
+	Price *float64 `json:"price" binding:"required"`
 }
 
 // @Summary Update color

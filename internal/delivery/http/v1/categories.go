@@ -23,10 +23,6 @@ func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 	}
 }
 
-type CreateCategoryResult struct {
-	CategoryId int `json:"categoryId"`
-}
-
 // @Summary Create a new category
 // @Security UsersAuth
 // @Security AdminAuth
@@ -35,7 +31,7 @@ type CreateCategoryResult struct {
 // @Accept json
 // @Produce json
 // @Param input body models.Category true "input body"
-// @Success 200 {object} CreateCategoryResult
+// @Success 200 {object} CreateCategoryResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /categories/create [post]
@@ -52,7 +48,7 @@ func (h *Handler) createCategory(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, CreateCategoryResult{CategoryId: categoryId})
+	ctx.JSON(http.StatusOK, CreateCategoryResponse{CategoryId: categoryId})
 }
 
 // @Summary Delete category
