@@ -14,7 +14,7 @@ type Images interface {
 	Upload(image *multipart.FileHeader) (int, error)
 	GetAll() ([]models.Image, error)
 	Exist(imageId int) (bool, error)
-	Delete(imageId int) error
+	Delete(ctx context.Context, imagesId []int) error
 }
 
 type Colors interface {

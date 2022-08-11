@@ -26,10 +26,11 @@ const (
 type Images interface {
 	Upload(filename string) (int, error)
 	GetAll() ([]models.Image, error)
-	GetById(imageId int) (models.Image, error)
+	GetById(ctx context.Context, imageId int) (models.Image, error)
 	Exist(imageId int) (bool, error)
-	Delete(imageId int) error
+	Delete(ctx context.Context, imageId int) error
 	DeleteFromItems(imageId int) error
+	Transactor
 }
 
 type Colors interface {
