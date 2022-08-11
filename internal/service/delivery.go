@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 )
@@ -15,23 +16,48 @@ func NewDeliveryService(repo repository.Delivery) *DeliveryService {
 }
 
 func (s *DeliveryService) Create(ctx context.Context, delivery models.Delivery) (int, error) {
-	companyExist, err := s.repo.ExistCompany(ctx, delivery.CompanyName)
-	if err != nil {
-		return 0, err
-	}
-
-	if !companyExist {
-		if err := s.repo.CreateCompany(ctx, delivery.CompanyName); err != nil {
-			return 0, err
+	var id int
+	return id, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		companyExist, err := s.repo.ExistCompany(ctx, delivery.CompanyName)
+		if err != nil {
+			return err
 		}
-	}
 
-	id, err := s.repo.Create(ctx, delivery)
-	if err != nil {
-		return 0, err
-	}
+		if !companyExist {
+			if err := s.repo.CreateCompany(ctx, delivery.CompanyName); err != nil {
+				return err
+			}
+		}
 
-	return id, nil
+		id, err = s.repo.Create(ctx, delivery)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s *DeliveryService) Update(ctx context.Context, delivery models.Delivery) error {
+	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		companyExist, err := s.repo.ExistCompany(ctx, delivery.CompanyName)
+		if err != nil {
+			return err
+		}
+
+		if !companyExist {
+			if err := s.repo.CreateCompany(ctx, delivery.CompanyName); err != nil {
+				return err
+			}
+		}
+
+		if err := s.repo.Update(ctx, delivery); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (s *DeliveryService) GetById(ctx context.Context, deliveryId int) (models.Delivery, error) {

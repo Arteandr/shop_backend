@@ -17,6 +17,7 @@ func (h *Handler) InitDeliveryRoutes(api *gin.RouterGroup) {
 			admins.POST("/create", h.createDelivery)
 			admins.GET("/:id", h.getDeliveryById)
 		}
+		delivery.PUT("/:id", h.updateDelivery)
 	}
 }
 
@@ -105,4 +106,33 @@ func (h *Handler) getDeliveryById(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, delivery)
+}
+
+func (h *Handler) updateDelivery(ctx *gin.Context) {
+	var body createDeliveryInput
+	if err := ctx.BindJSON(&body); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	strDeliveryId := ctx.Param("id")
+	deliveryId, err := strconv.Atoi(strDeliveryId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	delivery := models.Delivery{
+		Id:          deliveryId,
+		Name:        body.Name,
+		CompanyName: body.CompanyName,
+		Price:       body.Price,
+	}
+
+	if err := h.services.Delivery.Update(ctx.Request.Context(), delivery); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }

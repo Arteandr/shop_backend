@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
 )
@@ -97,6 +98,8 @@ type Delivery interface {
 	CreateCompany(ctx context.Context, name string) error
 	ExistCompany(ctx context.Context, name string) (bool, error)
 	GetById(ctx context.Context, deliveryId int) (models.Delivery, error)
+	Update(ctx context.Context, delivery models.Delivery) error
+	Transactor
 }
 
 type Repositories struct {
@@ -117,4 +120,21 @@ func NewRepositories(db *sqlx.DB) *Repositories {
 		Images:     NewImagesRepo(db),
 		Delivery:   NewDeliveryRepo(db),
 	}
+}
+
+type txKey struct{}
+
+func injectTx(ctx context.Context, tx *sqlx.Tx) context.Context {
+	return context.WithValue(ctx, txKey{}, tx)
+}
+func extractTx(ctx context.Context) *sqlx.Tx {
+	if tx, ok := ctx.Value(txKey{}).(*sqlx.Tx); ok {
+		return tx
+	}
+	return nil
+}
+
+type SqlxDB interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 }

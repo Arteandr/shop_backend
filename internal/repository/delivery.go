@@ -17,11 +17,34 @@ func NewDeliveryRepo(db *sqlx.DB) *DeliveryRepo {
 	}
 }
 
+func (r *DeliveryRepo) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("begin transcation: %w", err)
+	}
+
+	if err := tFunc(injectTx(ctx, tx)); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
+func (r *DeliveryRepo) GetDB(ctx context.Context) SqlxDB {
+	tx := extractTx(ctx)
+	if tx != nil {
+		return tx
+	}
+	return r.db
+}
+
 func (r *DeliveryRepo) Create(ctx context.Context, delivery models.Delivery) (int, error) {
+	db := r.GetDB(ctx)
 	var id int
 	subquery := fmt.Sprintf("SELECT id FROM %s WHERE name=$2", deliveryCompanyTable)
 	query := fmt.Sprintf("INSERT INTO %s (name,company_id,price) VALUES($1,(%s),$3) RETURNING id;", deliveryTable, subquery)
-	if err := r.db.QueryRowContext(ctx, query, delivery.Name, delivery.CompanyName, delivery.Price).Scan(&id); err != nil {
+	if err := db.GetContext(ctx, &id, query, delivery.Name, delivery.CompanyName, delivery.Price); err != nil {
 		return 0, err
 	}
 
@@ -29,20 +52,19 @@ func (r *DeliveryRepo) Create(ctx context.Context, delivery models.Delivery) (in
 }
 
 func (r *DeliveryRepo) CreateCompany(ctx context.Context, name string) error {
-	var id int
+	db := r.GetDB(ctx)
 	query := fmt.Sprintf("INSERT INTO %s (name) VALUES($1) RETURNING id;", deliveryCompanyTable)
-	if err := r.db.QueryRowContext(ctx, query, name).Scan(&id); err != nil {
-		return err
-	}
+	_, err := db.ExecContext(ctx, query, name)
 
-	return nil
+	return err
 }
 
 func (r *DeliveryRepo) ExistCompany(ctx context.Context, name string) (bool, error) {
+	db := r.GetDB(ctx)
 	var exist bool
 	subquery := fmt.Sprintf("SELECT * FROM %s WHERE name=$1", deliveryCompanyTable)
 	query := fmt.Sprintf("SELECT exists (%s)", subquery)
-	if err := r.db.QueryRowContext(ctx, query, name).Scan(&exist); err != nil {
+	if err := db.GetContext(ctx, &exist, query, name); err != nil {
 		return false, err
 	}
 
@@ -68,4 +90,18 @@ func (r *DeliveryRepo) GetById(ctx context.Context, deliveryId int) (models.Deli
 	}
 
 	return delivery, nil
+}
+
+func (r *DeliveryRepo) Update(ctx context.Context, delivery models.Delivery) error {
+	db := r.GetDB(ctx)
+	subquery := fmt.Sprintf("SELECT id FROM %s WHERE name=$2", deliveryCompanyTable)
+	query := fmt.Sprintf("UPDATE %s SET name=$1,company_id=(%s),price=$3 WHERE id=$4;", deliveryTable, subquery)
+	rows, err := db.ExecContext(ctx, query, delivery.Name, delivery.CompanyName, delivery.Price, delivery.Id)
+	rowsAffected, _ := rows.RowsAffected()
+	fmt.Println(rowsAffected)
+	if rowsAffected < 1 {
+		return models.ErrDeliveryNotFound
+	}
+
+	return err
 }
