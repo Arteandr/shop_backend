@@ -71,6 +71,7 @@ type Delivery interface {
 	Create(ctx context.Context, delivery models.Delivery) (int, error)
 	GetById(ctx context.Context, deliveryId int) (models.Delivery, error)
 	Update(ctx context.Context, delivery models.Delivery) error
+	Delete(ctx context.Context, deliveryId int) error
 }
 
 type Services struct {

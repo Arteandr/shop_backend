@@ -105,3 +105,10 @@ func (r *DeliveryRepo) Update(ctx context.Context, delivery models.Delivery) err
 
 	return err
 }
+
+func (r *DeliveryRepo) Delete(ctx context.Context, deliveryId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1;", deliveryTable)
+	_, err := r.db.ExecContext(ctx, query, deliveryId)
+
+	return err
+}

@@ -99,6 +99,7 @@ type Delivery interface {
 	ExistCompany(ctx context.Context, name string) (bool, error)
 	GetById(ctx context.Context, deliveryId int) (models.Delivery, error)
 	Update(ctx context.Context, delivery models.Delivery) error
+	Delete(ctx context.Context, deliveryId int) error
 	Transactor
 }
 

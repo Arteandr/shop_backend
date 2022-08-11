@@ -18,6 +18,7 @@ func (h *Handler) InitDeliveryRoutes(api *gin.RouterGroup) {
 			admins.GET("/:id", h.getDeliveryById)
 			admins.PUT("/:id", h.updateDelivery)
 		}
+		delivery.DELETE("/:id", h.deleteDelivery)
 	}
 }
 
@@ -147,4 +148,30 @@ func (h *Handler) updateDelivery(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+// @Summary Delete delivery by id
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags delivery-actions
+// @Description delete delivery by id
+// @Accept json
+// @Produce json
+// @Param id path int true "delivery id"
+// @Success 200 ""
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /delivery/{id} [delete]
+func (h *Handler) deleteDelivery(ctx *gin.Context) {
+	strDeliveryId := ctx.Param("id")
+	deliveryId, err := strconv.Atoi(strDeliveryId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Delivery.Delete(ctx, deliveryId); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
 }

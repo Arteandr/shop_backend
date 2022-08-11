@@ -39,6 +39,10 @@ func (s *DeliveryService) Create(ctx context.Context, delivery models.Delivery) 
 	})
 }
 
+func (s *DeliveryService) Delete(ctx context.Context, deliveryId int) error {
+	return s.repo.Delete(ctx, deliveryId)
+}
+
 func (s *DeliveryService) Update(ctx context.Context, delivery models.Delivery) error {
 	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		companyExist, err := s.repo.ExistCompany(ctx, delivery.CompanyName)
