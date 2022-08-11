@@ -72,3 +72,7 @@ func (s *DeliveryService) GetById(ctx context.Context, deliveryId int) (models.D
 
 	return delivery, nil
 }
+
+func (s *DeliveryService) GetAll(ctx context.Context) ([]models.Delivery, error) {
+	return s.repo.GetAll(ctx)
+}

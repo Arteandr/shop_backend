@@ -17,8 +17,9 @@ func (h *Handler) InitDeliveryRoutes(api *gin.RouterGroup) {
 			admins.POST("/create", h.createDelivery)
 			admins.GET("/:id", h.getDeliveryById)
 			admins.PUT("/:id", h.updateDelivery)
+			admins.DELETE("/:id", h.deleteDelivery)
 		}
-		delivery.DELETE("/:id", h.deleteDelivery)
+		delivery.GET("/all", h.getAllDelivery)
 	}
 }
 
@@ -109,6 +110,24 @@ func (h *Handler) getDeliveryById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, delivery)
 }
 
+// @Summary Get all delivery
+// @Tags delivery-actions
+// @Description get all delivery
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Delivery
+// @Failure 500 {object} ErrorResponse
+// @Router /delivery/all [get]
+func (h *Handler) getAllDelivery(ctx *gin.Context) {
+	delivery, err := h.services.Delivery.GetAll(ctx.Request.Context())
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, delivery)
+}
+
 // @Summary Update delivery by id
 // @Security UsersAuth
 // @Security AdminAuth
@@ -174,4 +193,6 @@ func (h *Handler) deleteDelivery(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
+
+	ctx.Status(http.StatusOK)
 }

@@ -92,6 +92,16 @@ func (r *DeliveryRepo) GetById(ctx context.Context, deliveryId int) (models.Deli
 	return delivery, nil
 }
 
+func (r *DeliveryRepo) GetAll(ctx context.Context) ([]models.Delivery, error) {
+	var delivery []models.Delivery
+	query := fmt.Sprintf("SELECT d.id, d.name, dc.name company_name, d.price FROM %s d JOIN %s dc ON dc.id=d.company_id;", deliveryTable, deliveryCompanyTable)
+	if err := r.db.SelectContext(ctx, &delivery, query); err != nil {
+		return nil, err
+	}
+
+	return delivery, nil
+}
+
 func (r *DeliveryRepo) Update(ctx context.Context, delivery models.Delivery) error {
 	db := r.GetDB(ctx)
 	subquery := fmt.Sprintf("SELECT id FROM %s WHERE name=$2", deliveryCompanyTable)

@@ -789,6 +789,27 @@ paths:
       summary: Update delivery by id
       tags:
       - delivery-actions
+  /delivery/all:
+    get:
+      consumes:
+      - application/json
+      description: get all delivery
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Delivery'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Get all delivery
+      tags:
+      - delivery-actions
   /delivery/create:
     post:
       consumes:
