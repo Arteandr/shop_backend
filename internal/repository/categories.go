@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"shop_backend/internal/models"
 )
 
@@ -61,8 +62,17 @@ func (r *CategoriesRepo) Exist(ctx context.Context, categoryId int) (bool, error
 }
 
 func (r *CategoriesRepo) Delete(ctx context.Context, categoryId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1;", categoriesTable)
-	_, err := r.db.Exec(query, categoryId)
+	_, err := db.ExecContext(ctx, query, categoryId)
+	pqError, ok := err.(*pq.Error)
+	if ok {
+		if pqError.Code == "23503" {
+			return models.ErrViolatesKey
+		} else {
+			return err
+		}
+	}
 
 	return err
 }

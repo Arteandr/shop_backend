@@ -13,6 +13,7 @@ var (
 	ErrDeliveryNotFound  = errors.New("delivery not found")
 	ErrOldPassword       = errors.New("wrong old password")
 	ErrFileExtension     = errors.New("wrong file extension")
+	ErrViolatesKey       = errors.New("violates foreign key constraint")
 )
 
 type ErrUniqueValue struct {

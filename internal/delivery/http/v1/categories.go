@@ -60,7 +60,7 @@ func (h *Handler) createCategory(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "category id"
 // @Success 200 ""
-// @Failure 400 {object} ErrorResponse
+// @Failure 400,409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /categories/{id} [delete]
 func (h *Handler) deleteCategory(ctx *gin.Context) {
@@ -72,6 +72,10 @@ func (h *Handler) deleteCategory(ctx *gin.Context) {
 	}
 
 	if err := h.services.Categories.Delete(ctx.Request.Context(), categoryId); err != nil {
+		if errors.Is(err, models.ErrViolatesKey) {
+			ctx.AbortWithStatusJSON(http.StatusConflict, ErrorResponse{Error: err.Error()})
+			return
+		}
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
