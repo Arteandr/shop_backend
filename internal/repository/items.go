@@ -74,20 +74,40 @@ func (r *ItemsRepo) LinkImage(ctx context.Context, itemId, imageId int) error {
 }
 
 func (r *ItemsRepo) GetNew(ctx context.Context, limit int) ([]int, error) {
+	db := r.GetInstance(ctx)
 	var ids []int
 	query := fmt.Sprintf("SELECT I.id FROM %s AS I ORDER BY created_at DESC LIMIT $1;", itemsTable)
-	if err := r.db.Select(&ids, query, limit); err != nil {
+	rows, err := db.QueryxContext(ctx, query, limit)
+	if err != nil {
 		return nil, err
+	}
+
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
 	}
 
 	return ids, nil
 }
 
 func (r *ItemsRepo) GetAll(ctx context.Context, sortOptions models.SortOptions) ([]int, error) {
+	db := r.GetInstance(ctx)
 	var ids []int
 	query := fmt.Sprintf("SELECT I.id FROM %s AS I ORDER BY %s %s;", itemsTable, sortOptions.Field, sortOptions.Order)
-	if err := r.db.Select(&ids, query); err != nil {
+	rows, err := db.QueryxContext(ctx, query)
+	if err != nil {
 		return nil, err
+	}
+
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
 	}
 
 	return ids, nil
@@ -105,9 +125,10 @@ func (r *ItemsRepo) GetById(ctx context.Context, itemId int) (models.Item, error
 }
 
 func (r *ItemsRepo) GetBySku(ctx context.Context, sku string) (models.Item, error) {
+	db := r.GetInstance(ctx)
 	var item models.Item
 	query := fmt.Sprintf("SELECT * FROM %s where sku=$1;", itemsTable)
-	if err := r.db.QueryRow(query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku, &item.CreatedAt); err != nil {
+	if err := db.QueryRowContext(ctx, query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku, &item.CreatedAt); err != nil {
 		return models.Item{}, err
 	}
 
@@ -115,20 +136,40 @@ func (r *ItemsRepo) GetBySku(ctx context.Context, sku string) (models.Item, erro
 }
 
 func (r *ItemsRepo) GetByCategory(ctx context.Context, categoryId int) ([]int, error) {
+	db := r.GetInstance(ctx)
 	var ids []int
 	query := fmt.Sprintf("SELECT I.id FROM %s AS I WHERE category_id=$1;", itemsTable)
-	if err := r.db.Select(&ids, query, categoryId); err != nil {
+	rows, err := db.QueryxContext(ctx, query, categoryId)
+	if err != nil {
 		return nil, err
+	}
+
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
 	}
 
 	return ids, nil
 }
 
 func (r *ItemsRepo) GetByTag(ctx context.Context, tag string) ([]int, error) {
+	db := r.GetInstance(ctx)
 	var ids []int
 	query := fmt.Sprintf("SELECT I.id FROM %s AS I, %s AS T WHERE T.name = $1 AND I.id = T.item_id;", itemsTable, tagsTable)
-	if err := r.db.Select(&ids, query, tag); err != nil {
+	rows, err := db.QueryxContext(ctx, query, tag)
+	if err != nil {
 		return nil, err
+	}
+
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
 	}
 
 	return ids, nil
@@ -195,8 +236,9 @@ func (r *ItemsRepo) GetImages(ctx context.Context, itemId int) ([]models.Image, 
 }
 
 func (r *ItemsRepo) Update(ctx context.Context, itemId int, name, description string, categoryId int, price float64, sku string) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("UPDATE %s SET name=$1,description=$2,category_id=$3,price=$4,sku=$5 WHERE id=$6;", itemsTable)
-	_, err := r.db.Exec(query, name, description, categoryId, price, sku, itemId)
+	_, err := db.ExecContext(ctx, query, name, description, categoryId, price, sku, itemId)
 
 	return err
 }
@@ -210,22 +252,25 @@ func (r *ItemsRepo) Delete(ctx context.Context, itemId int) error {
 }
 
 func (r *ItemsRepo) DeleteTags(ctx context.Context, itemId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("DELETE FROM %s WHERE item_id=$1;", tagsTable)
-	_, err := r.db.Exec(query, itemId)
+	_, err := db.ExecContext(ctx, query, itemId)
 
 	return err
 }
 
 func (r *ItemsRepo) DeleteImages(ctx context.Context, itemId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("DELETE FROM %s WHERE item_id=$1;", itemsImagesTable)
-	_, err := r.db.Exec(query, itemId)
+	_, err := db.ExecContext(ctx, query, itemId)
 
 	return err
 }
 
 func (r *ItemsRepo) DeleteColors(ctx context.Context, itemId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("DELETE FROM %s WHERE item_id=$1;", itemsColorsTable)
-	_, err := r.db.Exec(query, itemId)
+	_, err := db.ExecContext(ctx, query, itemId)
 
 	return err
 }
