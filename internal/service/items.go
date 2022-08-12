@@ -14,30 +14,53 @@ func NewItemsService(repo repository.Items) *ItemsService {
 	return &ItemsService{repo: repo}
 }
 
-func (s *ItemsService) Create(ctx context.Context, name, description string, categoryId int, sku string, price float64) (int, error) {
-	item := models.Item{
-		Name:        name,
-		Description: description,
-		Category:    models.Category{Id: categoryId},
-		Price:       price,
-		Sku:         sku,
-	}
+func (s *ItemsService) Create(ctx context.Context, item models.Item) (models.Item, error) {
+	var newItem models.Item
+	return newItem, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		newUserId, err := s.repo.Create(ctx, item)
+		if err != nil {
+			return err
+		}
 
-	id, err := s.repo.Create(ctx, item)
-	if err != nil {
-		return 0, err
-	}
+		// Link colors
+		if err := s.LinkColors(ctx, newUserId, item.Colors); err != nil {
+			return err
+		}
 
-	return id, err
+		// Link tags if more than zero
+		if len(item.Tags) > 0 {
+			if err := s.LinkTags(ctx, newUserId, item.Tags); err != nil {
+				return err
+			}
+		}
+
+		// Link images
+		if err := s.LinkImages(ctx, newUserId, item.Images); err != nil {
+			return err
+		}
+
+		// Get item
+		newItem, err = s.GetById(ctx, newUserId)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
-func (s *ItemsService) LinkColor(ctx context.Context, itemId int, colorId int) error {
-	return s.repo.LinkColor(ctx, itemId, colorId)
+func (s *ItemsService) LinkColors(ctx context.Context, itemId int, colors []models.Color) error {
+	for _, color := range colors {
+		if err := s.repo.LinkColor(ctx, itemId, color.Id); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func (s *ItemsService) LinkImages(ctx context.Context, itemId int, imagesId []int) error {
-	for _, imageId := range imagesId {
-		if err := s.repo.LinkImage(ctx, itemId, imageId); err != nil {
+func (s *ItemsService) LinkImages(ctx context.Context, itemId int, images []models.Image) error {
+	for _, image := range images {
+		if err := s.repo.LinkImage(ctx, itemId, image.Id); err != nil {
 			return err
 		}
 	}
@@ -45,9 +68,9 @@ func (s *ItemsService) LinkImages(ctx context.Context, itemId int, imagesId []in
 	return nil
 }
 
-func (s *ItemsService) LinkTags(ctx context.Context, itemId int, tags []string) error {
+func (s *ItemsService) LinkTags(ctx context.Context, itemId int, tags []models.Tag) error {
 	for _, tag := range tags {
-		if err := s.repo.LinkTag(ctx, itemId, tag); err != nil {
+		if err := s.repo.LinkTag(ctx, itemId, tag.Name); err != nil {
 			return err
 		}
 	}

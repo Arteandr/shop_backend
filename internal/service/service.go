@@ -38,11 +38,11 @@ type Categories interface {
 }
 
 type Items interface {
-	Create(ctx context.Context, name, description string, categoryId int, sku string, price float64) (int, error)
+	Create(ctx context.Context, item models.Item) (models.Item, error)
 	Update(ctx context.Context, id int, name, description string, categoryId int, tags []string, colorsId []int, price float64, sku string, imagesId []int) error
-	LinkColor(ctx context.Context, itemId int, colorId int) error
-	LinkTags(ctx context.Context, itemId int, tags []string) error
-	LinkImages(ctx context.Context, itemId int, imagesId []int) error
+	LinkColors(ctx context.Context, itemId int, colors []models.Color) error
+	LinkTags(ctx context.Context, itemId int, tags []models.Tag) error
+	LinkImages(ctx context.Context, itemId int, images []models.Image) error
 	GetAll(ctx context.Context, sortOptions models.SortOptions) ([]models.Item, error)
 	GetNew(ctx context.Context) ([]models.Item, error)
 	GetById(ctx context.Context, itemId int) (models.Item, error)

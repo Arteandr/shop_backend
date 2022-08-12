@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"shop_backend/internal/models"
 	"strconv"
 )
 
@@ -87,37 +88,33 @@ func (h *Handler) createItem(ctx *gin.Context) {
 	}
 
 	// Create item
-	itemId, err := h.services.Items.Create(ctx.Request.Context(), body.Name, body.Description, body.CategoryId, body.Sku, body.Price)
+	var c []models.Color
+	for _, colorId := range body.ColorsId {
+		c = append(c, models.Color{Id: colorId})
+	}
+	var t []models.Tag
+	for _, tag := range body.Tags {
+		t = append(t, models.Tag{Name: tag})
+	}
+	var imgs []models.Image
+	for _, imgId := range body.ImagesId {
+		imgs = append(imgs, models.Image{Id: imgId})
+	}
+	i := models.Item{
+		Name:        body.Name,
+		Description: body.Description,
+		Category:    models.Category{Id: body.CategoryId},
+		Sku:         body.Sku,
+		Price:       body.Price,
+		Colors:      c,
+		Tags:        t,
+		Images:      imgs,
+	}
+	item, err := h.services.Items.Create(ctx.Request.Context(), i)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
-
-	// Link colors
-	for i := 0; i < len(body.ColorsId); i++ {
-		colorId := body.ColorsId[i]
-		if err := h.services.Items.LinkColor(ctx.Request.Context(), itemId, colorId); err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
-			return
-		}
-	}
-
-	// Link tags if more than zero
-	if len(body.Tags) > 0 {
-		if err := h.services.Items.LinkTags(ctx.Request.Context(), itemId, body.Tags); err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
-			return
-		}
-	}
-
-	// Link images
-	if err := h.services.Items.LinkImages(ctx.Request.Context(), itemId, body.ImagesId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	// Return created item
-	item, _ := h.services.Items.GetById(ctx.Request.Context(), itemId)
 
 	// Get category and set
 	category, err := h.services.Categories.GetById(ctx.Request.Context(), item.Category.Id)
