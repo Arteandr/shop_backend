@@ -23,7 +23,7 @@ type Colors interface {
 	GetAll(ctx context.Context) ([]models.Color, error)
 	Create(ctx context.Context, name, hex string, price float64) (int, error)
 	Update(ctx context.Context, id int, name, hex string, price float64) error
-	Delete(ctx context.Context, colorId int) error
+	Delete(ctx context.Context, colorsId []int) error
 	DeleteFromItems(ctx context.Context, colorId int) error
 	AddToItems(ctx context.Context, colorId int) error
 }

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -16,7 +17,7 @@ func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 			admins.DELETE("/all/:id", h.deleteColorFromItems)
 			admins.POST("/create", h.createColor)
 			admins.PUT("/:id", h.updateColor)
-			admins.DELETE("/:id", h.deleteColor)
+			admins.DELETE("/", h.deleteColors)
 		}
 
 		colors.GET("/", h.getAllColors)
@@ -107,6 +108,18 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+type deleteColorsInput struct {
+	ColorsId []int `json:"colorsId" binding:"required"`
+}
+
+func (i *deleteColorsInput) isValid() error {
+	if len(i.ColorsId) < 1 {
+		return fmt.Errorf("wrong images id length %d", len(i.ColorsId))
+	}
+
+	return nil
+}
+
 // @Summary Delete colors
 // @Security UsersAuth
 // @Security AdminAuth
@@ -114,20 +127,24 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 // @Description delete color by id
 // @Accept json
 // @Produce json
-// @Param id path int true "color id"
+// @Param input body deleteColorsInput true "images id info"
 // @Success 200 ""
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /colors/{id} [delete]
-func (h *Handler) deleteColor(ctx *gin.Context) {
-	strColorId := ctx.Param("id")
-	colorId, err := strconv.Atoi(strColorId)
-	if err != nil {
+// @Router /colors [delete]
+func (h *Handler) deleteColors(ctx *gin.Context) {
+	var body deleteColorsInput
+	if err := ctx.BindJSON(&body); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	if err := h.services.Colors.Delete(ctx.Request.Context(), colorId); err != nil {
+	if err := body.isValid(); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if err := h.services.Colors.Delete(ctx.Request.Context(), body.ColorsId); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}

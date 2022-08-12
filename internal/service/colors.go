@@ -33,8 +33,16 @@ func (s *ColorsService) Exist(ctx context.Context, colorId int) (bool, error) {
 	return s.repo.Exist(ctx, colorId)
 }
 
-func (s *ColorsService) Delete(ctx context.Context, colorId int) error {
-	return s.repo.Delete(ctx, colorId)
+func (s *ColorsService) Delete(ctx context.Context, colorsId []int) error {
+	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		for _, colorId := range colorsId {
+			if err := s.repo.Delete(ctx, colorId); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 func (s *ColorsService) DeleteFromItems(ctx context.Context, colorId int) error {
