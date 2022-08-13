@@ -265,7 +265,8 @@ func (r *UsersRepo) UpdateField(ctx context.Context, field string, value interfa
 	pqError, ok := err.(*pq.Error)
 	if ok {
 		if pqError.Code == "23505" {
-			return errors.ErrUniqueValue(field)
+			f := strings.Split(pqError.Constraint, "_")[1]
+			return errors.ErrUniqueValue(f)
 		} else {
 			return err
 		}

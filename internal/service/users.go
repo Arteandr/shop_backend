@@ -7,7 +7,7 @@ import (
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	"shop_backend/pkg/auth"
-	errors2 "shop_backend/pkg/errors"
+	apperrors "shop_backend/pkg/errors"
 	"shop_backend/pkg/hash"
 	"strconv"
 	"time"
@@ -158,7 +158,7 @@ func (s *UsersService) GetMe(ctx context.Context, userId int) (models.User, erro
 		}
 
 		invoiceAddress, err := s.repo.GetAddress(ctx, "invoice", user.Id)
-		if err != nil && !errors.Is(err, errors2.ErrAddressNotFound) {
+		if err != nil && !errors.Is(err, apperrors.ErrAddressNotFound) {
 			return err
 		}
 		if invoiceAddress != (models.Address{}) {
@@ -166,7 +166,7 @@ func (s *UsersService) GetMe(ctx context.Context, userId int) (models.User, erro
 		}
 
 		shippingAddress, err := s.repo.GetAddress(ctx, "shipping", user.Id)
-		if err != nil && !errors.Is(err, errors2.ErrAddressNotFound) {
+		if err != nil && !errors.Is(err, apperrors.ErrAddressNotFound) {
 			return err
 		}
 		if shippingAddress != (models.Address{}) {
@@ -201,7 +201,7 @@ func (s *UsersService) GetAll(ctx context.Context) ([]models.User, error) {
 
 		for i, user := range users {
 			invoiceAddress, err := s.repo.GetAddress(ctx, "invoice", user.Id)
-			if err != nil && !errors.Is(err, errors2.ErrAddressNotFound) {
+			if err != nil && !errors.Is(err, apperrors.ErrAddressNotFound) {
 				return err
 			}
 			if invoiceAddress != (models.Address{}) {
@@ -209,7 +209,7 @@ func (s *UsersService) GetAll(ctx context.Context) ([]models.User, error) {
 			}
 
 			shippingAddress, err := s.repo.GetAddress(ctx, "shipping", user.Id)
-			if err != nil && !errors.Is(err, errors2.ErrAddressNotFound) {
+			if err != nil && !errors.Is(err, apperrors.ErrAddressNotFound) {
 				return err
 			}
 			if shippingAddress != (models.Address{}) {
@@ -250,7 +250,7 @@ func (s *UsersService) UpdatePassword(ctx context.Context, userId int, oldPasswo
 	}
 
 	if oldPasswordHash != user.Password {
-		return errors2.ErrOldPassword
+		return apperrors.ErrOldPassword
 	}
 
 	newPasswordHash, err := s.hasher.Hash(newPassword)
