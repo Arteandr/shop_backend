@@ -109,6 +109,13 @@ func (u *updateCategoryInput) isValid() error {
 // @Failure 500 {object} ErrorResponse
 // @Router /categories/{id} [put]
 func (h *Handler) updateCategory(ctx *gin.Context) {
+	strCategoryId := ctx.Param("id")
+	categoryId, err := strconv.Atoi(strCategoryId)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+		return
+	}
+
 	var body updateCategoryInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
@@ -120,24 +127,11 @@ func (h *Handler) updateCategory(ctx *gin.Context) {
 		return
 	}
 
-	strCategoryId := ctx.Param("id")
-	categoryId, err := strconv.Atoi(strCategoryId)
-	if err != nil {
-		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
-		return
-	}
-
-	exist, err := h.services.Categories.Exist(ctx.Request.Context(), categoryId)
-	if !exist {
-		err = errors.New("wrong category id")
-		NewError(ctx, http.StatusNotFound, err)
-		return
-	} else if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
 	if err := h.services.Categories.Update(ctx.Request.Context(), categoryId, body.Name); err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
@@ -162,18 +156,12 @@ func (h *Handler) getCategoryById(ctx *gin.Context) {
 		return
 	}
 
-	exist, err := h.services.Categories.Exist(ctx.Request.Context(), categoryId)
-	if !exist {
-		err = errors.New("wrong category id")
-		NewError(ctx, http.StatusNotFound, err)
-		return
-	} else if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
 	category, err := h.services.Categories.GetById(ctx.Request.Context(), categoryId)
 	if err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}

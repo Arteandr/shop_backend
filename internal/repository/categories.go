@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -20,16 +19,28 @@ func NewCategoriesRepo(db *sqlx.DB) *CategoriesRepo {
 }
 
 func (r *CategoriesRepo) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return fmt.Errorf("begin transcation: %w", err)
+	var tx *sqlx.Tx
+	var err error
+	// Check if transaction is existed in ctx
+	existingTx := extractTx(ctx)
+	if existingTx != nil {
+		tx = existingTx
+	} else {
+		tx, err = r.db.Beginx()
+		if err != nil {
+			return fmt.Errorf("begin transcation: %w", err)
+		}
 	}
 
 	if err := tFunc(injectTx(ctx, tx)); err != nil {
-		tx.Rollback()
+		if existingTx == nil {
+			tx.Rollback()
+		}
 		return err
 	}
-	tx.Commit()
+	if existingTx == nil {
+		tx.Commit()
+	}
 	return nil
 }
 
@@ -53,10 +64,11 @@ func (r *CategoriesRepo) Create(ctx context.Context, category models.Category) (
 }
 
 func (r *CategoriesRepo) Exist(ctx context.Context, categoryId int) (bool, error) {
+	db := r.GetInstance(ctx)
 	var exist bool
 	queryMain := fmt.Sprintf("SELECT name FROM %s WHERE id=$1", categoriesTable)
 	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
-	if err := r.db.QueryRow(query, categoryId).Scan(&exist); err != nil && err != sql.ErrNoRows {
+	if err := db.GetContext(ctx, &exist, query, categoryId); err != nil && err != sql.ErrNoRows {
 		return false, err
 	}
 	return exist, nil
@@ -90,10 +102,18 @@ func (r *CategoriesRepo) GetAllC(ctx context.Context) ([]models.Category, error)
 }
 
 func (r *CategoriesRepo) GetById(ctx context.Context, categoryId int) (models.Category, error) {
+	db := r.GetInstance(ctx)
 	var category models.Category
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", categoriesTable)
-	if err := r.db.QueryRow(query, categoryId).Scan(&category.Id, &category.Name); err != nil && !errors.Is(err, sql.ErrNoRows) {
+	rows, err := db.QueryxContext(ctx, query, categoryId)
+	if err != nil {
 		return models.Category{}, err
+	}
+
+	for rows.Next() {
+		if err := rows.StructScan(&category); err != nil {
+			return models.Category{}, err
+		}
 	}
 
 	return category, nil
@@ -102,8 +122,9 @@ func (r *CategoriesRepo) GetById(ctx context.Context, categoryId int) (models.Ca
 // $1 = category.Name
 // $2 = category.Id
 func (r *CategoriesRepo) Update(ctx context.Context, category models.Category) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("UPDATE %s SET name=$1 WHERE id=$2;", categoriesTable)
-	_, err := r.db.Exec(query, category.Name, category.Id)
+	_, err := db.ExecContext(ctx, query, category.Name, category.Id)
 
 	return err
 }

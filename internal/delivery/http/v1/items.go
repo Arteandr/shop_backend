@@ -61,19 +61,19 @@ func (h *Handler) createItem(ctx *gin.Context) {
 		return
 	}
 
-	// Check if exist category
-	if exist, err := h.services.Categories.Exist(ctx.Request.Context(), body.CategoryId); err != nil || !exist {
-		NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("category", body.CategoryId))
-		return
-	}
+	//// Check if exist category
+	//if exist, err := h.services.Categories.Exist(ctx.Request.Context(), body.CategoryId); err != nil || !exist {
+	//	NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("category", body.CategoryId))
+	//	return
+	//}
 
-	// Check if colors is existed
-	for _, colorId := range body.ColorsId {
-		if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
-			NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("color", colorId))
-			return
-		}
-	}
+	//// Check if colors is existed
+	//for _, colorId := range body.ColorsId {
+	//	if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
+	//		NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("color", colorId))
+	//		return
+	//	}
+	//}
 
 	// Check if at least one image
 	if len(body.ImagesId) < 1 {
@@ -424,19 +424,19 @@ func (h *Handler) updateItems(ctx *gin.Context) {
 		return
 	}
 
-	// Check if exist category
-	if exist, err := h.services.Categories.Exist(ctx.Request.Context(), body.CategoryId); err != nil || !exist {
-		NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("category", body.CategoryId))
-		return
-	}
-
-	// Check if colors is existed
-	for _, colorId := range body.ColorsId {
-		if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
-			NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("color", colorId))
-			return
-		}
-	}
+	//// Check if exist category
+	//if exist, err := h.services.Categories.Exist(ctx.Request.Context(), body.CategoryId); err != nil || !exist {
+	//	NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("category", body.CategoryId))
+	//	return
+	//}
+	//
+	//// Check if colors is existed
+	//for _, colorId := range body.ColorsId {
+	//	if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
+	//		NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("color", colorId))
+	//		return
+	//	}
+	//}
 
 	// Check if at least one image
 	if len(body.ImagesId) < 1 {

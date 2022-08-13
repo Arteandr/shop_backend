@@ -18,7 +18,6 @@ type Images interface {
 }
 
 type Colors interface {
-	Exist(ctx context.Context, colorId int) (bool, error)
 	GetById(ctx context.Context, colorId int) (models.Color, error)
 	GetAll(ctx context.Context) ([]models.Color, error)
 	Create(ctx context.Context, name, hex string, price float64) (int, error)
@@ -29,7 +28,6 @@ type Colors interface {
 }
 
 type Categories interface {
-	Exist(ctx context.Context, categoryId int) (bool, error)
 	GetAll(ctx context.Context) ([]models.Category, error)
 	GetById(ctx context.Context, categoryId int) (models.Category, error)
 	Create(ctx context.Context, name string) (int, error)
