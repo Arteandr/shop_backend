@@ -25,6 +25,7 @@ type Colors interface {
 	Delete(ctx context.Context, colorsId []int) error
 	DeleteFromItems(ctx context.Context, colorId int) error
 	AddToItems(ctx context.Context, colorId int) error
+	Exist(ctx context.Context, colorId int) (bool, error)
 }
 
 type Categories interface {
@@ -33,11 +34,12 @@ type Categories interface {
 	Create(ctx context.Context, name string) (int, error)
 	Delete(ctx context.Context, categoryId int) error
 	Update(ctx context.Context, categoryId int, name string) error
+	Exist(ctx context.Context, colorId int) (bool, error)
 }
 
 type Items interface {
 	Create(ctx context.Context, item models.Item) (models.Item, error)
-	Update(ctx context.Context, id int, name, description string, categoryId int, tags []string, colorsId []int, price float64, sku string, imagesId []int) error
+	Update(ctx context.Context, item models.Item) error
 	LinkColors(ctx context.Context, itemId int, colors []models.Color) error
 	LinkTags(ctx context.Context, itemId int, tags []models.Tag) error
 	LinkImages(ctx context.Context, itemId int, images []models.Image) error
@@ -91,11 +93,15 @@ type ServicesDeps struct {
 }
 
 func NewServices(deps ServicesDeps) *Services {
+	categories := NewCategoriesService(deps.Repos.Categories)
+	colors := NewColorsService(deps.Repos.Colors)
+	images := NewImagesService(deps.Repos.Images)
+
 	return &Services{
-		Items:      NewItemsService(deps.Repos.Items),
-		Categories: NewCategoriesService(deps.Repos.Categories),
-		Colors:     NewColorsService(deps.Repos.Colors),
-		Images:     NewImagesService(deps.Repos.Images),
+		Items:      NewItemsService(deps.Repos.Items, categories, colors, images),
+		Categories: categories,
+		Colors:     colors,
+		Images:     images,
 		Delivery:   NewDeliveryService(deps.Repos.Delivery),
 		Users:      NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL),
 	}

@@ -90,7 +90,7 @@ func (r *CategoriesRepo) Delete(ctx context.Context, categoryId int) error {
 	return err
 }
 
-func (r *CategoriesRepo) GetAllC(ctx context.Context) ([]models.Category, error) {
+func (r *CategoriesRepo) GetAll(ctx context.Context) ([]models.Category, error) {
 	var categories []models.Category
 	query := fmt.Sprintf("SELECT * FROM %s;", categoriesTable)
 	err := r.db.Select(&categories, query)

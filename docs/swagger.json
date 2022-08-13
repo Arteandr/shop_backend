@@ -9,7 +9,7 @@
     "host": "localhost:8000",
     "basePath": "/api/v1",
     "paths": {
-        "/categories/": {
+        "/categories": {
             "get": {
                 "description": "get all categories",
                 "consumes": [
@@ -41,7 +41,7 @@
                 }
             }
         },
-        "/categories/create/": {
+        "/categories/create": {
             "post": {
                 "security": [
                     {
@@ -236,6 +236,12 @@
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -245,7 +251,7 @@
                 }
             }
         },
-        "/colors/": {
+        "/colors": {
             "get": {
                 "description": "get all colors",
                 "consumes": [
@@ -266,6 +272,55 @@
                             "items": {
                                 "$ref": "#/definitions/models.Color"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "delete color by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "colors-actions"
+                ],
+                "summary": "Delete colors",
+                "parameters": [
+                    {
+                        "description": "images id info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.deleteColorsInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
                     "500": {
@@ -379,7 +434,7 @@
                 }
             }
         },
-        "/colors/create/": {
+        "/colors/create": {
             "post": {
                 "security": [
                     {
@@ -513,7 +568,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.updateColorInput"
+                            "$ref": "#/definitions/v1.createColorInput"
                         }
                     }
                 ],
@@ -529,53 +584,6 @@
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "UsersAuth": []
-                    },
-                    {
-                        "AdminAuth": []
-                    }
-                ],
-                "description": "delete color by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "colors-actions"
-                ],
-                "summary": "Delete colors",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "color id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    },
-                    "400": {
-                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -827,7 +835,7 @@
                 }
             }
         },
-        "/images/": {
+        "/images": {
             "get": {
                 "security": [
                     {
@@ -1005,6 +1013,12 @@
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1124,6 +1138,18 @@
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1161,14 +1187,26 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/models.Item"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -1254,6 +1292,12 @@
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1292,6 +1336,18 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -1339,6 +1395,18 @@
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -1382,13 +1450,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Item"
-                        }
+                        "description": ""
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -1876,6 +1947,12 @@
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -2100,6 +2177,25 @@
                 }
             }
         },
+        "v1.createColorInput": {
+            "type": "object",
+            "required": [
+                "hex",
+                "name",
+                "price"
+            ],
+            "properties": {
+                "hex": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
         "v1.createDeliveryInput": {
             "type": "object",
             "required": [
@@ -2166,6 +2262,20 @@
                 }
             }
         },
+        "v1.deleteColorsInput": {
+            "type": "object",
+            "required": [
+                "colorsId"
+            ],
+            "properties": {
+                "colorsId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "v1.deleteImagesInput": {
             "type": "object",
             "required": [
@@ -2202,25 +2312,6 @@
             "properties": {
                 "name": {
                     "type": "string"
-                }
-            }
-        },
-        "v1.updateColorInput": {
-            "type": "object",
-            "required": [
-                "hex",
-                "name",
-                "price"
-            ],
-            "properties": {
-                "hex": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
                 }
             }
         },

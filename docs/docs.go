@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/categories/": {
+        "/categories": {
             "get": {
                 "description": "get all categories",
                 "consumes": [
@@ -48,7 +48,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/categories/create/": {
+        "/categories/create": {
             "post": {
                 "security": [
                     {
@@ -243,6 +243,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -252,7 +258,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/colors/": {
+        "/colors": {
             "get": {
                 "description": "get all colors",
                 "consumes": [
@@ -273,6 +279,55 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.Color"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "delete color by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "colors-actions"
+                ],
+                "summary": "Delete colors",
+                "parameters": [
+                    {
+                        "description": "images id info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.deleteColorsInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
                     "500": {
@@ -386,7 +441,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/colors/create/": {
+        "/colors/create": {
             "post": {
                 "security": [
                     {
@@ -520,7 +575,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.updateColorInput"
+                            "$ref": "#/definitions/v1.createColorInput"
                         }
                     }
                 ],
@@ -536,53 +591,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "UsersAuth": []
-                    },
-                    {
-                        "AdminAuth": []
-                    }
-                ],
-                "description": "delete color by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "colors-actions"
-                ],
-                "summary": "Delete colors",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "color id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    },
-                    "400": {
-                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -834,7 +842,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/images/": {
+        "/images": {
             "get": {
                 "security": [
                     {
@@ -1012,6 +1020,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1131,6 +1145,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1168,14 +1194,26 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/models.Item"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -1261,6 +1299,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1299,6 +1343,18 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -1346,6 +1402,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -1389,13 +1457,16 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Item"
-                        }
+                        "description": ""
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -1883,6 +1954,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -2107,6 +2184,25 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.createColorInput": {
+            "type": "object",
+            "required": [
+                "hex",
+                "name",
+                "price"
+            ],
+            "properties": {
+                "hex": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
         "v1.createDeliveryInput": {
             "type": "object",
             "required": [
@@ -2173,6 +2269,20 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.deleteColorsInput": {
+            "type": "object",
+            "required": [
+                "colorsId"
+            ],
+            "properties": {
+                "colorsId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "v1.deleteImagesInput": {
             "type": "object",
             "required": [
@@ -2209,25 +2319,6 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
-                }
-            }
-        },
-        "v1.updateColorInput": {
-            "type": "object",
-            "required": [
-                "hex",
-                "name",
-                "price"
-            ],
-            "properties": {
-                "hex": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
                 }
             }
         },

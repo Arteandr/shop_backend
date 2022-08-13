@@ -3,9 +3,13 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"shop_backend/internal/models"
+	apperrors "shop_backend/pkg/errors"
+	"strings"
 )
 
 type ItemsRepo struct {
@@ -54,8 +58,15 @@ func (r *ItemsRepo) Create(ctx context.Context, item models.Item) (int, error) {
 	db := r.GetInstance(ctx)
 	var id int
 	query := fmt.Sprintf("INSERT INTO %s (name,description,category_id,sku,price) VALUES ($1,$2,$3,$4,$5) RETURNING id;", itemsTable)
-	if err := db.GetContext(ctx, &id, query, item.Name, item.Description, item.Category.Id, item.Sku, item.Price); err != nil {
-		return 0, err
+	err := db.GetContext(ctx, &id, query, item.Name, item.Description, item.Category.Id, item.Sku, item.Price)
+	pqError, ok := err.(*pq.Error)
+	if ok {
+		if pqError.Code == "23505" {
+			field := strings.Split(pqError.Constraint, "_")[1]
+			return 0, apperrors.ErrUniqueValue(field)
+		} else {
+			return 0, err
+		}
 	}
 
 	return id, nil
@@ -128,8 +139,11 @@ func (r *ItemsRepo) GetAll(ctx context.Context, sortOptions models.SortOptions) 
 func (r *ItemsRepo) GetById(ctx context.Context, itemId int) (models.Item, error) {
 	db := r.GetInstance(ctx)
 	var item models.Item
-	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", itemsTable)
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1 LIMIT 1;", itemsTable)
 	if err := db.QueryRowContext(ctx, query, itemId).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku, &item.CreatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.Item{}, apperrors.ErrIdNotFound("item", itemId)
+		}
 		return models.Item{}, err
 	}
 
@@ -141,6 +155,9 @@ func (r *ItemsRepo) GetBySku(ctx context.Context, sku string) (models.Item, erro
 	var item models.Item
 	query := fmt.Sprintf("SELECT * FROM %s where sku=$1;", itemsTable)
 	if err := db.QueryRowContext(ctx, query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku, &item.CreatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.Item{}, apperrors.ErrIdNotFound("sku", 0)
+		}
 		return models.Item{}, err
 	}
 
@@ -288,11 +305,13 @@ func (r *ItemsRepo) DeleteColors(ctx context.Context, itemId int) error {
 }
 
 func (r *ItemsRepo) Exist(ctx context.Context, itemId int) (bool, error) {
+	db := r.GetInstance(ctx)
 	var exist bool
 	queryMain := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", itemsTable)
 	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
-	if err := r.db.QueryRow(query, itemId).Scan(&exist); err != nil && err != sql.ErrNoRows {
+	if err := db.GetContext(ctx, &exist, query, itemId); err != nil && err != sql.ErrNoRows {
 		return false, err
 	}
+
 	return exist, nil
 }

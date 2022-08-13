@@ -4,19 +4,56 @@ import (
 	"context"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
+	apperrors "shop_backend/pkg/errors"
 )
 
 type ItemsService struct {
-	repo repository.Items
+	repo              repository.Items
+	categoriesService Categories
+	colorsService     Colors
+	imagesService     Images
 }
 
-func NewItemsService(repo repository.Items) *ItemsService {
-	return &ItemsService{repo: repo}
+func NewItemsService(repo repository.Items, categories Categories, colors Colors, images Images) *ItemsService {
+	return &ItemsService{
+		repo:              repo,
+		categoriesService: categories,
+		colorsService:     colors,
+		imagesService:     images,
+	}
 }
 
 func (s *ItemsService) Create(ctx context.Context, item models.Item) (models.Item, error) {
 	var newItem models.Item
 	return newItem, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		// Check category exist
+		exist, err := s.categoriesService.Exist(ctx, item.Category.Id)
+		if !exist {
+			return apperrors.ErrIdNotFound("category", item.Category.Id)
+		} else if err != nil {
+			return err
+		}
+
+		// Check colors exist
+		for _, color := range item.Colors {
+			exist, err := s.colorsService.Exist(ctx, color.Id)
+			if !exist {
+				return apperrors.ErrIdNotFound("color", item.Category.Id)
+			} else if err != nil {
+				return err
+			}
+		}
+
+		// Check images exist
+		for _, image := range item.Images {
+			exist, err := s.imagesService.Exist(ctx, image.Id)
+			if !exist {
+				return apperrors.ErrIdNotFound("image", item.Category.Id)
+			} else if err != nil {
+				return err
+			}
+		}
+
 		newUserId, err := s.repo.Create(ctx, item)
 		if err != nil {
 			return err
@@ -44,6 +81,13 @@ func (s *ItemsService) Create(ctx context.Context, item models.Item) (models.Ite
 		if err != nil {
 			return err
 		}
+
+		category, err := s.categoriesService.GetById(ctx, item.Category.Id)
+		if err != nil {
+			return err
+		}
+
+		newItem.Category = category
 
 		return nil
 	})
@@ -119,6 +163,12 @@ func (s *ItemsService) GetAll(ctx context.Context, sortOptions models.SortOption
 			}
 			item.Images = images
 
+			category, err := s.categoriesService.GetById(ctx, item.Category.Id)
+			if err != nil {
+				return err
+			}
+			item.Category = category
+
 			items = append(items, item)
 		}
 
@@ -161,6 +211,12 @@ func (s *ItemsService) GetNew(ctx context.Context) ([]models.Item, error) {
 			}
 			item.Images = images
 
+			category, err := s.categoriesService.GetById(ctx, item.Category.Id)
+			if err != nil {
+				return err
+			}
+			item.Category = category
+
 			items = append(items, item)
 		}
 
@@ -198,6 +254,12 @@ func (s *ItemsService) GetById(ctx context.Context, itemId int) (models.Item, er
 		}
 		item.Images = images
 
+		category, err := s.categoriesService.GetById(ctx, item.Category.Id)
+		if err != nil {
+			return err
+		}
+		item.Category = category
+
 		return nil
 	})
 }
@@ -232,47 +294,68 @@ func (s *ItemsService) GetBySku(ctx context.Context, sku string) (models.Item, e
 		}
 		item.Images = images
 
+		category, err := s.categoriesService.GetById(ctx, item.Category.Id)
+		if err != nil {
+			return err
+		}
+		item.Category = category
+
 		return nil
 	})
 }
 
 func (s *ItemsService) GetByCategory(ctx context.Context, categoryId int) ([]models.Item, error) {
 	var items []models.Item
-	ids, err := s.repo.GetByCategory(ctx, categoryId)
-	if err != nil {
-		return nil, err
-	}
+	return items, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		exist, err := s.categoriesService.Exist(ctx, categoryId)
+		if !exist {
+			return apperrors.ErrIdNotFound("category", categoryId)
+		} else if err != nil {
+			return err
+		}
 
-	for _, id := range ids {
-		item, err := s.repo.GetById(ctx, id)
+		ids, err := s.repo.GetByCategory(ctx, categoryId)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		colors, err := s.repo.GetColors(ctx, item.Id)
-		if err != nil {
-			return nil, err
-		}
-		item.Colors = colors
 
-		tags, err := s.repo.GetTags(ctx, item.Id)
-		if err != nil {
-			return nil, err
-		}
-		item.Tags = tags
+		for _, id := range ids {
+			item, err := s.repo.GetById(ctx, id)
+			if err != nil {
+				return err
+			}
+			colors, err := s.repo.GetColors(ctx, item.Id)
+			if err != nil {
+				return err
+			}
+			item.Colors = colors
 
-		images, err := s.repo.GetImages(ctx, item.Id)
-		if err != nil {
-			return nil, err
-		}
-		for i := range images {
-			images[i].Filename = "/files/" + images[i].Filename
-		}
-		item.Images = images
+			tags, err := s.repo.GetTags(ctx, item.Id)
+			if err != nil {
+				return err
+			}
+			item.Tags = tags
 
-		items = append(items, item)
-	}
+			images, err := s.repo.GetImages(ctx, item.Id)
+			if err != nil {
+				return err
+			}
+			for i := range images {
+				images[i].Filename = "/files/" + images[i].Filename
+			}
+			item.Images = images
 
-	return items, err
+			category, err := s.categoriesService.GetById(ctx, item.Category.Id)
+			if err != nil {
+				return err
+			}
+			item.Category = category
+
+			items = append(items, item)
+		}
+
+		return nil
+	})
 }
 
 func (s *ItemsService) GetByTag(ctx context.Context, tag string) ([]models.Item, error) {
@@ -309,6 +392,12 @@ func (s *ItemsService) GetByTag(ctx context.Context, tag string) ([]models.Item,
 			}
 			item.Images = images
 
+			category, err := s.categoriesService.GetById(ctx, item.Category.Id)
+			if err != nil {
+				return err
+			}
+			item.Category = category
+
 			items = append(items, item)
 		}
 
@@ -317,40 +406,75 @@ func (s *ItemsService) GetByTag(ctx context.Context, tag string) ([]models.Item,
 
 }
 
-func (s *ItemsService) Update(ctx context.Context, id int, name, description string, categoryId int, tags []string, colorsId []int, price float64, sku string, imagesId []int) error {
+func (s *ItemsService) Update(ctx context.Context, item models.Item) error {
 	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
-		if err := s.repo.Update(ctx, id, name, description, categoryId, price, sku); err != nil {
+		exist, err := s.Exist(ctx, item.Id)
+		if !exist {
+			return apperrors.ErrIdNotFound("item", item.Id)
+		} else if err != nil {
+			return err
+		}
+
+		// Check category exist
+		exist, err = s.categoriesService.Exist(ctx, item.Category.Id)
+		if !exist {
+			return apperrors.ErrIdNotFound("category", item.Category.Id)
+		} else if err != nil {
+			return err
+		}
+
+		// Check colors exist
+		for _, color := range item.Colors {
+			exist, err := s.colorsService.Exist(ctx, color.Id)
+			if !exist {
+				return apperrors.ErrIdNotFound("color", item.Category.Id)
+			} else if err != nil {
+				return err
+			}
+		}
+
+		// Check images exist
+		for _, image := range item.Images {
+			exist, err := s.imagesService.Exist(ctx, image.Id)
+			if !exist {
+				return apperrors.ErrIdNotFound("image", item.Category.Id)
+			} else if err != nil {
+				return err
+			}
+		}
+
+		if err := s.repo.Update(ctx, item.Id, item.Name, item.Description, item.Category.Id, item.Price, item.Sku); err != nil {
 			return err
 		}
 
 		// Update tags
-		if err := s.repo.DeleteTags(ctx, id); err != nil {
+		if err := s.repo.DeleteTags(ctx, item.Id); err != nil {
 			return err
 		}
-		if len(tags) > 0 {
-			for _, tag := range tags {
-				if err := s.repo.LinkTag(ctx, id, tag); err != nil {
+		if len(item.Tags) > 0 {
+			for _, tag := range item.Tags {
+				if err := s.repo.LinkTag(ctx, item.Id, tag.Name); err != nil {
 					return err
 				}
 			}
 		}
 
 		// Update colors
-		if err := s.repo.DeleteColors(ctx, id); err != nil {
+		if err := s.repo.DeleteColors(ctx, item.Id); err != nil {
 			return err
 		}
-		for _, colorId := range colorsId {
-			if err := s.repo.LinkColor(ctx, id, colorId); err != nil {
+		for _, color := range item.Colors {
+			if err := s.repo.LinkColor(ctx, item.Id, color.Id); err != nil {
 				return err
 			}
 		}
 
 		// Update images
-		if err := s.repo.DeleteImages(ctx, id); err != nil {
+		if err := s.repo.DeleteImages(ctx, item.Id); err != nil {
 			return err
 		}
-		for _, imageId := range imagesId {
-			if err := s.repo.LinkImage(ctx, id, imageId); err != nil {
+		for _, image := range item.Images {
+			if err := s.repo.LinkImage(ctx, item.Id, image.Id); err != nil {
 				return err
 			}
 		}

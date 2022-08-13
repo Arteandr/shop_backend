@@ -48,7 +48,7 @@ type Colors interface {
 type Categories interface {
 	Exist(ctx context.Context, categoryId int) (bool, error)
 	Create(ctx context.Context, category models.Category) (int, error)
-	GetAllC(ctx context.Context) ([]models.Category, error)
+	GetAll(ctx context.Context) ([]models.Category, error)
 	Delete(ctx context.Context, categoryId int) error
 	GetById(ctx context.Context, categoryId int) (models.Category, error)
 	Update(ctx context.Context, category models.Category) error

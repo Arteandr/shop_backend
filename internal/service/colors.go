@@ -77,7 +77,19 @@ func (s *ColorsService) Update(ctx context.Context, id int, name, hex string, pr
 
 		return s.repo.Update(ctx, color)
 	})
+}
 
+func (s *ColorsService) Exist(ctx context.Context, colorId int) (bool, error) {
+	var exist bool
+	return exist, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		exist, err = s.repo.Exist(ctx, colorId)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (s *ColorsService) GetById(ctx context.Context, colorId int) (models.Color, error) {

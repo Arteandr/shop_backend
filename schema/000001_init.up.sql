@@ -7,11 +7,11 @@ CREATE TABLE categories
 CREATE TABLE items
 (
     id          serial primary key                 not null unique,
-    name        varchar(255)                       not null,
+    name        varchar(50)                        not null,
     description varchar(255)                       not null,
     category_id integer references categories (id) not null,
     price       decimal                            not null,
-    sku         varchar(255)                       not null unique,
+    sku         varchar(20)                        not null unique,
     created_at  timestamp default now()
 );
 
