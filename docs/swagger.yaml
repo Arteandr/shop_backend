@@ -140,6 +140,19 @@ definitions:
       id:
         type: integer
     type: object
+  v1.createColorInput:
+    properties:
+      hex:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    required:
+    - hex
+    - name
+    - price
+    type: object
   v1.createDeliveryInput:
     properties:
       companyName:
@@ -186,6 +199,15 @@ definitions:
     - price
     - sku
     type: object
+  v1.deleteColorsInput:
+    properties:
+      colorsId:
+        items:
+          type: integer
+        type: array
+    required:
+    - colorsId
+    type: object
   v1.deleteImagesInput:
     properties:
       imagesId:
@@ -210,19 +232,6 @@ definitions:
         type: string
     required:
     - name
-    type: object
-  v1.updateColorInput:
-    properties:
-      hex:
-        type: string
-      name:
-        type: string
-      price:
-        type: number
-    required:
-    - hex
-    - name
-    - price
     type: object
   v1.updateItemInput:
     properties:
@@ -333,7 +342,7 @@ info:
   title: FinlandShop API
   version: "0.5"
 paths:
-  /categories/:
+  /categories:
     get:
       consumes:
       - application/json
@@ -372,6 +381,10 @@ paths:
           description: ""
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
         "500":
@@ -449,7 +462,7 @@ paths:
       summary: Update category
       tags:
       - categories-actions
-  /categories/create/:
+  /categories/create:
     post:
       consumes:
       - application/json
@@ -482,7 +495,37 @@ paths:
       summary: Create a new category
       tags:
       - categories-actions
-  /colors/:
+  /colors:
+    delete:
+      consumes:
+      - application/json
+      description: delete color by id
+      parameters:
+      - description: images id info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.deleteColorsInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Delete colors
+      tags:
+      - colors-actions
     get:
       consumes:
       - application/json
@@ -504,35 +547,6 @@ paths:
       tags:
       - colors-actions
   /colors/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: delete color by id
-      parameters:
-      - description: color id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ""
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-      security:
-      - UsersAuth: []
-      - AdminAuth: []
-      summary: Delete colors
-      tags:
-      - colors-actions
     get:
       consumes:
       - application/json
@@ -578,7 +592,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/v1.updateColorInput'
+          $ref: '#/definitions/v1.createColorInput'
       produces:
       - application/json
       responses:
@@ -665,7 +679,7 @@ paths:
       summary: Add color to all items
       tags:
       - colors-actions
-  /colors/create/:
+  /colors/create:
     post:
       consumes:
       - application/json
@@ -846,7 +860,7 @@ paths:
       summary: Create a new delivery
       tags:
       - delivery-actions
-  /images/:
+  /images:
     delete:
       consumes:
       - application/json
@@ -950,6 +964,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -986,6 +1004,14 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
       summary: Get item by ID
       tags:
       - items-actions
@@ -1009,11 +1035,13 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Item'
+          description: ""
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
         "500":
@@ -1098,6 +1126,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
       summary: Get items with category
       tags:
       - items-actions
@@ -1116,12 +1152,20 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/models.Item'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
         "500":
@@ -1181,6 +1225,10 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
       summary: Get item by SKU
       tags:
       - items-actions
@@ -1206,6 +1254,14 @@ paths:
             type: array
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
       summary: Get items with tag
@@ -1507,6 +1563,10 @@ paths:
             $ref: '#/definitions/models.User'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
         "500":

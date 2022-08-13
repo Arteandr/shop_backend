@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
 	"shop_backend/pkg/errors"
+	apperrors "shop_backend/pkg/errors"
 )
 
 type DeliveryRepo struct {
@@ -19,16 +20,28 @@ func NewDeliveryRepo(db *sqlx.DB) *DeliveryRepo {
 }
 
 func (r *DeliveryRepo) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return fmt.Errorf("begin transcation: %w", err)
+	var tx *sqlx.Tx
+	var err error
+	// Check if transaction is existed in ctx
+	existingTx := extractTx(ctx)
+	if existingTx != nil {
+		tx = existingTx
+	} else {
+		tx, err = r.db.Beginx()
+		if err != nil {
+			return fmt.Errorf("begin transcation: %w", err)
+		}
 	}
 
 	if err := tFunc(injectTx(ctx, tx)); err != nil {
-		tx.Rollback()
+		if existingTx == nil {
+			tx.Rollback()
+		}
 		return err
 	}
-	tx.Commit()
+	if existingTx == nil {
+		tx.Commit()
+	}
 	return nil
 }
 
@@ -87,7 +100,7 @@ func (r *DeliveryRepo) GetById(ctx context.Context, deliveryId int) (models.Deli
 	}
 
 	if delivery == (models.Delivery{}) {
-		return models.Delivery{}, errors.ErrDeliveryNotFound
+		return models.Delivery{}, apperrors.ErrIdNotFound("delivery", deliveryId)
 	}
 
 	return delivery, nil

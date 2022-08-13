@@ -16,16 +16,28 @@ func NewColorsRepo(db *sqlx.DB) *ColorsRepo {
 }
 
 func (r *ColorsRepo) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return fmt.Errorf("begin transcation: %w", err)
+	var tx *sqlx.Tx
+	var err error
+	// Check if transaction is existed in ctx
+	existingTx := extractTx(ctx)
+	if existingTx != nil {
+		tx = existingTx
+	} else {
+		tx, err = r.db.Beginx()
+		if err != nil {
+			return fmt.Errorf("begin transcation: %w", err)
+		}
 	}
 
 	if err := tFunc(injectTx(ctx, tx)); err != nil {
-		tx.Rollback()
+		if existingTx == nil {
+			tx.Rollback()
+		}
 		return err
 	}
-	tx.Commit()
+	if existingTx == nil {
+		tx.Commit()
+	}
 	return nil
 }
 
@@ -49,10 +61,11 @@ func (r *ColorsRepo) Create(ctx context.Context, color models.Color) (int, error
 }
 
 func (r *ColorsRepo) Exist(ctx context.Context, colorId int) (bool, error) {
+	db := r.GetInstance(ctx)
 	var exist bool
 	queryMain := fmt.Sprintf("SELECT name FROM %s WHERE id=$1", colorsTable)
 	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
-	if err := r.db.QueryRow(query, colorId).Scan(&exist); err != nil {
+	if err := db.GetContext(ctx, &exist, query, colorId); err != nil {
 		return false, err
 	}
 
@@ -60,8 +73,9 @@ func (r *ColorsRepo) Exist(ctx context.Context, colorId int) (bool, error) {
 }
 
 func (r *ColorsRepo) Delete(ctx context.Context, colorId int) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1;", colorsTable)
-	_, err := r.db.Exec(query, colorId)
+	_, err := db.ExecContext(ctx, query, colorId)
 
 	return err
 }
@@ -74,23 +88,26 @@ func (r *ColorsRepo) DeleteFromItems(ctx context.Context, colorId int) error {
 }
 
 func (r *ColorsRepo) AddToItems(ctx context.Context, colorId int) error {
-	query := fmt.Sprintf("INSERT INTO %s (item_id,color_id) SELECT id, %d from %s;", itemsColorsTable, colorId, itemsTable)
-	_, err := r.db.Exec(query)
+	db := r.GetInstance(ctx)
+	query := fmt.Sprintf("INSERT INTO %s (item_id, color_id) SELECT id, $1 from %s ON CONFLICT (item_id, color_id) DO NOTHING;", itemsColorsTable, itemsTable)
+	_, err := db.ExecContext(ctx, query, colorId)
 
 	return err
 }
 
 func (r *ColorsRepo) Update(ctx context.Context, color models.Color) error {
+	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("UPDATE %s SET name=$1,hex=$2,price=$3 WHERE id=$4", colorsTable)
-	_, err := r.db.Exec(query, color.Name, color.Hex, color.Price, color.Id)
+	_, err := db.ExecContext(ctx, query, color.Name, color.Hex, color.Price, color.Id)
 
 	return err
 }
 
 func (r *ColorsRepo) GetById(ctx context.Context, colorId int) (models.Color, error) {
+	db := r.GetInstance(ctx)
 	var color models.Color
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", colorsTable)
-	if err := r.db.QueryRow(query, colorId).Scan(&color.Id, &color.Name, &color.Hex, &color.Price); err != nil {
+	if err := db.QueryRowContext(ctx, query, colorId).Scan(&color.Id, &color.Name, &color.Hex, &color.Price); err != nil {
 		return models.Color{}, err
 	}
 

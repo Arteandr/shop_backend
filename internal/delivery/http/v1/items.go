@@ -41,6 +41,32 @@ type createItemInput struct {
 	ImagesId    []int    `json:"images" binding:"required"`
 }
 
+func (i *createItemInput) isValid() error {
+	if len(i.Name) < 1 || len(i.Name) > 50 {
+		return errors.New("wrong name length")
+	}
+	if len(i.Description) < 1 || len(i.Description) > 255 {
+		return errors.New("wrong description length")
+	}
+	if i.CategoryId < 1 {
+		return errors.New("wrong category id")
+	}
+	if len(i.ColorsId) < 1 {
+		return errors.New("wrong colors id")
+	}
+	if i.Price < 0 {
+		return errors.New("wrong price")
+	}
+	if len(i.Sku) < 1 || len(i.Sku) > 20 {
+		return errors.New("wrong sku")
+	}
+	if len(i.ImagesId) < 1 {
+		return errors.New("the item must contain at least 1 image")
+	}
+
+	return nil
+}
+
 // @Summary Create a new item
 // @Security UsersAuth
 // @Security AdminAuth
@@ -49,8 +75,8 @@ type createItemInput struct {
 // @Accept json
 // @Produce json
 // @Param input body createItemInput true "input body"
-// @Success 200 {object} models.Item
-// @Failure 400,404 {object} ErrorResponse
+// @Success 201 {object} models.Item
+// @Failure 400,404,409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /items/create [post]
 func (h *Handler) createItem(ctx *gin.Context) {
@@ -61,33 +87,9 @@ func (h *Handler) createItem(ctx *gin.Context) {
 		return
 	}
 
-	// Check if exist category
-	if exist, err := h.services.Categories.Exist(ctx.Request.Context(), body.CategoryId); err != nil || !exist {
-		NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("category", body.CategoryId))
-		return
-	}
-
-	// Check if colors is existed
-	for _, colorId := range body.ColorsId {
-		if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
-			NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("color", colorId))
-			return
-		}
-	}
-
-	// Check if at least one image
-	if len(body.ImagesId) < 1 {
-		err := errors.New("the item must contain at least 1 image")
+	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return
-	}
-
-	// Check if images is existed
-	for _, imageId := range body.ImagesId {
-		if exist, err := h.services.Images.Exist(ctx.Request.Context(), imageId); err != nil || !exist {
-			NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("image", imageId))
-			return
-		}
 	}
 
 	// Create item
@@ -115,19 +117,18 @@ func (h *Handler) createItem(ctx *gin.Context) {
 	}
 	item, err := h.services.Items.Create(ctx.Request.Context(), i)
 	if err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		} else if errors.As(err, &apperrors.UniqueValue{}) {
+			NewError(ctx, http.StatusConflict, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	// Get category and set
-	category, err := h.services.Categories.GetById(ctx.Request.Context(), item.Category.Id)
-	if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-	item.Category = category
-
-	ctx.JSON(http.StatusOK, item)
+	ctx.JSON(http.StatusCreated, item)
 }
 
 // @Summary Get all items
@@ -152,18 +153,15 @@ func (h *Handler) getAllItems(ctx *gin.Context) {
 
 	items, err := h.services.Items.GetAll(ctx.Request.Context(), sortOptions)
 	if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	for i := range items {
-		category, err := h.services.Categories.GetById(ctx.Request.Context(), items[i].Category.Id)
-		if err != nil {
-			NewError(ctx, http.StatusInternalServerError, err)
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		} else if errors.As(err, &apperrors.UniqueValue{}) {
+			NewError(ctx, http.StatusConflict, err)
 			return
 		}
-
-		items[i].Category = category
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, items)
@@ -180,18 +178,15 @@ func (h *Handler) getAllItems(ctx *gin.Context) {
 func (h *Handler) getNewItems(ctx *gin.Context) {
 	items, err := h.services.Items.GetNew(ctx.Request.Context())
 	if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	for i := range items {
-		category, err := h.services.Categories.GetById(ctx.Request.Context(), items[i].Category.Id)
-		if err != nil {
-			NewError(ctx, http.StatusInternalServerError, err)
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		} else if errors.As(err, &apperrors.UniqueValue{}) {
+			NewError(ctx, http.StatusConflict, err)
 			return
 		}
-
-		items[i].Category = category
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, items)
@@ -204,7 +199,8 @@ func (h *Handler) getNewItems(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "item id"
 // @Success 200 {object} models.Item
-// @Failure 400,404 {object} ErrorResponse
+// @Failure 400,404,409 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /items/{id} [get]
 func (h *Handler) getItemById(ctx *gin.Context) {
 	strItemId := ctx.Param("id")
@@ -216,17 +212,16 @@ func (h *Handler) getItemById(ctx *gin.Context) {
 
 	item, err := h.services.Items.GetById(ctx.Request.Context(), itemId)
 	if err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		} else if errors.As(err, &apperrors.UniqueValue{}) {
+			NewError(ctx, http.StatusConflict, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
-
-	category, err := h.services.Categories.GetById(ctx.Request.Context(), item.Category.Id)
-	if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	item.Category = category
 
 	ctx.JSON(http.StatusOK, item)
 }
@@ -238,7 +233,7 @@ func (h *Handler) getItemById(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "category id"
 // @Success 200 {array} models.Item
-// @Failure 400 {object} ErrorResponse
+// @Failure 400,404,409 {object} ErrorResponse
 // @Router /items/category/{id} [get]
 func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 	strCategoryId := ctx.Param("id")
@@ -250,18 +245,15 @@ func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 
 	items, err := h.services.Items.GetByCategory(ctx.Request.Context(), categoryId)
 	if err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		} else if errors.As(err, &apperrors.UniqueValue{}) {
+			NewError(ctx, http.StatusConflict, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
-	}
-
-	category, err := h.services.Categories.GetById(ctx.Request.Context(), categoryId)
-	if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	for i := range items {
-		items[i].Category = category
 	}
 
 	ctx.JSON(http.StatusOK, items)
@@ -274,7 +266,7 @@ func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "tag id"
 // @Success 200 {array} models.Item
-// @Failure 400 {object} ErrorResponse
+// @Failure 400,404,409 {object} ErrorResponse
 // @Router /items/tag/{id} [get]
 func (h *Handler) getItemsByTag(ctx *gin.Context) {
 	tag := ctx.Param("name")
@@ -286,17 +278,15 @@ func (h *Handler) getItemsByTag(ctx *gin.Context) {
 
 	items, err := h.services.Items.GetByTag(ctx.Request.Context(), tag)
 	if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	for i := range items {
-		category, err := h.services.Categories.GetById(ctx.Request.Context(), items[i].Category.Id)
-		if err != nil {
-			NewError(ctx, http.StatusInternalServerError, err)
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		} else if errors.As(err, &apperrors.UniqueValue{}) {
+			NewError(ctx, http.StatusConflict, err)
 			return
 		}
-		items[i].Category = category
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, items)
@@ -309,7 +299,7 @@ func (h *Handler) getItemsByTag(ctx *gin.Context) {
 // @Produce json
 // @Param sku path string true "item sku"
 // @Success 200 {object} models.Item
-// @Failure 400,404 {object} ErrorResponse
+// @Failure 400,404,409 {object} ErrorResponse
 // @Router /items/sku/{sku} [get]
 func (h *Handler) getItemBySku(ctx *gin.Context) {
 	sku := ctx.Param("sku")
@@ -321,17 +311,16 @@ func (h *Handler) getItemBySku(ctx *gin.Context) {
 
 	item, err := h.services.Items.GetBySku(ctx.Request.Context(), sku)
 	if err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		} else if errors.As(err, &apperrors.UniqueValue{}) {
+			NewError(ctx, http.StatusConflict, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
-
-	category, err := h.services.Categories.GetById(ctx.Request.Context(), item.Category.Id)
-	if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	item.Category = category
 
 	ctx.JSON(http.StatusOK, item)
 }
@@ -357,7 +346,7 @@ func (i *deleteItemsInput) isValid() error {
 // @Produce json
 // @Param input body deleteItemsInput true "items id info"
 // @Success 200 ""
-// @Failure 400 {object} ErrorResponse
+// @Failure 400,409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /items [delete]
 func (h *Handler) deleteItems(ctx *gin.Context) {
@@ -373,6 +362,13 @@ func (h *Handler) deleteItems(ctx *gin.Context) {
 	}
 
 	if err := h.services.Items.Delete(ctx.Request.Context(), body.ItemsId); err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		} else if errors.As(err, &apperrors.UniqueValue{}) {
+			NewError(ctx, http.StatusConflict, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
@@ -391,6 +387,32 @@ type updateItemInput struct {
 	ImagesId    []int    `json:"images" binding:"required"`
 }
 
+func (i *updateItemInput) isValid() error {
+	if len(i.Name) < 1 || len(i.Name) > 50 {
+		return errors.New("wrong name length")
+	}
+	if len(i.Description) < 1 || len(i.Description) > 255 {
+		return errors.New("wrong description length")
+	}
+	if i.CategoryId < 1 {
+		return errors.New("wrong category id")
+	}
+	if len(i.ColorsId) < 1 {
+		return errors.New("wrong colors id")
+	}
+	if i.Price < 0 {
+		return errors.New("wrong price")
+	}
+	if len(i.Sku) < 1 || len(i.Sku) > 20 {
+		return errors.New("wrong sku")
+	}
+	if len(i.ImagesId) < 1 {
+		return errors.New("the item must contain at least 1 image")
+	}
+
+	return nil
+}
+
 // @Summary Update item
 // @Security UsersAuth
 // @Security AdminAuth
@@ -400,8 +422,8 @@ type updateItemInput struct {
 // @Produce json
 // @Param id path string true "item id"
 // @Param input body updateItemInput true "item body"
-// @Success 200 {object} models.Item
-// @Failure 400 {object} ErrorResponse
+// @Success 200 ""
+// @Failure 400,409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /items/{id} [put]
 func (h *Handler) updateItems(ctx *gin.Context) {
@@ -418,58 +440,46 @@ func (h *Handler) updateItems(ctx *gin.Context) {
 		return
 	}
 
-	// Check if item is existed
-	if exist, err := h.services.Items.Exist(ctx.Request.Context(), itemId); err != nil || !exist {
-		NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("item", itemId))
-		return
-	}
-
-	// Check if exist category
-	if exist, err := h.services.Categories.Exist(ctx.Request.Context(), body.CategoryId); err != nil || !exist {
-		NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("category", body.CategoryId))
-		return
-	}
-
-	// Check if colors is existed
-	for _, colorId := range body.ColorsId {
-		if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
-			NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("color", colorId))
-			return
-		}
-	}
-
-	// Check if at least one image
-	if len(body.ImagesId) < 1 {
-		err := errors.New("the item must contain at least 1 image")
+	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	// Check if images is existed
-	for _, imageId := range body.ImagesId {
-		if exist, err := h.services.Images.Exist(ctx.Request.Context(), imageId); err != nil || !exist {
-			NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("image", imageId))
+	// Update item
+	var c []models.Color
+	for _, colorId := range body.ColorsId {
+		c = append(c, models.Color{Id: colorId})
+	}
+	var t []models.Tag
+	for _, tag := range body.Tags {
+		t = append(t, models.Tag{Name: tag})
+	}
+	var imgs []models.Image
+	for _, imgId := range body.ImagesId {
+		imgs = append(imgs, models.Image{Id: imgId})
+	}
+	i := models.Item{
+		Id:          itemId,
+		Name:        body.Name,
+		Description: body.Description,
+		Category:    models.Category{Id: body.CategoryId},
+		Sku:         body.Sku,
+		Price:       body.Price,
+		Colors:      c,
+		Tags:        t,
+		Images:      imgs,
+	}
+	if err := h.services.Items.Update(ctx.Request.Context(), i); err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		} else if errors.As(err, &apperrors.UniqueValue{}) {
+			NewError(ctx, http.StatusConflict, err)
 			return
 		}
-	}
-
-	// Update item
-	if err := h.services.Items.Update(ctx.Request.Context(), itemId, body.Name, body.Description,
-		body.CategoryId, body.Tags, body.ColorsId, body.Price, body.Sku, body.ImagesId); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	// Return created item
-	item, _ := h.services.Items.GetById(ctx.Request.Context(), itemId)
-
-	// Get category and set
-	category, err := h.services.Categories.GetById(ctx.Request.Context(), item.Category.Id)
-	if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-	item.Category = category
-
-	ctx.JSON(http.StatusOK, item)
+	ctx.Status(http.StatusOK)
 }

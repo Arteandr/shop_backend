@@ -7,6 +7,7 @@ import (
 	"net/http"
 	apperrors "shop_backend/pkg/errors"
 	"strconv"
+	"strings"
 )
 
 func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
@@ -32,6 +33,22 @@ type createColorInput struct {
 	Price *float64 `json:"price" binding:"required"`
 }
 
+func (i *createColorInput) isValid() error {
+	if len(i.Name) < 1 || len(i.Name) > 30 {
+		return errors.New("wrong name length")
+	}
+
+	if len(i.Hex) < 1 || len(i.Hex) > 7 {
+		return errors.New("wrong hex length")
+	}
+	if !strings.HasPrefix(i.Hex, "#") {
+		return errors.New("hex must start with #")
+	}
+	i.Hex = strings.ToUpper(i.Hex)
+
+	return nil
+}
+
 // @Summary Create a new color
 // @Security UsersAuth
 // @Security AdminAuth
@@ -45,25 +62,24 @@ type createColorInput struct {
 // @Failure 500 {object} ErrorResponse
 // @Router /colors/create [post]
 func (h *Handler) createColor(ctx *gin.Context) {
-	var color createColorInput
-	if err := ctx.BindJSON(&color); err != nil {
+	var body createColorInput
+	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
-	colorId, err := h.services.Colors.Create(ctx.Request.Context(), color.Name, color.Hex, *color.Price)
+	if err := body.isValid(); err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	colorId, err := h.services.Colors.Create(ctx.Request.Context(), body.Name, body.Hex, *body.Price)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, IdResponse{Id: colorId})
-}
-
-type updateColorInput struct {
-	Name  string   `json:"name" binding:"required"`
-	Hex   string   `json:"hex" binding:"required"`
-	Price *float64 `json:"price" binding:"required"`
 }
 
 // @Summary Update color
@@ -74,7 +90,7 @@ type updateColorInput struct {
 // @Accept json
 // @Produce json
 // @Param id path int true "color id"
-// @Param input body updateColorInput true "input body"
+// @Param input body createColorInput true "input body"
 // @Success 200 ""
 // @Failure 400,404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
@@ -87,23 +103,22 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 		return
 	}
 
-	var color updateColorInput
-	if err := ctx.BindJSON(&color); err != nil {
+	var body createColorInput
+	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
-	exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId)
-	if !exist {
-		err = errors.New("wrong color id")
-		NewError(ctx, http.StatusNotFound, err)
-		return
-	} else if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
+	if err := body.isValid(); err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	if err := h.services.Colors.Update(ctx.Request.Context(), colorId, color.Name, color.Hex, *color.Price); err != nil {
+	if err := h.services.Colors.Update(ctx.Request.Context(), colorId, body.Name, body.Hex, *body.Price); err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
@@ -203,17 +218,11 @@ func (h *Handler) addColorToItems(ctx *gin.Context) {
 		return
 	}
 
-	exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId)
-	if !exist {
-		err = errors.New("wrong color id")
-		NewError(ctx, http.StatusNotFound, err)
-		return
-	} else if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
 	if err := h.services.Colors.AddToItems(ctx.Request.Context(), colorId); err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
@@ -239,18 +248,12 @@ func (h *Handler) getColorById(ctx *gin.Context) {
 		return
 	}
 
-	exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId)
-	if !exist {
-		err = errors.New("wrong color id")
-		NewError(ctx, http.StatusNotFound, err)
-		return
-	} else if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
 	color, err := h.services.Colors.GetById(ctx.Request.Context(), colorId)
 	if err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
