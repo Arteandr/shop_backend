@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	apperrors "shop_backend/pkg/errors"
 	"strconv"
 )
 
@@ -46,13 +47,13 @@ type createColorInput struct {
 func (h *Handler) createColor(ctx *gin.Context) {
 	var color createColorInput
 	if err := ctx.BindJSON(&color); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
 	colorId, err := h.services.Colors.Create(ctx.Request.Context(), color.Name, color.Hex, *color.Price)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -82,26 +83,28 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 	strColorId := ctx.Param("id")
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
 	var color updateColorInput
 	if err := ctx.BindJSON(&color); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "wrong input body"})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
-	if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
-		if !exist {
-			err = errors.New("wrong color id")
-		}
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+	exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId)
+	if !exist {
+		err = errors.New("wrong color id")
+		NewError(ctx, http.StatusNotFound, err)
+		return
+	} else if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	if err := h.services.Colors.Update(ctx.Request.Context(), colorId, color.Name, color.Hex, *color.Price); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -135,17 +138,17 @@ func (i *deleteColorsInput) isValid() error {
 func (h *Handler) deleteColors(ctx *gin.Context) {
 	var body deleteColorsInput
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
 	if err := body.isValid(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := h.services.Colors.Delete(ctx.Request.Context(), body.ColorsId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -168,12 +171,12 @@ func (h *Handler) deleteColorFromItems(ctx *gin.Context) {
 	strColorId := ctx.Param("id")
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
 	if err := h.services.Colors.DeleteFromItems(ctx.Request.Context(), colorId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -196,20 +199,22 @@ func (h *Handler) addColorToItems(ctx *gin.Context) {
 	strColorId := ctx.Param("id")
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
-	if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
-		if !exist {
-			err = errors.New("wrong color id")
-		}
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+	exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId)
+	if !exist {
+		err = errors.New("wrong color id")
+		NewError(ctx, http.StatusNotFound, err)
+		return
+	} else if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	if err := h.services.Colors.AddToItems(ctx.Request.Context(), colorId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -230,21 +235,23 @@ func (h *Handler) getColorById(ctx *gin.Context) {
 	strColorId := ctx.Param("id")
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
-	if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
-		if !exist {
-			err = errors.New("wrong color id")
-		}
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+	exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId)
+	if !exist {
+		err = errors.New("wrong color id")
+		NewError(ctx, http.StatusNotFound, err)
+		return
+	} else if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	color, err := h.services.Colors.GetById(ctx.Request.Context(), colorId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -262,7 +269,7 @@ func (h *Handler) getColorById(ctx *gin.Context) {
 func (h *Handler) getAllColors(ctx *gin.Context) {
 	colors, err := h.services.Colors.GetAll(ctx.Request.Context())
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 

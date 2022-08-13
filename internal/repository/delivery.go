@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
+	"shop_backend/pkg/errors"
 )
 
 type DeliveryRepo struct {
@@ -86,7 +87,7 @@ func (r *DeliveryRepo) GetById(ctx context.Context, deliveryId int) (models.Deli
 	}
 
 	if delivery == (models.Delivery{}) {
-		return models.Delivery{}, models.ErrDeliveryNotFound
+		return models.Delivery{}, errors.ErrDeliveryNotFound
 	}
 
 	return delivery, nil
@@ -110,7 +111,7 @@ func (r *DeliveryRepo) Update(ctx context.Context, delivery models.Delivery) err
 	rowsAffected, _ := rows.RowsAffected()
 	fmt.Println(rowsAffected)
 	if rowsAffected < 1 {
-		return models.ErrDeliveryNotFound
+		return errors.ErrDeliveryNotFound
 	}
 
 	return err
