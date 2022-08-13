@@ -103,10 +103,11 @@ func (h *Handler) getDeliveryById(ctx *gin.Context) {
 	}
 
 	delivery, err := h.services.Delivery.GetById(ctx.Request.Context(), deliveryId)
-	if err != nil && errors.Is(err, apperrors.ErrDeliveryNotFound) {
-		NewError(ctx, http.StatusNotFound, apperrors.ErrDeliveryNotFound)
-		return
-	} else if err != nil {
+	if err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
 	"shop_backend/pkg/errors"
+	apperrors "shop_backend/pkg/errors"
 )
 
 type DeliveryRepo struct {
@@ -99,7 +100,7 @@ func (r *DeliveryRepo) GetById(ctx context.Context, deliveryId int) (models.Deli
 	}
 
 	if delivery == (models.Delivery{}) {
-		return models.Delivery{}, errors.ErrDeliveryNotFound
+		return models.Delivery{}, apperrors.ErrIdNotFound("delivery", deliveryId)
 	}
 
 	return delivery, nil
