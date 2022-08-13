@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
+	apperrors "shop_backend/pkg/errors"
 	fn "shop_backend/pkg/filename"
 )
 
@@ -25,7 +26,7 @@ func (s *ImagesService) Upload(ctx context.Context, images []*multipart.FileHead
 		for _, image := range images {
 			ext := filepath.Ext(image.Filename)
 			if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
-				return models.ErrFileExtension
+				return apperrors.ErrFileExtension
 			}
 
 			var filename string

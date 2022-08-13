@@ -1,10 +1,12 @@
 package v1
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shop_backend/internal/models"
+	apperrors "shop_backend/pkg/errors"
 	"strconv"
 )
 
@@ -48,41 +50,42 @@ type createItemInput struct {
 // @Produce json
 // @Param input body createItemInput true "input body"
 // @Success 200 {object} models.Item
-// @Failure 400 {object} ErrorResponse
+// @Failure 400,404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /items/create [post]
 func (h *Handler) createItem(ctx *gin.Context) {
 	// Body binding
 	var body createItemInput
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
 	// Check if exist category
 	if exist, err := h.services.Categories.Exist(ctx.Request.Context(), body.CategoryId); err != nil || !exist {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "wrong category id"})
+		NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("category", body.CategoryId))
 		return
 	}
 
 	// Check if colors is existed
 	for _, colorId := range body.ColorsId {
 		if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("wrong color[%d] id", colorId)})
+			NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("color", colorId))
 			return
 		}
 	}
 
 	// Check if at least one image
 	if len(body.ImagesId) < 1 {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "at least 1 image"})
+		err := errors.New("the item must contain at least 1 image")
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	// Check if images is existed
 	for _, imageId := range body.ImagesId {
 		if exist, err := h.services.Images.Exist(ctx.Request.Context(), imageId); err != nil || !exist {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("wrong image[%d] id", imageId)})
+			NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("image", imageId))
 			return
 		}
 	}
@@ -112,14 +115,14 @@ func (h *Handler) createItem(ctx *gin.Context) {
 	}
 	item, err := h.services.Items.Create(ctx.Request.Context(), i)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	// Get category and set
 	category, err := h.services.Categories.GetById(ctx.Request.Context(), item.Category.Id)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 	item.Category = category
@@ -143,16 +146,20 @@ func (h *Handler) createItem(ctx *gin.Context) {
 func (h *Handler) getAllItems(ctx *gin.Context) {
 	sortOptions, err := getSortOptions(ctx)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrSortOptions)
 		return
 	}
 
 	items, err := h.services.Items.GetAll(ctx.Request.Context(), sortOptions)
+	if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
 
 	for i := range items {
 		category, err := h.services.Categories.GetById(ctx.Request.Context(), items[i].Category.Id)
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+			NewError(ctx, http.StatusInternalServerError, err)
 			return
 		}
 
@@ -173,14 +180,14 @@ func (h *Handler) getAllItems(ctx *gin.Context) {
 func (h *Handler) getNewItems(ctx *gin.Context) {
 	items, err := h.services.Items.GetNew(ctx.Request.Context())
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	for i := range items {
 		category, err := h.services.Categories.GetById(ctx.Request.Context(), items[i].Category.Id)
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+			NewError(ctx, http.StatusInternalServerError, err)
 			return
 		}
 
@@ -203,19 +210,19 @@ func (h *Handler) getItemById(ctx *gin.Context) {
 	strItemId := ctx.Param("id")
 	itemId, err := strconv.Atoi(strItemId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
 	item, err := h.services.Items.GetById(ctx.Request.Context(), itemId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: fmt.Sprintf("item %d not found", itemId)})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	category, err := h.services.Categories.GetById(ctx.Request.Context(), item.Category.Id)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -237,19 +244,19 @@ func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 	strCategoryId := ctx.Param("id")
 	categoryId, err := strconv.Atoi(strCategoryId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
 	items, err := h.services.Items.GetByCategory(ctx.Request.Context(), categoryId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	category, err := h.services.Categories.GetById(ctx.Request.Context(), categoryId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -272,19 +279,21 @@ func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 func (h *Handler) getItemsByTag(ctx *gin.Context) {
 	tag := ctx.Param("name")
 	if len(tag) < 1 {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("wrong tag %s", tag)})
+		err := errors.New("tag must contain at least 1 character")
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
+
 	items, err := h.services.Items.GetByTag(ctx.Request.Context(), tag)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	for i := range items {
 		category, err := h.services.Categories.GetById(ctx.Request.Context(), items[i].Category.Id)
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+			NewError(ctx, http.StatusInternalServerError, err)
 			return
 		}
 		items[i].Category = category
@@ -305,19 +314,20 @@ func (h *Handler) getItemsByTag(ctx *gin.Context) {
 func (h *Handler) getItemBySku(ctx *gin.Context) {
 	sku := ctx.Param("sku")
 	if len(sku) < 1 {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "wrong sku"})
+		err := errors.New("sku must contain at least 1 character")
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	item, err := h.services.Items.GetBySku(ctx.Request.Context(), sku)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: fmt.Sprintf("item with sku %s not found", sku)})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	category, err := h.services.Categories.GetById(ctx.Request.Context(), item.Category.Id)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -353,17 +363,17 @@ func (i *deleteItemsInput) isValid() error {
 func (h *Handler) deleteItems(ctx *gin.Context) {
 	var body deleteItemsInput
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
 	if err := body.isValid(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := h.services.Items.Delete(ctx.Request.Context(), body.ItemsId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -398,46 +408,47 @@ func (h *Handler) updateItems(ctx *gin.Context) {
 	strItemId := ctx.Param("id")
 	itemId, err := strconv.Atoi(strItemId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
 	var body updateItemInput
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
 	// Check if item is existed
 	if exist, err := h.services.Items.Exist(ctx.Request.Context(), itemId); err != nil || !exist {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("wrong item id %d", itemId)})
+		NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("item", itemId))
 		return
 	}
 
 	// Check if exist category
 	if exist, err := h.services.Categories.Exist(ctx.Request.Context(), body.CategoryId); err != nil || !exist {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "wrong category id"})
+		NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("category", body.CategoryId))
 		return
 	}
 
 	// Check if colors is existed
 	for _, colorId := range body.ColorsId {
 		if exist, err := h.services.Colors.Exist(ctx.Request.Context(), colorId); err != nil || !exist {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("wrong color[%d] id", colorId)})
+			NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("color", colorId))
 			return
 		}
 	}
 
 	// Check if at least one image
 	if len(body.ImagesId) < 1 {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "at least 1 image"})
+		err := errors.New("the item must contain at least 1 image")
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	// Check if images is existed
 	for _, imageId := range body.ImagesId {
 		if exist, err := h.services.Images.Exist(ctx.Request.Context(), imageId); err != nil || !exist {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("wrong image[%d] id", imageId)})
+			NewError(ctx, http.StatusNotFound, apperrors.ErrIdNotFound("image", imageId))
 			return
 		}
 	}
@@ -445,7 +456,7 @@ func (h *Handler) updateItems(ctx *gin.Context) {
 	// Update item
 	if err := h.services.Items.Update(ctx.Request.Context(), itemId, body.Name, body.Description,
 		body.CategoryId, body.Tags, body.ColorsId, body.Price, body.Sku, body.ImagesId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -455,7 +466,7 @@ func (h *Handler) updateItems(ctx *gin.Context) {
 	// Get category and set
 	category, err := h.services.Categories.GetById(ctx.Request.Context(), item.Category.Id)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 	item.Category = category

@@ -8,6 +8,7 @@ import (
 	"net/mail"
 	"regexp"
 	"shop_backend/internal/models"
+	apperrors "shop_backend/pkg/errors"
 	"strings"
 )
 
@@ -75,24 +76,28 @@ func (u *userSignUpInput) isValid() error {
 // @Produce  json
 // @Param input body userSignUpInput true "sign up info"
 // @Success 201 {object} models.User
-// @Failure 400 {object} ErrorResponse
+// @Failure 400,409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /users/sign-up [post]
 func (h *Handler) userSignUp(ctx *gin.Context) {
 	var body userSignUpInput
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
 	if err := body.isValid(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	user, err := h.services.Users.SignUp(ctx.Request.Context(), body.Email, body.Login, body.Password)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		if errors.As(err, &apperrors.UniqueValue{}) {
+			NewError(ctx, http.StatusConflict, err)
+			return
+		}
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -125,7 +130,7 @@ func (u *userSignInInput) loginIsEmail() bool {
 func (h *Handler) userSignIn(ctx *gin.Context) {
 	var body userSignInInput
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
@@ -138,12 +143,12 @@ func (h *Handler) userSignIn(ctx *gin.Context) {
 
 	tokens, err := h.services.Users.SignIn(ctx.Request.Context(), findBy, body.Login, body.Password)
 	if err != nil {
-		if errors.Is(err, models.ErrUserNotFound) {
-			ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		if errors.Is(err, apperrors.ErrUserNotFound) {
+			NewError(ctx, http.StatusNotFound, apperrors.ErrUserNotFound)
 			return
 		}
 
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -166,18 +171,18 @@ func (h *Handler) userSignIn(ctx *gin.Context) {
 func (h *Handler) userRefresh(ctx *gin.Context) {
 	refreshToken, err := ctx.Cookie("refresh_token")
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidCookie)
 		return
 	}
 
 	tokens, err := h.services.Users.RefreshTokens(ctx.Request.Context(), refreshToken)
 	if err != nil {
-		if errors.Is(err, models.ErrUserNotFound) {
-			ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		if errors.Is(err, apperrors.ErrUserNotFound) {
+			NewError(ctx, http.StatusNotFound, apperrors.ErrUserNotFound)
 			return
 		}
 
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -201,18 +206,18 @@ func (h *Handler) userRefresh(ctx *gin.Context) {
 func (h *Handler) userGetMe(ctx *gin.Context) {
 	userId, err := getIdByContext(ctx, userCtx)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	user, err := h.services.Users.GetMe(ctx.Request.Context(), userId)
 	if err != nil {
-		if errors.Is(err, models.ErrUserNotFound) {
-			ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		if errors.Is(err, apperrors.ErrUserNotFound) {
+			NewError(ctx, http.StatusNotFound, apperrors.ErrUserNotFound)
 			return
 		}
 
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -232,7 +237,7 @@ func (h *Handler) userGetMe(ctx *gin.Context) {
 func (h *Handler) getAllUsers(ctx *gin.Context) {
 	users, err := h.services.Users.GetAll(ctx.Request.Context())
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -251,12 +256,12 @@ func (h *Handler) getAllUsers(ctx *gin.Context) {
 func (h *Handler) userLogout(ctx *gin.Context) {
 	userId, err := getIdByContext(ctx, userCtx)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	if err := h.services.Users.Logout(ctx.Request.Context(), userId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -296,30 +301,28 @@ func (u *userUpdateEmailInput) isValid() error {
 func (h *Handler) userUpdateEmail(ctx *gin.Context) {
 	var body userUpdateEmailInput
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
 	if err := body.isValid(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userId, err := getIdByContext(ctx, userCtx)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	if err := h.services.Users.UpdateEmail(ctx.Request.Context(), userId, body.Email); err != nil {
-		switch err.(type) {
-		case models.ErrUniqueValue:
-			ctx.AbortWithStatusJSON(http.StatusConflict, ErrorResponse{Error: err.Error()})
-			return
-		default:
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		if errors.As(err, &apperrors.UniqueValue{}) {
+			NewError(ctx, http.StatusConflict, err)
 			return
 		}
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
 	}
 
 	ctx.Status(http.StatusOK)
@@ -352,28 +355,28 @@ func (u *userUpdatePasswordInput) isValid() error {
 func (h *Handler) userUpdatePassword(ctx *gin.Context) {
 	var body userUpdatePasswordInput
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
 	if err := body.isValid(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userId, err := getIdByContext(ctx, userCtx)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	if err := h.services.Users.UpdatePassword(ctx, userId, body.OldPassword, body.NewPassword); err != nil {
-		if errors.Is(err, models.ErrOldPassword) {
-			ctx.AbortWithStatusJSON(http.StatusConflict, ErrorResponse{Error: err.Error()})
+		if errors.Is(err, apperrors.ErrOldPassword) {
+			NewError(ctx, http.StatusConflict, apperrors.ErrOldPassword)
 			return
 		}
 
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -431,23 +434,23 @@ func (u *userUpdateInfoInput) isValid() error {
 func (h *Handler) userUpdateInfo(ctx *gin.Context) {
 	var body userUpdateInfoInput
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
 	if err := body.isValid(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userId, err := getIdByContext(ctx, userCtx)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	if err := h.services.Users.UpdateInfo(ctx, userId, body.Login, body.FirstName, body.LastName, body.PhoneCode, body.PhoneNumber); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -484,7 +487,7 @@ func (u *userUpdateAddressInput) isDiffer() bool {
 func (h *Handler) userUpdateAddress(ctx *gin.Context) {
 	var body userUpdateAddressInput
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
@@ -492,12 +495,12 @@ func (h *Handler) userUpdateAddress(ctx *gin.Context) {
 
 	userId, err := getIdByContext(ctx, userCtx)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	if err := h.services.Users.UpdateAddress(ctx, userId, different, body.InvoiceAddress, body.ShippingAddress); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -516,12 +519,12 @@ func (h *Handler) userUpdateAddress(ctx *gin.Context) {
 func (h *Handler) userDeleteMe(ctx *gin.Context) {
 	userId, err := getIdByContext(ctx, userCtx)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	if err := h.services.Users.DeleteMe(ctx.Request.Context(), userId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 

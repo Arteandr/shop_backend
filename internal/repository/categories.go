@@ -8,6 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"shop_backend/internal/models"
+	apperrors "shop_backend/pkg/errors"
 )
 
 type CategoriesRepo struct {
@@ -68,7 +69,7 @@ func (r *CategoriesRepo) Delete(ctx context.Context, categoryId int) error {
 	pqError, ok := err.(*pq.Error)
 	if ok {
 		if pqError.Code == "23503" {
-			return models.ErrViolatesKey
+			return apperrors.ErrViolatesKey
 		} else {
 			return err
 		}

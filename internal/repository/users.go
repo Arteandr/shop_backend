@@ -7,6 +7,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"shop_backend/internal/models"
+	"shop_backend/pkg/errors"
+	"strings"
 	"time"
 )
 
@@ -49,8 +51,15 @@ func (r *UsersRepo) Create(ctx context.Context, user models.User) (models.User, 
 	db := r.GetInstance(ctx)
 	var newUser models.User
 	query := fmt.Sprintf("INSERT INTO %s (login, email, password) VALUES ($1,$2,$3) RETURNING id, email, login;", usersTable)
-	if err := db.QueryRowContext(ctx, query, user.Login, user.Email, user.Password).Scan(&newUser.Id, &newUser.Email, &newUser.Login); err != nil {
-		return models.User{}, err
+	err := db.QueryRowContext(ctx, query, user.Login, user.Email, user.Password).Scan(&newUser.Id, &newUser.Email, &newUser.Login)
+	pqError, ok := err.(*pq.Error)
+	if ok {
+		if pqError.Code == "23505" {
+			field := strings.Split(pqError.Constraint, "_")[1]
+			return models.User{}, errors.ErrUniqueValue(field)
+		} else {
+			return models.User{}, err
+		}
 	}
 
 	return newUser, nil
@@ -100,7 +109,7 @@ func (r *UsersRepo) GetByCredentials(ctx context.Context, findBy, login, passwor
 	query := fmt.Sprintf("SELECT * FROM %s WHERE %s=$1 AND password=$2 LIMIT 1;", usersTable, findBy)
 	rows, err := db.QueryxContext(ctx, query, login, password)
 	if err == sql.ErrNoRows {
-		return models.User{}, models.ErrUserNotFound
+		return models.User{}, errors.ErrUserNotFound
 	} else if err != nil {
 		return models.User{}, err
 	}
@@ -112,7 +121,7 @@ func (r *UsersRepo) GetByCredentials(ctx context.Context, findBy, login, passwor
 	}
 
 	if user == (models.User{}) {
-		return models.User{}, models.ErrUserNotFound
+		return models.User{}, errors.ErrUserNotFound
 	}
 
 	return user, nil
@@ -135,7 +144,7 @@ func (r *UsersRepo) GetByRefreshToken(ctx context.Context, refreshToken string) 
 	}
 
 	if user == (models.User{}) {
-		return models.User{}, models.ErrUserNotFound
+		return models.User{}, errors.ErrUserNotFound
 	}
 
 	return user, nil
@@ -148,7 +157,7 @@ func (r *UsersRepo) GetById(ctx context.Context, userId int) (models.User, error
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", usersTable)
 	rows, err := db.QueryxContext(ctx, query, userId)
 	if err == sql.ErrNoRows {
-		return models.User{}, models.ErrUserNotFound
+		return models.User{}, errors.ErrUserNotFound
 	} else if err != nil {
 		return models.User{}, err
 	}
@@ -214,7 +223,7 @@ func (r *UsersRepo) GetAddress(ctx context.Context, typeof string, userId int) (
 	query := fmt.Sprintf("SELECT A.* FROM %s AS A, users_%s as U_A WHERE U_A.user_id=$1 AND U_A.address_id=A.id LIMIT 1;", addressTable, typeof)
 	rows, err := db.QueryxContext(ctx, query, userId)
 	if err == sql.ErrNoRows {
-		return models.Address{}, models.ErrAddressNotFound
+		return models.Address{}, errors.ErrAddressNotFound
 	} else if err != nil {
 		return models.Address{}, err
 	}
@@ -256,7 +265,8 @@ func (r *UsersRepo) UpdateField(ctx context.Context, field string, value interfa
 	pqError, ok := err.(*pq.Error)
 	if ok {
 		if pqError.Code == "23505" {
-			return models.NewErrUniqueValue(field)
+			f := strings.Split(pqError.Constraint, "_")[1]
+			return errors.ErrUniqueValue(f)
 		} else {
 			return err
 		}
