@@ -3,8 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
+
+	"github.com/jmoiron/sqlx"
 )
 
 const (
@@ -21,6 +22,8 @@ const (
 	phonesTable          = "phone_numbers"
 	deliveryTable        = "delivery"
 	deliveryCompanyTable = "delivery_company"
+	ordersTable          = "orders"
+	orderItemsTable      = "order_items"
 )
 
 type Images interface {
@@ -106,6 +109,13 @@ type Delivery interface {
 	GetAll(ctx context.Context) ([]models.Delivery, error)
 	Update(ctx context.Context, delivery models.Delivery) error
 	Delete(ctx context.Context, deliveryId int) error
+	Exist(ctx context.Context, deliveryId int) (bool, error)
+	Transactor
+}
+
+type Orders interface {
+	Create(ctx context.Context, userId int, deliveryId int) (int, error)
+	LinkItem(ctx context.Context, orderId, itemId, colorId, quantity int) error
 	Transactor
 }
 
@@ -116,6 +126,7 @@ type Repositories struct {
 	Colors     Colors
 	Images     Images
 	Delivery   Delivery
+	Orders     Orders
 }
 
 func NewRepositories(db *sqlx.DB) *Repositories {
@@ -126,6 +137,7 @@ func NewRepositories(db *sqlx.DB) *Repositories {
 		Colors:     NewColorsRepo(db),
 		Images:     NewImagesRepo(db),
 		Delivery:   NewDeliveryRepo(db),
+		Orders:     NewOrdersRepo(db),
 	}
 }
 

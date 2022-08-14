@@ -76,3 +76,7 @@ func (s *DeliveryService) GetById(ctx context.Context, deliveryId int) (models.D
 func (s *DeliveryService) GetAll(ctx context.Context) ([]models.Delivery, error) {
 	return s.repo.GetAll(ctx)
 }
+
+func (s *DeliveryService) Exist(ctx context.Context, deliveryId int) (bool, error) {
+	return s.repo.Exist(ctx, deliveryId)
+}

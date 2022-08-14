@@ -73,6 +73,11 @@ type Delivery interface {
 	GetAll(ctx context.Context) ([]models.Delivery, error)
 	Update(ctx context.Context, delivery models.Delivery) error
 	Delete(ctx context.Context, deliveryId int) error
+	Exist(ctx context.Context, deliveryId int) (bool, error)
+}
+
+type Orders interface {
+	Create(ctx context.Context, order models.Order) (int, error)
 }
 
 type Services struct {
@@ -82,6 +87,7 @@ type Services struct {
 	Colors     Colors
 	Images     Images
 	Delivery   Delivery
+	Orders     Orders
 }
 
 type ServicesDeps struct {
@@ -96,13 +102,17 @@ func NewServices(deps ServicesDeps) *Services {
 	categories := NewCategoriesService(deps.Repos.Categories)
 	colors := NewColorsService(deps.Repos.Colors)
 	images := NewImagesService(deps.Repos.Images)
+	users := NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL)
+	delivery := NewDeliveryService(deps.Repos.Delivery)
+	items := NewItemsService(deps.Repos.Items, categories, colors, images)
 
 	return &Services{
-		Items:      NewItemsService(deps.Repos.Items, categories, colors, images),
+		Items:      items,
 		Categories: categories,
 		Colors:     colors,
 		Images:     images,
-		Delivery:   NewDeliveryService(deps.Repos.Delivery),
-		Users:      NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL),
+		Orders:     NewOrdersService(deps.Repos.Orders, users, delivery, items, colors),
+		Delivery:   delivery,
+		Users:      users,
 	}
 }

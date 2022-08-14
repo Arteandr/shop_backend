@@ -30,5 +30,6 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 		h.InitCategoriesRoutes(v1)
 		h.InitImagesRoutes(v1)
 		h.InitDeliveryRoutes(v1)
+		h.InitOrdersRoutes(v1)
 	}
 }

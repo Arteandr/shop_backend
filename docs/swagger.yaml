@@ -91,6 +91,19 @@ definitions:
           $ref: '#/definitions/models.Tag'
         type: array
     type: object
+  models.OrderItem:
+    properties:
+      colorId:
+        type: integer
+      itemId:
+        type: integer
+      quantity:
+        type: integer
+    required:
+    - colorId
+    - itemId
+    - quantity
+    type: object
   models.Tag:
     properties:
       id:
@@ -198,6 +211,18 @@ definitions:
     - name
     - price
     - sku
+    type: object
+  v1.createOrderInput:
+    properties:
+      deliveryId:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.OrderItem'
+        type: array
+    required:
+    - deliveryId
+    - items
     type: object
   v1.deleteColorsInput:
     properties:
@@ -1267,6 +1292,40 @@ paths:
       summary: Get items with tag
       tags:
       - items-actions
+  /orders/create:
+    post:
+      consumes:
+      - application/json
+      description: create a new order
+      parameters:
+      - description: input body
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.createOrderInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      summary: Create a new order
+      tags:
+      - orders-actions
   /users/address:
     put:
       consumes:

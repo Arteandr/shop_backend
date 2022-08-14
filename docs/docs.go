@@ -1480,6 +1480,60 @@ const docTemplate = `{
                 }
             }
         },
+        "/orders/create": {
+            "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
+                "description": "create a new order",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orders-actions"
+                ],
+                "summary": "Create a new order",
+                "parameters": [
+                    {
+                        "description": "input body",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.createOrderInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/address": {
             "put": {
                 "security": [
@@ -2108,6 +2162,25 @@ const docTemplate = `{
                 }
             }
         },
+        "models.OrderItem": {
+            "type": "object",
+            "required": [
+                "colorId",
+                "itemId",
+                "quantity"
+            ],
+            "properties": {
+                "colorId": {
+                    "type": "integer"
+                },
+                "itemId": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.Tag": {
             "type": "object",
             "properties": {
@@ -2265,6 +2338,24 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                }
+            }
+        },
+        "v1.createOrderInput": {
+            "type": "object",
+            "required": [
+                "deliveryId",
+                "items"
+            ],
+            "properties": {
+                "deliveryId": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.OrderItem"
                     }
                 }
             }

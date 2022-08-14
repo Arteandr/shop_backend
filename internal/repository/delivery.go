@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"shop_backend/internal/models"
@@ -135,4 +136,15 @@ func (r *DeliveryRepo) Delete(ctx context.Context, deliveryId int) error {
 	_, err := r.db.ExecContext(ctx, query, deliveryId)
 
 	return err
+}
+
+func (r *DeliveryRepo) Exist(ctx context.Context, deliveryId int) (bool, error) {
+	db := r.GetInstance(ctx)
+	var exist bool
+	queryMain := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", deliveryTable)
+	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
+	if err := db.GetContext(ctx, &exist, query, deliveryId); err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+	return exist, nil
 }
