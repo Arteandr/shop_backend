@@ -2,12 +2,13 @@ package v1
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"shop_backend/internal/models"
-	errors2 "shop_backend/pkg/errors"
+	apperrors "shop_backend/pkg/errors"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -93,12 +94,12 @@ func (h *Handler) adminIdentify(ctx *gin.Context) {
 func (h *Handler) parseAuthHeader(ctx *gin.Context) (string, error) {
 	header := ctx.GetHeader(authorizationHeader)
 	if header == "" {
-		return "", errors2.ErrEmptyAuthHeader
+		return "", apperrors.ErrEmptyAuthHeader
 	}
 
 	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-		return "", errors2.ErrInvalidAuthHeader
+		return "", apperrors.ErrInvalidAuthHeader
 	}
 
 	if len(headerParts[1]) == 0 {
