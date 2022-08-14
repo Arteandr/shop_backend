@@ -3,13 +3,14 @@ package v1
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/mail"
 	"regexp"
 	"shop_backend/internal/models"
 	apperrors "shop_backend/pkg/errors"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
