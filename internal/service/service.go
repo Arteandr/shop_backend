@@ -31,9 +31,9 @@ type Colors interface {
 type Categories interface {
 	GetAll(ctx context.Context) ([]models.Category, error)
 	GetById(ctx context.Context, categoryId int) (models.Category, error)
-	Create(ctx context.Context, name string) (int, error)
+	Create(ctx context.Context, name string, imageId int) (int, error)
 	Delete(ctx context.Context, categoryId int) error
-	Update(ctx context.Context, categoryId int, name string) error
+	Update(ctx context.Context, categoryId int, name string, imageId int) error
 	Exist(ctx context.Context, colorId int) (bool, error)
 }
 
@@ -99,9 +99,9 @@ type ServicesDeps struct {
 }
 
 func NewServices(deps ServicesDeps) *Services {
-	categories := NewCategoriesService(deps.Repos.Categories)
-	colors := NewColorsService(deps.Repos.Colors)
 	images := NewImagesService(deps.Repos.Images)
+	categories := NewCategoriesService(deps.Repos.Categories, images)
+	colors := NewColorsService(deps.Repos.Colors)
 	users := NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL)
 	delivery := NewDeliveryService(deps.Repos.Delivery)
 	items := NewItemsService(deps.Repos.Items, categories, colors, images)
