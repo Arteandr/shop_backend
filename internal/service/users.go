@@ -178,9 +178,11 @@ func (s *UsersService) GetMe(ctx context.Context, userId int) (models.User, erro
 			return err
 		}
 		if phone.Code != nil && phone.Number != nil {
-			phoneCode := *phone.Code
-			phoneNumber := *phone.Number
-			user.Phone = phoneCode + phoneNumber
+			newPhone := &models.Phone{
+				Code:   phone.Code,
+				Number: phone.Number,
+			}
+			user.Phone = newPhone
 		}
 
 		// Hide password
@@ -221,9 +223,11 @@ func (s *UsersService) GetAll(ctx context.Context) ([]models.User, error) {
 				return err
 			}
 			if phone.Code != nil && phone.Number != nil {
-				phoneCode := *phone.Code
-				phoneNumber := *phone.Number
-				users[i].Phone = phoneCode + phoneNumber
+				newPhone := &models.Phone{
+					Code:   phone.Code,
+					Number: phone.Number,
+				}
+				users[i].Phone = newPhone
 			}
 
 			// Hide password
