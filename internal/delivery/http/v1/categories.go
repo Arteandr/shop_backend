@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"shop_backend/internal/models"
 	apperrors "shop_backend/pkg/errors"
 	"strconv"
 )
@@ -23,6 +22,22 @@ func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 	}
 }
 
+type createCategoryInput struct {
+	Name    string `json:"name" binding:"required"`
+	ImageId int    `json:"imageId" binding:"required"`
+}
+
+func (i *createCategoryInput) isValid() error {
+	if len(i.Name) < 1 || len(i.Name) > 30 {
+		return errors.New("wrong category name")
+	}
+	if i.ImageId < 1 {
+		return errors.New("wrong image id")
+	}
+
+	return nil
+}
+
 // @Summary Create a new category
 // @Security UsersAuth
 // @Security AdminAuth
@@ -30,25 +45,34 @@ func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 // @Description create a new category
 // @Accept json
 // @Produce json
-// @Param input body models.Category true "input body"
-// @Success 200 {object} IdResponse
-// @Failure 400 {object} ErrorResponse
+// @Param input body createCategoryInput true "input body"
+// @Success 201 {object} IdResponse
+// @Failure 400,404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /categories/create [post]
 func (h *Handler) createCategory(ctx *gin.Context) {
-	var category models.Category
-	if err := ctx.BindJSON(&category); err != nil {
+	var body createCategoryInput
+	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
-	categoryId, err := h.services.Categories.Create(ctx.Request.Context(), category.Name)
+	if err := body.isValid(); err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	categoryId, err := h.services.Categories.Create(ctx.Request.Context(), body.Name, body.ImageId)
 	if err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, IdResponse{Id: categoryId})
+	ctx.JSON(http.StatusCreated, IdResponse{Id: categoryId})
 }
 
 // @Summary Delete category
@@ -84,12 +108,16 @@ func (h *Handler) deleteCategory(ctx *gin.Context) {
 }
 
 type updateCategoryInput struct {
-	Name string `json:"name" binding:"required"`
+	Name    string `json:"name" binding:"required"`
+	ImageId int    `json:"imageId" binding:"required"`
 }
 
-func (u *updateCategoryInput) isValid() error {
-	if len(u.Name) < 1 || len(u.Name) > 15 {
+func (i *updateCategoryInput) isValid() error {
+	if len(i.Name) < 1 || len(i.Name) > 15 {
 		return errors.New("wrong name length")
+	}
+	if i.ImageId < 1 {
+		return errors.New("wrong image id")
 	}
 
 	return nil
@@ -127,7 +155,7 @@ func (h *Handler) updateCategory(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.services.Categories.Update(ctx.Request.Context(), categoryId, body.Name); err != nil {
+	if err := h.services.Categories.Update(ctx.Request.Context(), categoryId, body.Name, body.ImageId); err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
 			return

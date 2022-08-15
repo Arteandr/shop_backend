@@ -1,6 +1,7 @@
 package models
 
 type Category struct {
-	Id   int    `json:"id,omitempty" db:"id"`
-	Name string `json:"name" binding:"required" db:"name"`
+	Id    int    `json:"id,omitempty" db:"id"`
+	Name  string `json:"name" binding:"required" db:"name"`
+	Image Image  `json:"image" binding:"required"`
 }

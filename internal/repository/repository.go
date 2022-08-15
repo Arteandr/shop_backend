@@ -9,21 +9,22 @@ import (
 )
 
 const (
-	usersTable           = "users"
-	categoriesTable      = "categories"
-	itemsTable           = "items"
-	colorsTable          = "colors"
-	itemsColorsTable     = "items_colors"
-	tagsTable            = "tags"
-	imagesTable          = "images"
-	itemsImagesTable     = "items_images"
-	sessionsTable        = "sessions"
-	addressTable         = "address"
-	phonesTable          = "phone_numbers"
-	deliveryTable        = "delivery"
-	deliveryCompanyTable = "delivery_company"
-	ordersTable          = "orders"
-	orderItemsTable      = "order_items"
+	usersTable            = "users"
+	categoriesTable       = "categories"
+	categoriesImagesTable = "categories_images"
+	itemsTable            = "items"
+	colorsTable           = "colors"
+	itemsColorsTable      = "items_colors"
+	tagsTable             = "tags"
+	imagesTable           = "images"
+	itemsImagesTable      = "items_images"
+	sessionsTable         = "sessions"
+	addressTable          = "address"
+	phonesTable           = "phone_numbers"
+	deliveryTable         = "delivery"
+	deliveryCompanyTable  = "delivery_company"
+	ordersTable           = "orders"
+	orderItemsTable       = "order_items"
 )
 
 type Images interface {
@@ -51,10 +52,13 @@ type Colors interface {
 type Categories interface {
 	Exist(ctx context.Context, categoryId int) (bool, error)
 	Create(ctx context.Context, category models.Category) (int, error)
+	LinkImage(ctx context.Context, categoryId, imageId int) error
 	GetAll(ctx context.Context) ([]models.Category, error)
+	GetImage(ctx context.Context, categoryId int) (models.Image, error)
 	Delete(ctx context.Context, categoryId int) error
 	GetById(ctx context.Context, categoryId int) (models.Category, error)
 	Update(ctx context.Context, category models.Category) error
+	UpdateImage(ctx context.Context, categoryId, imageId int) error
 	Transactor
 }
 
