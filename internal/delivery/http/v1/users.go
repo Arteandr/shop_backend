@@ -467,7 +467,7 @@ func (u *userUpdateAddressInput) isDiffer() bool {
 	if strings.TrimSpace(u.InvoiceAddress.Country) == strings.TrimSpace(u.ShippingAddress.Country) &&
 		strings.TrimSpace(u.InvoiceAddress.City) == strings.TrimSpace(u.ShippingAddress.City) &&
 		strings.TrimSpace(u.InvoiceAddress.Street) == strings.TrimSpace(u.ShippingAddress.Street) &&
-		u.InvoiceAddress.Zip == u.ShippingAddress.Zip {
+		strings.TrimSpace(u.InvoiceAddress.Zip) == (u.ShippingAddress.Zip) {
 		return false
 	} else {
 		return true

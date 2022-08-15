@@ -22,7 +22,7 @@ CREATE TABLE address
     country varchar(255)       not null,
     city    varchar(255)       not null,
     street  varchar(255)       not null,
-    zip     integer            not null
+    zip     varchar(255)       not null
 );
 
 CREATE TABLE users_invoice
