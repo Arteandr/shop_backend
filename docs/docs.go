@@ -76,19 +76,25 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Category"
+                            "$ref": "#/definitions/v1.createCategoryInput"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/v1.IdResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -2047,18 +2053,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "zip": {
-                    "type": "integer"
+                    "type": "string"
                 }
             }
         },
         "models.Category": {
             "type": "object",
             "required": [
+                "image",
                 "name"
             ],
             "properties": {
                 "id": {
                     "type": "integer"
+                },
+                "image": {
+                    "$ref": "#/definitions/models.Image"
                 },
                 "name": {
                     "type": "string"
@@ -2181,6 +2191,17 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Phone": {
+            "type": "object",
+            "properties": {
+                "phoneCode": {
+                    "type": "string"
+                },
+                "phoneNumber": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Tag": {
             "type": "object",
             "properties": {
@@ -2234,7 +2255,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.Phone"
                 },
                 "shippingAddress": {
                     "$ref": "#/definitions/models.Address"
@@ -2254,6 +2275,21 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.createCategoryInput": {
+            "type": "object",
+            "required": [
+                "imageId",
+                "name"
+            ],
+            "properties": {
+                "imageId": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -2405,9 +2441,13 @@ const docTemplate = `{
         "v1.updateCategoryInput": {
             "type": "object",
             "required": [
+                "imageId",
                 "name"
             ],
             "properties": {
+                "imageId": {
+                    "type": "integer"
+                },
                 "name": {
                     "type": "string"
                 }

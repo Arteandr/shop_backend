@@ -11,7 +11,7 @@ definitions:
       street:
         type: string
       zip:
-        type: integer
+        type: string
     required:
     - city
     - country
@@ -22,9 +22,12 @@ definitions:
     properties:
       id:
         type: integer
+      image:
+        $ref: '#/definitions/models.Image'
       name:
         type: string
     required:
+    - image
     - name
     type: object
   models.Color:
@@ -104,6 +107,13 @@ definitions:
     - itemId
     - quantity
     type: object
+  models.Phone:
+    properties:
+      phoneCode:
+        type: string
+      phoneNumber:
+        type: string
+    type: object
   models.Tag:
     properties:
       id:
@@ -139,7 +149,7 @@ definitions:
       password:
         type: string
       phone:
-        type: string
+        $ref: '#/definitions/models.Phone'
       shippingAddress:
         $ref: '#/definitions/models.Address'
     type: object
@@ -152,6 +162,16 @@ definitions:
     properties:
       id:
         type: integer
+    type: object
+  v1.createCategoryInput:
+    properties:
+      imageId:
+        type: integer
+      name:
+        type: string
+    required:
+    - imageId
+    - name
     type: object
   v1.createColorInput:
     properties:
@@ -253,9 +273,12 @@ definitions:
     type: object
   v1.updateCategoryInput:
     properties:
+      imageId:
+        type: integer
       name:
         type: string
     required:
+    - imageId
     - name
     type: object
   v1.updateItemInput:
@@ -498,16 +521,20 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.Category'
+          $ref: '#/definitions/v1.createCategoryInput'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/v1.IdResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
         "500":
