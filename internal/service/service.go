@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"github.com/go-redis/redis/v9"
 	"mime/multipart"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	"shop_backend/pkg/auth"
 	"shop_backend/pkg/hash"
+	"shop_backend/pkg/mail"
 	"time"
 )
 
@@ -96,6 +98,8 @@ type ServicesDeps struct {
 	TokenManager    auth.TokenManager
 	AccessTokenTTL  time.Duration
 	RefreshTokenTTL time.Duration
+	Redis           *redis.Client
+	MailSender      mail.Sender
 }
 
 func NewServices(deps ServicesDeps) *Services {

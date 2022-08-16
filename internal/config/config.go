@@ -1,8 +1,10 @@
 package config
 
 import (
+	"errors"
 	"github.com/spf13/viper"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -11,6 +13,8 @@ type (
 		HTTP  HTTPConfig
 		PGSQL PGSQLConfig
 		Auth  AuthConfig
+		SMTP  SMTPConfig
+		Redis RedisConfig
 	}
 
 	HTTPConfig struct {
@@ -30,6 +34,12 @@ type (
 		Port         string
 	}
 
+	RedisConfig struct {
+		Host      string
+		Password  string
+		DefaultDB int `mapstructure:"defaultDB"`
+	}
+
 	AuthConfig struct {
 		PasswordSalt    string
 		JWT             JWTConfig
@@ -39,6 +49,13 @@ type (
 
 	JWTConfig struct {
 		SigningKey string
+	}
+
+	SMTPConfig struct {
+		Host     string
+		User     string
+		Password string
+		Port     int
 	}
 )
 
@@ -52,12 +69,14 @@ func Init(configPath string) (*Config, error) {
 		return nil, err
 	}
 
-	setEnv(&cfg)
+	if err := setEnv(&cfg); err != nil {
+		return nil, err
+	}
 
 	return &cfg, nil
 }
 
-func setEnv(cfg *Config) {
+func setEnv(cfg *Config) error {
 	// PostgresSQL connection
 	cfg.PGSQL.Host = os.Getenv("POSTGRES_HOST")
 	cfg.PGSQL.User = os.Getenv("POSTGRES_USER")
@@ -74,6 +93,39 @@ func setEnv(cfg *Config) {
 
 	// Password salt
 	cfg.Auth.PasswordSalt = os.Getenv("PASS_SALT")
+
+	// SMTP
+	cfg.SMTP.Host, ok = os.LookupEnv("SMTP_HOST")
+	if !ok {
+		return errors.New("empty smtp host env")
+	}
+	cfg.SMTP.User, ok = os.LookupEnv("SMTP_USER")
+	if !ok {
+		return errors.New("empty smtp user env")
+	}
+	cfg.SMTP.Password, ok = os.LookupEnv("SMTP_PASSWORD")
+	if !ok {
+		return errors.New("empty smtp password env")
+	}
+	val, ok = os.LookupEnv("SMTP_PORT")
+	if !ok {
+		return errors.New("empty smtp port env")
+	}
+	port, err := strconv.Atoi(val)
+	if err != nil {
+		return err
+	} else {
+		cfg.SMTP.Port = port
+	}
+
+	// Redis
+	cfg.Redis.Host, ok = os.LookupEnv("REDIS_HOST")
+	if !ok {
+		return errors.New("empty redis host env")
+	}
+	cfg.Redis.Password = os.Getenv("REDIS_PASSWORD")
+
+	return nil
 }
 
 func unmarshal(cfg *Config) error {
@@ -88,6 +140,11 @@ func unmarshal(cfg *Config) error {
 	if err := viper.UnmarshalKey("auth", &cfg.Auth); err != nil {
 		return err
 	}
+
+	if err := viper.UnmarshalKey("redis", &cfg.Redis); err != nil {
+		return err
+	}
+
 	return nil
 }
 

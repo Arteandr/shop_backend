@@ -10,6 +10,9 @@ pgsql:
   sslmode: disable
   port: 5432
 
+redis:
+  defaultDB: 0
+
 auth:
   accessTokenTTL: 1h
   refreshTokenTTL: 720h #30 days
