@@ -23,4 +23,7 @@ var (
 
 	// Sort errors
 	ErrSortOptions = errors.New("wrong sort options")
+
+	// SMTP
+	ErrEmailSend = errors.New("cannot send email")
 )

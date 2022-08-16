@@ -20,15 +20,26 @@ type UsersService struct {
 
 	accessTokenTTL  time.Duration
 	refreshTokenTTL time.Duration
+
+	mailsService Mails
 }
 
-func NewUsersService(repo repository.Users, hasher hash.PasswordHasher, tokenManager auth.TokenManager, accessTokenTTL, refreshTokenTTL time.Duration) *UsersService {
+type UsersServiceDeps struct {
+	repo                            repository.Users
+	hasher                          hash.PasswordHasher
+	tokenManager                    auth.TokenManager
+	accessTokenTTL, refreshTokenTTL time.Duration
+	mailsService                    Mails
+}
+
+func NewUsersService(deps UsersServiceDeps) *UsersService {
 	return &UsersService{
-		repo:            repo,
-		hasher:          hasher,
-		tokenManager:    tokenManager,
-		accessTokenTTL:  accessTokenTTL,
-		refreshTokenTTL: refreshTokenTTL,
+		repo:            deps.repo,
+		hasher:          deps.hasher,
+		tokenManager:    deps.tokenManager,
+		accessTokenTTL:  deps.accessTokenTTL,
+		refreshTokenTTL: deps.refreshTokenTTL,
+		mailsService:    deps.mailsService,
 	}
 }
 
@@ -66,6 +77,10 @@ func (s *UsersService) SignUp(ctx context.Context, email, login, password string
 
 		// Hide password
 		newUser.Password = ""
+
+		if err := s.mailsService.CreateVerify(ctx, newUser.Id, newUser.Email); err != nil {
+			return err
+		}
 
 		return nil
 	})

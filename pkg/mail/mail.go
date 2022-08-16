@@ -1,12 +1,14 @@
 package mail
 
 import (
+	"bytes"
 	"gopkg.in/gomail.v2"
+	"html/template"
 	"net/mail"
 )
 
 type Sender interface {
-	SendText(from, to, name, body, title string) error
+	SendVerify(to, name, token string) error
 }
 
 type EmailSender struct {
@@ -19,19 +21,33 @@ func NewEmailSender(smtp *gomail.Dialer) *EmailSender {
 	}
 }
 
-func (e *EmailSender) SendText(from, to, name, body, subject string) error {
-	if _, err := mail.ParseAddress(from); err != nil {
-		return err
-	}
+type verifyData struct {
+	Token string
+}
+
+func (e *EmailSender) SendVerify(to, name, token string) error {
 	if _, err := mail.ParseAddress(to); err != nil {
 		return err
 	}
 
+	data := verifyData{
+		Token: token,
+	}
+
 	msg := gomail.NewMessage()
-	msg.SetHeader("From", from)
+	msg.SetHeader("From", "hwndrer-new@yandex.ru")
 	msg.SetAddressHeader("To", to, name)
-	msg.SetHeader("Subject", subject)
-	msg.SetBody("text/html", body)
+	msg.SetHeader("Subject", "Verify")
+	var b bytes.Buffer
+	tmpl, err := template.ParseFiles("./resources/email_confirm.html")
+	if err != nil {
+		return err
+	}
+	if err := tmpl.Execute(&b, data); err != nil {
+		return err
+	}
+
+	msg.SetBody("text/html", b.String())
 
 	return e.smtp.DialAndSend(msg)
 }

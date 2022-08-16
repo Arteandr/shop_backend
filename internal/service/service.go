@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/go-redis/redis/v9"
 	"mime/multipart"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
@@ -82,6 +81,10 @@ type Orders interface {
 	Create(ctx context.Context, order models.Order) (int, error)
 }
 
+type Mails interface {
+	CreateVerify(ctx context.Context, userId int, email string) error
+}
+
 type Services struct {
 	Users      Users
 	Items      Items
@@ -90,6 +93,7 @@ type Services struct {
 	Images     Images
 	Delivery   Delivery
 	Orders     Orders
+	Mails      Mails
 }
 
 type ServicesDeps struct {
@@ -98,7 +102,6 @@ type ServicesDeps struct {
 	TokenManager    auth.TokenManager
 	AccessTokenTTL  time.Duration
 	RefreshTokenTTL time.Duration
-	Redis           *redis.Client
 	MailSender      mail.Sender
 }
 
@@ -106,7 +109,15 @@ func NewServices(deps ServicesDeps) *Services {
 	images := NewImagesService(deps.Repos.Images)
 	categories := NewCategoriesService(deps.Repos.Categories, images)
 	colors := NewColorsService(deps.Repos.Colors)
-	users := NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL)
+	mails := NewMailsService(deps.Repos.Mails, deps.MailSender)
+	users := NewUsersService(UsersServiceDeps{
+		repo:            deps.Repos.Users,
+		hasher:          deps.Hasher,
+		tokenManager:    deps.TokenManager,
+		accessTokenTTL:  deps.AccessTokenTTL,
+		refreshTokenTTL: deps.RefreshTokenTTL,
+		mailsService:    mails,
+	})
 	delivery := NewDeliveryService(deps.Repos.Delivery)
 	items := NewItemsService(deps.Repos.Items, categories, colors, images)
 
@@ -118,5 +129,6 @@ func NewServices(deps ServicesDeps) *Services {
 		Orders:     NewOrdersService(deps.Repos.Orders, users, delivery, items, colors),
 		Delivery:   delivery,
 		Users:      users,
+		Mails:      mails,
 	}
 }

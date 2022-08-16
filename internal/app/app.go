@@ -83,14 +83,13 @@ func Run(configPath string) {
 	}
 
 	// Services and repositories
-	repos := repository.NewRepositories(db)
+	repos := repository.NewRepositories(db, rdb)
 	services := service.NewServices(service.ServicesDeps{
 		Repos:           repos,
 		Hasher:          hasher,
 		AccessTokenTTL:  cfg.Auth.AccessTokenTTL,
 		RefreshTokenTTL: cfg.Auth.RefreshTokenTTL,
 		TokenManager:    tokenManager,
-		Redis:           rdb,
 		MailSender:      emailSender,
 	})
 
