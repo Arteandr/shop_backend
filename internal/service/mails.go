@@ -21,9 +21,9 @@ func NewMailsService(repo repository.Mails, mailSender mail.Sender) *MailsServic
 	}
 }
 
-func (s *MailsService) CreateVerify(ctx context.Context, userId int, email string) error {
+func (s *MailsService) CreateVerify(ctx context.Context, userId int, login, email string) error {
 	token := uuid.New().String()
-	err := s.mailSender.SendVerify(email, "hwndrer-new", token)
+	err := s.mailSender.SendVerify(email, login, token)
 	if err != nil {
 		fmt.Println(err)
 		return apperrors.ErrEmailSend

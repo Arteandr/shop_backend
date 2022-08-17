@@ -82,7 +82,7 @@ type Orders interface {
 }
 
 type Mails interface {
-	CreateVerify(ctx context.Context, userId int, email string) error
+	CreateVerify(ctx context.Context, userId int, login, email string) error
 }
 
 type Services struct {

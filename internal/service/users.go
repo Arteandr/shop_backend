@@ -78,7 +78,7 @@ func (s *UsersService) SignUp(ctx context.Context, email, login, password string
 		// Hide password
 		newUser.Password = ""
 
-		if err := s.mailsService.CreateVerify(ctx, newUser.Id, newUser.Email); err != nil {
+		if err := s.mailsService.CreateVerify(ctx, newUser.Id, newUser.Login, newUser.Email); err != nil {
 			return err
 		}
 
