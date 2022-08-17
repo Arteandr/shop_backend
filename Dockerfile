@@ -37,6 +37,7 @@ WORKDIR /app
 COPY --from=builder /build/main /app/main
 COPY --from=builder /build/configs /app/configs
 COPY --from=builder /build/schema /app/schema
+COPY --from=builder /build/resources /app/resources
 
 EXPOSE 8000
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /app/wait
