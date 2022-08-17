@@ -370,3 +370,18 @@ func (s *UsersService) CompleteVerify(ctx context.Context, token string) error {
 		return nil
 	})
 }
+
+func (s *UsersService) SendVerify(ctx context.Context, userId int) error {
+	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		user, err := s.GetMe(ctx, userId)
+		if err != nil {
+			return err
+		}
+
+		if err := s.mailsService.CreateVerify(ctx, user.Id, user.Login, user.Email); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}

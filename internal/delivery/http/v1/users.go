@@ -19,7 +19,7 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 		users.POST("/sign-up", h.userSignUp)
 		users.POST("/sign-in", h.userSignIn)
 		users.POST("/refresh", h.userRefresh)
-		users.GET("/verify/:token", h.userVerify)
+		users.GET("/verify/:token", h.userCompleteVerify)
 
 		authenticated := users.Group("/", h.userIdentity)
 		{
@@ -31,6 +31,8 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 			authenticated.PUT("/password", h.completedIdentify, h.userUpdatePassword)
 			authenticated.PUT("/info", h.completedIdentify, h.userUpdateInfo)
 			authenticated.PUT("/address", h.completedIdentify, h.userUpdateAddress)
+
+			authenticated.POST("/verify", h.userSendVerify)
 
 			admins := authenticated.Group("/")
 			{
@@ -170,7 +172,7 @@ func (h *Handler) userSignIn(ctx *gin.Context) {
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /users/{token} [get]
-func (h *Handler) userVerify(ctx *gin.Context) {
+func (h *Handler) userCompleteVerify(ctx *gin.Context) {
 	token := ctx.Param("token")
 	if token == "" {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
@@ -183,6 +185,30 @@ func (h *Handler) userVerify(ctx *gin.Context) {
 	}
 
 	ctx.Redirect(http.StatusTemporaryRedirect, h.cfg.HTTP.FrontendHost+"confirm")
+}
+
+// @Summary Send new email verification
+// @Tags users-auth
+// @Description Send new email verification
+// @Accept  json
+// @Produce  json
+// @Success 200 ""
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/verify [post]
+func (h *Handler) userSendVerify(ctx *gin.Context) {
+	userId, err := getIdByContext(ctx, userCtx)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.services.Users.SendVerify(ctx, userId); err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }
 
 // @Summary User Refresh Tokens

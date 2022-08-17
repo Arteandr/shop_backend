@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/google/uuid"
 	"shop_backend/internal/repository"
 	apperrors "shop_backend/pkg/errors"
@@ -26,7 +25,6 @@ func (s *MailsService) CreateVerify(ctx context.Context, userId int, login, emai
 	token := uuid.New().String()
 	err := s.mailSender.SendVerify(email, login, token)
 	if err != nil {
-		fmt.Println(err)
 		return apperrors.ErrEmailSend
 	}
 

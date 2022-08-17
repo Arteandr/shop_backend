@@ -68,6 +68,7 @@ type Users interface {
 	DeleteMe(ctx context.Context, userId int) error
 	IsCompleted(ctx context.Context, userId int) (bool, error)
 	CompleteVerify(ctx context.Context, token string) error
+	SendVerify(ctx context.Context, userId int) error
 }
 
 type Delivery interface {
