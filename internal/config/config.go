@@ -18,6 +18,7 @@ type (
 	}
 
 	HTTPConfig struct {
+		FrontendHost       string        `mapstructure:"frontendHost"`
 		Host               string        `mapstructure:"host"`
 		Port               string        `mapstructure:"port"`
 		ReadTimeout        time.Duration `mapstructure:"readTimeout"`

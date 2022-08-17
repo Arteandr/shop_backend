@@ -19,6 +19,7 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 		users.POST("/sign-up", h.userSignUp)
 		users.POST("/sign-in", h.userSignIn)
 		users.POST("/refresh", h.userRefresh)
+		users.GET("/verify/:token", h.userVerify)
 
 		authenticated := users.Group("/", h.userIdentity)
 		{
@@ -158,6 +159,30 @@ func (h *Handler) userSignIn(ctx *gin.Context) {
 	// Hide refresh token
 	tokens.RefreshToken = ""
 	ctx.JSON(http.StatusOK, tokens)
+}
+
+// @Summary User verify
+// @Description verify user by token
+// @Accept  json
+// @Produce  json
+// @Param token path int true "verify token"
+// @Success 307 ""
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/{token} [get]
+func (h *Handler) userVerify(ctx *gin.Context) {
+	token := ctx.Param("token")
+	if token == "" {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+		return
+	}
+
+	if err := h.services.Users.CompleteVerify(ctx, token); err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.Redirect(http.StatusTemporaryRedirect, h.cfg.HTTP.FrontendHost+"confirm")
 }
 
 // @Summary User Refresh Tokens

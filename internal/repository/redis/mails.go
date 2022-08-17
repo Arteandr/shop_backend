@@ -2,7 +2,9 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"github.com/go-redis/redis/v9"
+	apperrors "shop_backend/pkg/errors"
 	"time"
 )
 
@@ -18,16 +20,26 @@ func NewMailsRepo(cache *redis.Client) *MailsRepo {
 	}
 }
 
-func (r *MailsRepo) SetVerify(ctx context.Context, verifyKey string, userId int) error {
-	err := r.cache.Set(ctx, verifyKey, userId, r.cacheTTL).Err()
+func (r *MailsRepo) SetVerify(ctx context.Context, token string, userId int) error {
+	err := r.cache.Set(ctx, token, userId, r.cacheTTL).Err()
 
 	return err
 }
 
-func (r *MailsRepo) ExistVerify(ctx context.Context, verifyKey string) (bool, error) {
-	if err := r.cache.Exists(ctx, verifyKey).Err(); err != nil {
-		return false, nil
-	} else {
-		return true, nil
+func (r *MailsRepo) GetVerify(ctx context.Context, token string) (string, error) {
+	result, err := r.cache.Get(ctx, token).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "", apperrors.ErrUserNotFound
+		}
+		return "", err
 	}
+
+	return result, nil
+}
+
+func (r *MailsRepo) CompleteVerify(ctx context.Context, token string) error {
+	err := r.cache.Del(ctx, token).Err()
+
+	return err
 }

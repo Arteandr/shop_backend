@@ -69,6 +69,18 @@ func (h *Handler) userIdentity(ctx *gin.Context) {
 		return
 	}
 
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	completed, err := h.services.Users.IsCompleted(ctx, idInt)
+	if !completed {
+		NewError(ctx, http.StatusForbidden, apperrors.ErrUserNotCompleted)
+		return
+	}
+
 	ctx.Set(userCtx, id)
 }
 

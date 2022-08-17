@@ -2028,6 +2028,44 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/{token}": {
+            "get": {
+                "description": "verify user by token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "User verify",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "verify token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "307": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -2231,6 +2269,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "admin": {
+                    "type": "boolean"
+                },
+                "completed": {
                     "type": "boolean"
                 },
                 "email": {

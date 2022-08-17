@@ -306,3 +306,24 @@ func (r *UsersRepo) CreateDefaultAddress(ctx context.Context, table string, user
 
 	return err
 }
+
+// $1 = userId
+func (r *UsersRepo) IsCompleted(ctx context.Context, userId int) (bool, error) {
+	db := r.GetInstance(ctx)
+	var completed bool
+	query := fmt.Sprintf("SELECT completed FROM %s WHERE id=$1 LIMIT 1;", usersTable)
+	if err := db.GetContext(ctx, &completed, query, userId); err != nil {
+		return false, err
+	}
+
+	return completed, nil
+}
+
+// $1 = userId
+func (r *UsersRepo) CompleteVerify(ctx context.Context, userId int) error {
+	db := r.GetInstance(ctx)
+	query := fmt.Sprintf("UPDATE %s SET completed=true WHERE id=$1;", usersTable)
+	_, err := db.ExecContext(ctx, query, userId)
+
+	return err
+}

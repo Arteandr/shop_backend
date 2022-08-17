@@ -15,6 +15,7 @@ var (
 
 	// Repo errors
 	ErrUserNotFound     = errors.New("user not found")
+	ErrUserNotCompleted = errors.New("user must verify email")
 	ErrAddressNotFound  = errors.New("address not found")
 	ErrDeliveryNotFound = errors.New("delivery not found")
 	ErrOldPassword      = errors.New("wrong old password")

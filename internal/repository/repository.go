@@ -84,6 +84,8 @@ type Users interface {
 	GetAll(ctx context.Context) ([]models.User, error)
 	UpdateField(ctx context.Context, field string, value interface{}, userId int) error
 	UpdatePhone(ctx context.Context, phoneCode, phoneNumber string, userId int) error
+	IsCompleted(ctx context.Context, userId int) (bool, error)
+	CompleteVerify(ctx context.Context, userId int) error
 	pg.Transactor
 }
 
@@ -106,8 +108,9 @@ type Orders interface {
 }
 
 type Mails interface {
-	SetVerify(ctx context.Context, verifyKey string, userId int) error
-	ExistVerify(ctx context.Context, verifyKey string) (bool, error)
+	SetVerify(ctx context.Context, token string, userId int) error
+	CompleteVerify(ctx context.Context, token string) error
+	GetVerify(ctx context.Context, token string) (string, error)
 }
 
 type Repositories struct {

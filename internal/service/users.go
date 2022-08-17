@@ -351,3 +351,22 @@ func (s *UsersService) UpdateAddress(ctx context.Context, userId int, different 
 		return nil
 	})
 }
+
+func (s *UsersService) IsCompleted(ctx context.Context, userId int) (bool, error) {
+	return s.repo.IsCompleted(ctx, userId)
+}
+
+func (s *UsersService) CompleteVerify(ctx context.Context, token string) error {
+	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		userId, err := s.mailsService.CompleteVerify(ctx, token)
+		if err != nil {
+			return err
+		}
+
+		if err := s.repo.CompleteVerify(ctx, userId); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}

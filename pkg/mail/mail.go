@@ -38,7 +38,7 @@ func (e *EmailSender) SendVerify(to, login, token string) error {
 	}
 
 	data := verifyData{
-		Host:  fmt.Sprintf("https://%s/api/v1/verify/", e.apiHost),
+		Host:  fmt.Sprintf("http://%s/api/v1/users/verify/", e.apiHost),
 		Token: token,
 		Login: login,
 	}

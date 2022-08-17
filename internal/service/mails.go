@@ -7,6 +7,7 @@ import (
 	"shop_backend/internal/repository"
 	apperrors "shop_backend/pkg/errors"
 	"shop_backend/pkg/mail"
+	"strconv"
 )
 
 type MailsService struct {
@@ -34,4 +35,22 @@ func (s *MailsService) CreateVerify(ctx context.Context, userId int, login, emai
 	}
 
 	return nil
+}
+
+func (s *MailsService) CompleteVerify(ctx context.Context, token string) (int, error) {
+	userIdStr, err := s.repo.GetVerify(ctx, token)
+	if err != nil {
+		return 0, err
+	}
+
+	userId, err := strconv.Atoi(userIdStr)
+	if err != nil {
+		return 0, err
+	}
+
+	if err := s.repo.CompleteVerify(ctx, token); err != nil {
+		return 0, err
+	}
+
+	return userId, nil
 }

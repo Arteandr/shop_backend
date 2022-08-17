@@ -66,6 +66,8 @@ type Users interface {
 	UpdateInfo(ctx context.Context, userId int, login, firstName, lastName, phoneCode, phoneNumber string) error
 	UpdateAddress(ctx context.Context, userId int, different bool, invoiceAddress models.Address, shippingAddress models.Address) error
 	DeleteMe(ctx context.Context, userId int) error
+	IsCompleted(ctx context.Context, userId int) (bool, error)
+	CompleteVerify(ctx context.Context, token string) error
 }
 
 type Delivery interface {
@@ -83,6 +85,7 @@ type Orders interface {
 
 type Mails interface {
 	CreateVerify(ctx context.Context, userId int, login, email string) error
+	CompleteVerify(ctx context.Context, token string) (int, error)
 }
 
 type Services struct {
