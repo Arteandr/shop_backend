@@ -20,15 +20,26 @@ type UsersService struct {
 
 	accessTokenTTL  time.Duration
 	refreshTokenTTL time.Duration
+
+	mailsService Mails
 }
 
-func NewUsersService(repo repository.Users, hasher hash.PasswordHasher, tokenManager auth.TokenManager, accessTokenTTL, refreshTokenTTL time.Duration) *UsersService {
+type UsersServiceDeps struct {
+	repo                            repository.Users
+	hasher                          hash.PasswordHasher
+	tokenManager                    auth.TokenManager
+	accessTokenTTL, refreshTokenTTL time.Duration
+	mailsService                    Mails
+}
+
+func NewUsersService(deps UsersServiceDeps) *UsersService {
 	return &UsersService{
-		repo:            repo,
-		hasher:          hasher,
-		tokenManager:    tokenManager,
-		accessTokenTTL:  accessTokenTTL,
-		refreshTokenTTL: refreshTokenTTL,
+		repo:            deps.repo,
+		hasher:          deps.hasher,
+		tokenManager:    deps.tokenManager,
+		accessTokenTTL:  deps.accessTokenTTL,
+		refreshTokenTTL: deps.refreshTokenTTL,
+		mailsService:    deps.mailsService,
 	}
 }
 
@@ -66,6 +77,10 @@ func (s *UsersService) SignUp(ctx context.Context, email, login, password string
 
 		// Hide password
 		newUser.Password = ""
+
+		if err := s.mailsService.CreateVerify(ctx, newUser.Id, newUser.Login, newUser.Email); err != nil {
+			return err
+		}
 
 		return nil
 	})
@@ -331,6 +346,25 @@ func (s *UsersService) UpdateAddress(ctx context.Context, userId int, different 
 			if err := s.repo.LinkAddress(ctx, "shipping", userId, address.Id); err != nil {
 				return err
 			}
+		}
+
+		return nil
+	})
+}
+
+func (s *UsersService) IsCompleted(ctx context.Context, userId int) (bool, error) {
+	return s.repo.IsCompleted(ctx, userId)
+}
+
+func (s *UsersService) CompleteVerify(ctx context.Context, token string) error {
+	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		userId, err := s.mailsService.CompleteVerify(ctx, token)
+		if err != nil {
+			return err
+		}
+
+		if err := s.repo.CompleteVerify(ctx, userId); err != nil {
+			return err
 		}
 
 		return nil

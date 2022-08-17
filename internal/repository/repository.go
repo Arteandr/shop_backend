@@ -2,29 +2,11 @@ package repository
 
 import (
 	"context"
-	"database/sql"
-	"shop_backend/internal/models"
-
+	r "github.com/go-redis/redis/v9"
 	"github.com/jmoiron/sqlx"
-)
-
-const (
-	usersTable            = "users"
-	categoriesTable       = "categories"
-	categoriesImagesTable = "categories_images"
-	itemsTable            = "items"
-	colorsTable           = "colors"
-	itemsColorsTable      = "items_colors"
-	tagsTable             = "tags"
-	imagesTable           = "images"
-	itemsImagesTable      = "items_images"
-	sessionsTable         = "sessions"
-	addressTable          = "address"
-	phonesTable           = "phone_numbers"
-	deliveryTable         = "delivery"
-	deliveryCompanyTable  = "delivery_company"
-	ordersTable           = "orders"
-	orderItemsTable       = "order_items"
+	"shop_backend/internal/models"
+	"shop_backend/internal/repository/pg"
+	"shop_backend/internal/repository/redis"
 )
 
 type Images interface {
@@ -34,7 +16,7 @@ type Images interface {
 	Exist(ctx context.Context, imageId int) (bool, error)
 	Delete(ctx context.Context, imageId int) error
 	DeleteFromItems(ctx context.Context, imageId int) error
-	Transactor
+	pg.Transactor
 }
 
 type Colors interface {
@@ -46,7 +28,7 @@ type Colors interface {
 	Delete(ctx context.Context, colorId int) error
 	DeleteFromItems(ctx context.Context, colorId int) error
 	AddToItems(ctx context.Context, colorId int) error
-	Transactor
+	pg.Transactor
 }
 
 type Categories interface {
@@ -59,7 +41,7 @@ type Categories interface {
 	GetById(ctx context.Context, categoryId int) (models.Category, error)
 	Update(ctx context.Context, category models.Category) error
 	UpdateImage(ctx context.Context, categoryId, imageId int) error
-	Transactor
+	pg.Transactor
 }
 
 type Items interface {
@@ -82,7 +64,7 @@ type Items interface {
 	DeleteImages(ctx context.Context, itemId int) error
 	DeleteColors(ctx context.Context, itemId int) error
 	Exist(ctx context.Context, itemId int) (bool, error)
-	Transactor
+	pg.Transactor
 }
 
 type Users interface {
@@ -102,7 +84,9 @@ type Users interface {
 	GetAll(ctx context.Context) ([]models.User, error)
 	UpdateField(ctx context.Context, field string, value interface{}, userId int) error
 	UpdatePhone(ctx context.Context, phoneCode, phoneNumber string, userId int) error
-	Transactor
+	IsCompleted(ctx context.Context, userId int) (bool, error)
+	CompleteVerify(ctx context.Context, userId int) error
+	pg.Transactor
 }
 
 type Delivery interface {
@@ -114,13 +98,19 @@ type Delivery interface {
 	Update(ctx context.Context, delivery models.Delivery) error
 	Delete(ctx context.Context, deliveryId int) error
 	Exist(ctx context.Context, deliveryId int) (bool, error)
-	Transactor
+	pg.Transactor
 }
 
 type Orders interface {
 	Create(ctx context.Context, userId int, deliveryId int) (int, error)
 	LinkItem(ctx context.Context, orderId, itemId, colorId, quantity int) error
-	Transactor
+	pg.Transactor
+}
+
+type Mails interface {
+	SetVerify(ctx context.Context, token string, userId int) error
+	CompleteVerify(ctx context.Context, token string) error
+	GetVerify(ctx context.Context, token string) (string, error)
 }
 
 type Repositories struct {
@@ -131,23 +121,18 @@ type Repositories struct {
 	Images     Images
 	Delivery   Delivery
 	Orders     Orders
+	Mails      Mails
 }
 
-func NewRepositories(db *sqlx.DB) *Repositories {
+func NewRepositories(db *sqlx.DB, cache *r.Client) *Repositories {
 	return &Repositories{
-		Users:      NewUsersRepo(db),
-		Items:      NewItemsRepo(db),
-		Categories: NewCategoriesRepo(db),
-		Colors:     NewColorsRepo(db),
-		Images:     NewImagesRepo(db),
-		Delivery:   NewDeliveryRepo(db),
-		Orders:     NewOrdersRepo(db),
+		Users:      pg.NewUsersRepo(db),
+		Items:      pg.NewItemsRepo(db),
+		Categories: pg.NewCategoriesRepo(db),
+		Colors:     pg.NewColorsRepo(db),
+		Images:     pg.NewImagesRepo(db),
+		Delivery:   pg.NewDeliveryRepo(db),
+		Orders:     pg.NewOrdersRepo(db),
+		Mails:      redis.NewMailsRepo(cache),
 	}
-}
-
-type SqlxDB interface {
-	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
-	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
-	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
-	QueryxContext(ctx context.Context, query string, args ...interface{}) (*sqlx.Rows, error)
 }

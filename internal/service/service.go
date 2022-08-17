@@ -7,6 +7,7 @@ import (
 	"shop_backend/internal/repository"
 	"shop_backend/pkg/auth"
 	"shop_backend/pkg/hash"
+	"shop_backend/pkg/mail"
 	"time"
 )
 
@@ -65,6 +66,8 @@ type Users interface {
 	UpdateInfo(ctx context.Context, userId int, login, firstName, lastName, phoneCode, phoneNumber string) error
 	UpdateAddress(ctx context.Context, userId int, different bool, invoiceAddress models.Address, shippingAddress models.Address) error
 	DeleteMe(ctx context.Context, userId int) error
+	IsCompleted(ctx context.Context, userId int) (bool, error)
+	CompleteVerify(ctx context.Context, token string) error
 }
 
 type Delivery interface {
@@ -80,6 +83,11 @@ type Orders interface {
 	Create(ctx context.Context, order models.Order) (int, error)
 }
 
+type Mails interface {
+	CreateVerify(ctx context.Context, userId int, login, email string) error
+	CompleteVerify(ctx context.Context, token string) (int, error)
+}
+
 type Services struct {
 	Users      Users
 	Items      Items
@@ -88,6 +96,7 @@ type Services struct {
 	Images     Images
 	Delivery   Delivery
 	Orders     Orders
+	Mails      Mails
 }
 
 type ServicesDeps struct {
@@ -96,13 +105,22 @@ type ServicesDeps struct {
 	TokenManager    auth.TokenManager
 	AccessTokenTTL  time.Duration
 	RefreshTokenTTL time.Duration
+	MailSender      mail.Sender
 }
 
 func NewServices(deps ServicesDeps) *Services {
 	images := NewImagesService(deps.Repos.Images)
 	categories := NewCategoriesService(deps.Repos.Categories, images)
 	colors := NewColorsService(deps.Repos.Colors)
-	users := NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL)
+	mails := NewMailsService(deps.Repos.Mails, deps.MailSender)
+	users := NewUsersService(UsersServiceDeps{
+		repo:            deps.Repos.Users,
+		hasher:          deps.Hasher,
+		tokenManager:    deps.TokenManager,
+		accessTokenTTL:  deps.AccessTokenTTL,
+		refreshTokenTTL: deps.RefreshTokenTTL,
+		mailsService:    mails,
+	})
 	delivery := NewDeliveryService(deps.Repos.Delivery)
 	items := NewItemsService(deps.Repos.Items, categories, colors, images)
 
@@ -114,5 +132,6 @@ func NewServices(deps ServicesDeps) *Services {
 		Orders:     NewOrdersService(deps.Repos.Orders, users, delivery, items, colors),
 		Delivery:   delivery,
 		Users:      users,
+		Mails:      mails,
 	}
 }

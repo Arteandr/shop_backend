@@ -134,6 +134,8 @@ definitions:
     properties:
       admin:
         type: boolean
+      completed:
+        type: boolean
       email:
         type: string
       firstName:
@@ -1353,6 +1355,31 @@ paths:
       summary: Create a new order
       tags:
       - orders-actions
+  /users/{token}:
+    get:
+      consumes:
+      - application/json
+      description: verify user by token
+      parameters:
+      - description: verify token
+        in: path
+        name: token
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "307":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: User verify
   /users/address:
     put:
       consumes:

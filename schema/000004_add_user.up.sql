@@ -6,7 +6,8 @@ CREATE TABLE users
     password   varchar(255)       not null,
     first_name varchar(20),
     last_name  varchar(20),
-    admin      boolean default false
+    admin      boolean default false,
+    completed  boolean default false
 );
 
 CREATE TABLE phone_numbers

@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-redis/redis/v9"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"gopkg.in/gomail.v2"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,6 +22,7 @@ import (
 	"shop_backend/pkg/auth"
 	"shop_backend/pkg/hash"
 	"shop_backend/pkg/logger"
+	"shop_backend/pkg/mail"
 	"syscall"
 	"time"
 )
@@ -31,6 +34,17 @@ func Run(configPath string) {
 		logger.Error(err)
 		return
 	}
+
+	// Redis
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Host,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DefaultDB,
+	})
+
+	// SMTP
+	dialer := gomail.NewDialer(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.User, cfg.SMTP.Password)
+	emailSender := mail.NewEmailSender(dialer, fmt.Sprintf("%s:%s", cfg.HTTP.Host, cfg.HTTP.Port))
 
 	// DB
 	connectionString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -69,13 +83,14 @@ func Run(configPath string) {
 	}
 
 	// Services and repositories
-	repos := repository.NewRepositories(db)
+	repos := repository.NewRepositories(db, rdb)
 	services := service.NewServices(service.ServicesDeps{
 		Repos:           repos,
 		Hasher:          hasher,
 		AccessTokenTTL:  cfg.Auth.AccessTokenTTL,
 		RefreshTokenTTL: cfg.Auth.RefreshTokenTTL,
 		TokenManager:    tokenManager,
+		MailSender:      emailSender,
 	})
 
 	handlers := delivery.NewHandler(services, cfg, tokenManager)
