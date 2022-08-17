@@ -62,22 +62,24 @@ func getSortOptions(ctx *gin.Context) (models.SortOptions, error) {
 	return options, nil
 }
 
+func (h *Handler) completedIdentify(ctx *gin.Context) {
+	id, err := getIdByContext(ctx, userCtx)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	completed, err := h.services.Users.IsCompleted(ctx, id)
+	if !completed {
+		NewError(ctx, http.StatusForbidden, apperrors.ErrUserNotCompleted)
+		return
+	}
+}
+
 func (h *Handler) userIdentity(ctx *gin.Context) {
 	id, err := h.parseAuthHeader(ctx)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
-		return
-	}
-
-	idInt, err := strconv.Atoi(id)
-	if err != nil {
-		NewError(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	completed, err := h.services.Users.IsCompleted(ctx, idInt)
-	if !completed {
-		NewError(ctx, http.StatusForbidden, apperrors.ErrUserNotCompleted)
 		return
 	}
 

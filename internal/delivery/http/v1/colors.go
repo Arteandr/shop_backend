@@ -15,15 +15,15 @@ func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 	{
 		admins := colors.Group("/", h.userIdentity, h.adminIdentify)
 		{
-			admins.POST("/all/:id", h.addColorToItems)
-			admins.DELETE("/all/:id", h.deleteColorFromItems)
-			admins.POST("/create", h.createColor)
-			admins.PUT("/:id", h.updateColor)
-			admins.DELETE("/", h.deleteColors)
+			admins.POST("/all/:id", h.completedIdentify, h.addColorToItems)
+			admins.DELETE("/all/:id", h.completedIdentify, h.deleteColorFromItems)
+			admins.POST("/create", h.completedIdentify, h.createColor)
+			admins.PUT("/:id", h.completedIdentify, h.updateColor)
+			admins.DELETE("/", h.completedIdentify, h.deleteColors)
 		}
 
-		colors.GET("/", h.getAllColors)
-		colors.GET("/:id", h.getColorById)
+		colors.GET("/", h.completedIdentify, h.getAllColors)
+		colors.GET("/:id", h.completedIdentify, h.getColorById)
 	}
 }
 

@@ -13,9 +13,9 @@ func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
 	{
 		admins := images.Group("/", h.userIdentity, h.adminIdentify)
 		{
-			admins.POST("/", h.uploadImage)
-			admins.GET("/", h.getAllImages)
-			admins.DELETE("/", h.deleteImages)
+			admins.POST("/", h.completedIdentify, h.uploadImage)
+			admins.GET("/", h.completedIdentify, h.getAllImages)
+			admins.DELETE("/", h.completedIdentify, h.deleteImages)
 		}
 
 	}

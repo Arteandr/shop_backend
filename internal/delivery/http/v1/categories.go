@@ -13,12 +13,12 @@ func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 	{
 		admins := categories.Group("/", h.userIdentity, h.adminIdentify)
 		{
-			admins.POST("/create", h.createCategory)
-			admins.DELETE("/:id", h.deleteCategory)
-			admins.PUT("/:id", h.updateCategory)
+			admins.POST("/create", h.completedIdentify, h.createCategory)
+			admins.DELETE("/:id", h.completedIdentify, h.deleteCategory)
+			admins.PUT("/:id", h.completedIdentify, h.updateCategory)
 		}
-		categories.GET("/", h.getAllCategories)
-		categories.GET("/:id", h.getCategoryById)
+		categories.GET("/", h.completedIdentify, h.getAllCategories)
+		categories.GET("/:id", h.completedIdentify, h.getCategoryById)
 	}
 }
 

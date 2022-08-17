@@ -12,7 +12,7 @@ import (
 func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
 	orders := api.Group("/orders", h.userIdentity)
 	{
-		orders.POST("/create", h.createOrder)
+		orders.POST("/create", h.completedIdentify, h.createOrder)
 	}
 }
 

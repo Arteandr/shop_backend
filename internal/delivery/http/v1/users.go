@@ -24,17 +24,17 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 		authenticated := users.Group("/", h.userIdentity)
 		{
 			authenticated.POST("/logout", h.userLogout)
-			authenticated.GET("/me", h.userGetMe)
-			authenticated.DELETE("/me", h.userDeleteMe)
+			authenticated.GET("/me", h.completedIdentify, h.userGetMe)
+			authenticated.DELETE("/me", h.completedIdentify, h.userDeleteMe)
 
-			authenticated.PUT("/email", h.userUpdateEmail)
-			authenticated.PUT("/password", h.userUpdatePassword)
-			authenticated.PUT("/info", h.userUpdateInfo)
-			authenticated.PUT("/address", h.userUpdateAddress)
+			authenticated.PUT("/email", h.completedIdentify, h.userUpdateEmail)
+			authenticated.PUT("/password", h.completedIdentify, h.userUpdatePassword)
+			authenticated.PUT("/info", h.completedIdentify, h.userUpdateInfo)
+			authenticated.PUT("/address", h.completedIdentify, h.userUpdateAddress)
 
 			admins := authenticated.Group("/")
 			{
-				admins.GET("/all", h.getAllUsers)
+				admins.GET("/all", h.completedIdentify, h.getAllUsers)
 			}
 		}
 	}

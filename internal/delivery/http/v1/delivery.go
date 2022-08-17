@@ -15,12 +15,12 @@ func (h *Handler) InitDeliveryRoutes(api *gin.RouterGroup) {
 	{
 		admins := delivery.Group("/", h.userIdentity, h.adminIdentify)
 		{
-			admins.POST("/create", h.createDelivery)
-			admins.GET("/:id", h.getDeliveryById)
-			admins.PUT("/:id", h.updateDelivery)
-			admins.DELETE("/:id", h.deleteDelivery)
+			admins.POST("/create", h.completedIdentify, h.createDelivery)
+			admins.GET("/:id", h.completedIdentify, h.getDeliveryById)
+			admins.PUT("/:id", h.completedIdentify, h.updateDelivery)
+			admins.DELETE("/:id", h.completedIdentify, h.deleteDelivery)
 		}
-		delivery.GET("/all", h.getAllDelivery)
+		delivery.GET("/all", h.completedIdentify, h.getAllDelivery)
 	}
 }
 

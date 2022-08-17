@@ -15,10 +15,10 @@ func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
 	{
 		admins := items.Group("/", h.userIdentity, h.adminIdentify)
 		{
-			admins.POST("/create", h.createItem)
-			admins.PUT("/:id", h.updateItems)
-			admins.DELETE("/", h.deleteItems)
-			admins.GET("/all", h.sort("created_at", ASC), h.getAllItems)
+			admins.POST("/create", h.completedIdentify, h.createItem)
+			admins.PUT("/:id", h.completedIdentify, h.updateItems)
+			admins.DELETE("/", h.completedIdentify, h.deleteItems)
+			admins.GET("/all", h.completedIdentify, h.sort("created_at", ASC), h.getAllItems)
 
 		}
 
