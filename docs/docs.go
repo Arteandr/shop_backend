@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/categories/": {
+        "/categories": {
             "get": {
                 "description": "get all categories",
                 "consumes": [
@@ -76,19 +76,25 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Category"
+                            "$ref": "#/definitions/v1.createCategoryInput"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/v1.CreateCategoryResult"
+                            "$ref": "#/definitions/v1.IdResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -243,6 +249,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -252,7 +264,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/colors/": {
+        "/colors": {
             "get": {
                 "description": "get all colors",
                 "consumes": [
@@ -273,6 +285,55 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.Color"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "delete color by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "colors-actions"
+                ],
+                "summary": "Delete colors",
+                "parameters": [
+                    {
+                        "description": "images id info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.deleteColorsInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
                     "500": {
@@ -422,7 +483,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.CreateColorResult"
+                            "$ref": "#/definitions/v1.IdResponse"
                         }
                     },
                     "400": {
@@ -520,7 +581,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.updateColorInput"
+                            "$ref": "#/definitions/v1.createColorInput"
                         }
                     }
                 ],
@@ -547,6 +608,197 @@ const docTemplate = `{
                         }
                     }
                 }
+            }
+        },
+        "/delivery/all": {
+            "get": {
+                "description": "get all delivery",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "delivery-actions"
+                ],
+                "summary": "Get all delivery",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Delivery"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/delivery/create": {
+            "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "create a new delivery",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "delivery-actions"
+                ],
+                "summary": "Create a new delivery",
+                "parameters": [
+                    {
+                        "description": "delivery info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.createDeliveryInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.IdResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/delivery/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "get delivery by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "delivery-actions"
+                ],
+                "summary": "Get delivery by id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "delivery id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Delivery"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "update delivery by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "delivery-actions"
+                ],
+                "summary": "Update delivery by id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "delivery id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
             },
             "delete": {
                 "security": [
@@ -557,7 +809,7 @@ const docTemplate = `{
                         "AdminAuth": []
                     }
                 ],
-                "description": "delete color by id",
+                "description": "delete delivery by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -565,13 +817,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "colors-actions"
+                    "delivery-actions"
                 ],
-                "summary": "Delete colors",
+                "summary": "Delete delivery by id",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "color id",
+                        "description": "delivery id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -596,7 +848,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/images/": {
+        "/images": {
             "get": {
                 "security": [
                     {
@@ -644,7 +896,7 @@ const docTemplate = `{
                         "AdminAuth": []
                     }
                 ],
-                "description": "upload image",
+                "description": "upload images",
                 "consumes": [
                     "application/json"
                 ],
@@ -654,11 +906,11 @@ const docTemplate = `{
                 "tags": [
                     "images-actions"
                 ],
-                "summary": "Upload image",
+                "summary": "Upload images",
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "photo to upload",
+                        "description": "photos to upload",
                         "name": "photo",
                         "in": "formData",
                         "required": true
@@ -666,10 +918,56 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/v1.UploadFileResponse"
+                            "$ref": "#/definitions/v1.ErrorResponse"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "delete images by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "images-actions"
+                ],
+                "summary": "Delete images",
+                "parameters": [
+                    {
+                        "description": "images id info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.deleteImagesInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
                     },
                     "400": {
                         "description": "Bad Request",
@@ -686,7 +984,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/images/{id}": {
+        "/items": {
             "delete": {
                 "security": [
                     {
@@ -696,7 +994,7 @@ const docTemplate = `{
                         "AdminAuth": []
                     }
                 ],
-                "description": "delete image by id",
+                "description": "delete items by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -704,21 +1002,102 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "images-actions"
+                    "items-actions"
                 ],
-                "summary": "Delete image",
+                "summary": "Delete items",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "image id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
+                        "description": "items id info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.deleteItemsInput"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/all": {
+            "get": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "get all items with sort options",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items-actions"
+                ],
+                "summary": "Get all items",
+                "parameters": [
+                    {
+                        "enum": [
+                            "id",
+                            "name",
+                            "description",
+                            "category_id",
+                            "price",
+                            "sku",
+                            "created_at"
+                        ],
+                        "type": "string",
+                        "description": "sort field",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "sort order",
+                        "name": "sort_order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Item"
+                            }
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -772,6 +1151,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -809,14 +1200,26 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/models.Item"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -902,6 +1305,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -940,6 +1349,18 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
@@ -987,6 +1408,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -1030,10 +1463,115 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Item"
+                            "$ref": "#/definitions/v1.ErrorResponse"
                         }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/create": {
+            "post": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
+                "description": "create a new order",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orders-actions"
+                ],
+                "summary": "Create a new order",
+                "parameters": [
+                    {
+                        "description": "input body",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.createOrderInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/address": {
+            "put": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
+                "description": "update current user address",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users-auth"
+                ],
+                "summary": "User update address",
+                "parameters": [
+                    {
+                        "description": "address info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.userUpdateAddressInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1048,8 +1586,10 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
+            }
+        },
+        "/users/all": {
+            "get": {
                 "security": [
                     {
                         "UsersAuth": []
@@ -1058,7 +1598,7 @@ const docTemplate = `{
                         "AdminAuth": []
                     }
                 ],
-                "description": "delete item by id",
+                "description": "get all users",
                 "consumes": [
                     "application/json"
                 ],
@@ -1066,26 +1606,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "items-actions"
+                    "users-auth"
                 ],
-                "summary": "Delete item",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "item id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "Get all users",
                 "responses": {
                     "200": {
-                        "description": ""
-                    },
-                    "400": {
-                        "description": "Bad Request",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.ErrorResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.User"
+                            }
                         }
                     },
                     "500": {
@@ -1158,7 +1689,7 @@ const docTemplate = `{
                         "UsersAuth": []
                     }
                 ],
-                "description": "update current user address",
+                "description": "update current user info",
                 "consumes": [
                     "application/json"
                 ],
@@ -1168,15 +1699,15 @@ const docTemplate = `{
                 "tags": [
                     "users-auth"
                 ],
-                "summary": "User update address",
+                "summary": "User update info",
                 "parameters": [
                     {
-                        "description": "address info",
+                        "description": "info body",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.userUpdateAddressInput"
+                            "$ref": "#/definitions/v1.userUpdateInfoInput"
                         }
                     }
                 ],
@@ -1483,6 +2014,82 @@ const docTemplate = `{
                             "$ref": "#/definitions/v1.ErrorResponse"
                         }
                     },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/verify": {
+            "post": {
+                "description": "Send new email verification",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users-auth"
+                ],
+                "summary": "Send new email verification",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{token}": {
+            "get": {
+                "description": "verify user by token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "User verify",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "verify token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "307": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1516,18 +2123,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "zip": {
-                    "type": "integer"
+                    "type": "string"
                 }
             }
         },
         "models.Category": {
             "type": "object",
             "required": [
+                "image",
                 "name"
             ],
             "properties": {
                 "id": {
                     "type": "integer"
+                },
+                "image": {
+                    "$ref": "#/definitions/models.Image"
                 },
                 "name": {
                     "type": "string"
@@ -1543,6 +2154,23 @@ const docTemplate = `{
             ],
             "properties": {
                 "hex": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.Delivery": {
+            "type": "object",
+            "properties": {
+                "companyName": {
                     "type": "string"
                 },
                 "id": {
@@ -1614,6 +2242,36 @@ const docTemplate = `{
                 }
             }
         },
+        "models.OrderItem": {
+            "type": "object",
+            "required": [
+                "colorId",
+                "itemId",
+                "quantity"
+            ],
+            "properties": {
+                "colorId": {
+                    "type": "integer"
+                },
+                "itemId": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Phone": {
+            "type": "object",
+            "properties": {
+                "phoneCode": {
+                    "type": "string"
+                },
+                "phoneNumber": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Tag": {
             "type": "object",
             "properties": {
@@ -1645,6 +2303,9 @@ const docTemplate = `{
                 "admin": {
                     "type": "boolean"
                 },
+                "completed": {
+                    "type": "boolean"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -1667,26 +2328,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.Phone"
                 },
                 "shippingAddress": {
                     "$ref": "#/definitions/models.Address"
-                }
-            }
-        },
-        "v1.CreateCategoryResult": {
-            "type": "object",
-            "properties": {
-                "categoryId": {
-                    "type": "integer"
-                }
-            }
-        },
-        "v1.CreateColorResult": {
-            "type": "object",
-            "properties": {
-                "colorId": {
-                    "type": "integer"
                 }
             }
         },
@@ -1698,11 +2343,64 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.UploadFileResponse": {
+        "v1.IdResponse": {
             "type": "object",
             "properties": {
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.createCategoryInput": {
+            "type": "object",
+            "required": [
+                "imageId",
+                "name"
+            ],
+            "properties": {
+                "imageId": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.createColorInput": {
+            "type": "object",
+            "required": [
+                "hex",
+                "name",
+                "price"
+            ],
+            "properties": {
+                "hex": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "v1.createDeliveryInput": {
+            "type": "object",
+            "required": [
+                "companyName",
+                "name",
+                "price"
+            ],
+            "properties": {
+                "companyName": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
                 }
             }
         },
@@ -1753,33 +2451,78 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.updateCategoryInput": {
+        "v1.createOrderInput": {
             "type": "object",
             "required": [
-                "name"
+                "deliveryId",
+                "items"
             ],
             "properties": {
-                "name": {
-                    "type": "string"
+                "deliveryId": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.OrderItem"
+                    }
                 }
             }
         },
-        "v1.updateColorInput": {
+        "v1.deleteColorsInput": {
             "type": "object",
             "required": [
-                "hex",
-                "name",
-                "price"
+                "colorsId"
             ],
             "properties": {
-                "hex": {
-                    "type": "string"
+                "colorsId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "v1.deleteImagesInput": {
+            "type": "object",
+            "required": [
+                "imagesId"
+            ],
+            "properties": {
+                "imagesId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "v1.deleteItemsInput": {
+            "type": "object",
+            "required": [
+                "itemsId"
+            ],
+            "properties": {
+                "itemsId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "v1.updateCategoryInput": {
+            "type": "object",
+            "required": [
+                "imageId",
+                "name"
+            ],
+            "properties": {
+                "imageId": {
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
-                },
-                "price": {
-                    "type": "number"
                 }
             }
         },

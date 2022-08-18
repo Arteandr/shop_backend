@@ -1,14 +1,16 @@
 package delivery
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 	_ "shop_backend/docs"
 	"shop_backend/internal/config"
 	v1 "shop_backend/internal/delivery/http/v1"
 	"shop_backend/internal/service"
 	"shop_backend/pkg/auth"
+
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
 type Handler struct {
@@ -25,16 +27,25 @@ func NewHandler(services *service.Services, cfg *config.Config, tokenManager aut
 	}
 }
 
-func (h *Handler) Init(cfg *config.Config) *gin.Engine {
+func (h *Handler) Init() *gin.Engine {
 	r := gin.Default()
 
 	r.Use(corsMiddleware)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	r.GET("/metrics", h.prometheusHandler())
 	h.InitApi(r)
 
 	return r
+}
+
+func (h *Handler) prometheusHandler() gin.HandlerFunc {
+	handler := promhttp.Handler()
+
+	return func(ctx *gin.Context) {
+		handler.ServeHTTP(ctx.Writer, ctx.Request)
+	}
 }
 
 func (h *Handler) InitApi(r *gin.Engine) {

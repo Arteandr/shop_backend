@@ -1,6 +1,19 @@
 version: "3.9"
 
 services:
+  frontend:
+    container_name: frontend
+    image: snak1o/shop
+    environment:
+      HOST_API: localhost:80
+  redis:
+    container_name: shop_redis
+    image: redis:7-alpine
+    env_file:
+      - ./backend.env
+    volumes:
+      - $HOME/redisdata:/data
+    command: redis-server --save 20 1 --loglevel warning
   postgres:
     image: postgres
     env_file:
@@ -29,5 +42,6 @@ services:
       - "80:80"
     depends_on:
       - backend
+      - frontend
     volumes:
       - ${HOME}/files:/var/files

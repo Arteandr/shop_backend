@@ -1,6 +1,8 @@
 package main
 
-import "shop_backend/internal/app"
+import (
+	"shop_backend/internal/app"
+)
 
 const configPath = "configs"
 

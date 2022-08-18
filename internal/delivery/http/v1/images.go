@@ -1,9 +1,11 @@
 package v1
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
+	apperrors "shop_backend/pkg/errors"
 )
 
 func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
@@ -11,40 +13,46 @@ func (h *Handler) InitImagesRoutes(api *gin.RouterGroup) {
 	{
 		admins := images.Group("/", h.userIdentity, h.adminIdentify)
 		{
-			admins.POST("/", h.uploadFile)
-			admins.GET("/", h.getAllImages)
-			admins.DELETE("/:id", h.deleteImage)
+			admins.POST("/", h.completedIdentify, h.uploadImage)
+			admins.GET("/", h.completedIdentify, h.getAllImages)
+			admins.DELETE("/", h.completedIdentify, h.deleteImages)
 		}
 
 	}
 }
 
-// @Summary Upload image
+// @Summary Upload images
 // @Security UsersAuth
 // @Security AdminAuth
 // @Tags images-actions
-// @Description upload image
+// @Description upload images
 // @Accept json
 // @Produce json
-// @Param photo formData file true "photo to upload"
-// @Success 200 {object} UploadFileResponse
+// @Param photo formData file true "photos to upload"
+// @Success 200 ""
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /images/ [post]
-func (h *Handler) uploadFile(ctx *gin.Context) {
-	photo, err := ctx.FormFile("photo")
+// @Router /images [post]
+func (h *Handler) uploadImage(ctx *gin.Context) {
+	form, err := ctx.MultipartForm()
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidFormBody)
 		return
 	}
 
-	id, err := h.services.Images.Upload(photo)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+	files := form.File["photo"]
+	if len(files) < 1 {
+		err = errors.New("wrong photo's length")
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, UploadFileResponse{Id: id})
+	if err := h.services.Images.Upload(ctx.Request.Context(), files); err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }
 
 // @Summary Get all images
@@ -56,11 +64,11 @@ func (h *Handler) uploadFile(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {array} models.Image
 // @Failure 500 {object} ErrorResponse
-// @Router /images/ [get]
+// @Router /images [get]
 func (h *Handler) getAllImages(ctx *gin.Context) {
-	images, err := h.services.Images.GetAll()
+	images, err := h.services.Images.GetAll(ctx.Request.Context())
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -71,28 +79,44 @@ func (h *Handler) getAllImages(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, images)
 }
 
-// @Summary Delete image
+type deleteImagesInput struct {
+	ImagesId []int `json:"imagesId" binding:"required"`
+}
+
+func (i *deleteImagesInput) isValid() error {
+	if len(i.ImagesId) < 1 {
+		return fmt.Errorf("wrong images id length %d", len(i.ImagesId))
+	}
+
+	return nil
+}
+
+// @Summary Delete images
 // @Security UsersAuth
 // @Security AdminAuth
 // @Tags images-actions
-// @Description delete image by id
+// @Description delete images by id
 // @Accept json
 // @Produce json
-// @Param id path int true "image id"
+// @Param input body deleteImagesInput true "images id info"
 // @Success 200 ""
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /images/{id} [delete]
-func (h *Handler) deleteImage(ctx *gin.Context) {
-	strImageId := ctx.Param("id")
-	imageId, err := strconv.Atoi(strImageId)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+// @Router /images [delete]
+func (h *Handler) deleteImages(ctx *gin.Context) {
+	var body deleteImagesInput
+	if err := ctx.BindJSON(&body); err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
-	if err := h.services.Images.Delete(imageId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+	if err := body.isValid(); err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.services.Images.Delete(ctx.Request.Context(), body.ImagesId); err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 

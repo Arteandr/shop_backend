@@ -2,9 +2,12 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	apperrors "shop_backend/pkg/errors"
 	"strconv"
+	"strings"
 )
 
 func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
@@ -12,23 +15,38 @@ func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 	{
 		admins := colors.Group("/", h.userIdentity, h.adminIdentify)
 		{
-			admins.POST("/all/:id", h.addColorToItems)
-			admins.DELETE("/all/:id", h.deleteColorFromItems)
-			admins.POST("/create", h.createColor)
-			admins.PUT("/:id", h.updateColor)
-			admins.DELETE("/:id", h.deleteColor)
+			admins.POST("/all/:id", h.completedIdentify, h.addColorToItems)
+			admins.DELETE("/all/:id", h.completedIdentify, h.deleteColorFromItems)
+			admins.POST("/create", h.completedIdentify, h.createColor)
+			admins.PUT("/:id", h.completedIdentify, h.updateColor)
+			admins.DELETE("/", h.completedIdentify, h.deleteColors)
 		}
 
-		colors.GET("/", h.getAllColors)
-		colors.GET("/:id", h.getColorById)
+		colors.GET("/", h.completedIdentify, h.getAllColors)
+		colors.GET("/:id", h.completedIdentify, h.getColorById)
 	}
 }
 
-type createColor struct {
-	Id    int      `json:"id,omitempty"`
+type createColorInput struct {
 	Name  string   `json:"name" binding:"required"`
 	Hex   string   `json:"hex" binding:"required"`
 	Price *float64 `json:"price" binding:"required"`
+}
+
+func (i *createColorInput) isValid() error {
+	if len(i.Name) < 1 || len(i.Name) > 30 {
+		return errors.New("wrong name length")
+	}
+
+	if len(i.Hex) < 1 || len(i.Hex) > 7 {
+		return errors.New("wrong hex length")
+	}
+	if !strings.HasPrefix(i.Hex, "#") {
+		return errors.New("hex must start with #")
+	}
+	i.Hex = strings.ToUpper(i.Hex)
+
+	return nil
 }
 
 // @Summary Create a new color
@@ -39,30 +57,29 @@ type createColor struct {
 // @Accept json
 // @Produce json
 // @Param input body models.Color true "input body"
-// @Success 200 {object} CreateColorResult
+// @Success 200 {object} IdResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /colors/create [post]
 func (h *Handler) createColor(ctx *gin.Context) {
-	var color createColor
-	if err := ctx.BindJSON(&color); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+	var body createColorInput
+	if err := ctx.BindJSON(&body); err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
-	colorId, err := h.services.Colors.Create(color.Name, color.Hex, *color.Price)
+	if err := body.isValid(); err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	colorId, err := h.services.Colors.Create(ctx.Request.Context(), body.Name, body.Hex, *body.Price)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, CreateColorResult{ColorId: colorId})
-}
-
-type updateColorInput struct {
-	Name  string   `json:"name" binding:"required" db:"name"`
-	Hex   string   `json:"hex" binding:"required" db:"hex"`
-	Price *float64 `json:"price" binding:"required" db:"price"`
+	ctx.JSON(http.StatusOK, IdResponse{Id: colorId})
 }
 
 // @Summary Update color
@@ -73,7 +90,7 @@ type updateColorInput struct {
 // @Accept json
 // @Produce json
 // @Param id path int true "color id"
-// @Param input body updateColorInput true "input body"
+// @Param input body createColorInput true "input body"
 // @Success 200 ""
 // @Failure 400,404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
@@ -82,30 +99,43 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 	strColorId := ctx.Param("id")
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
-	var color updateColorInput
-	if err := ctx.BindJSON(&color); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: "wrong input body"})
+	var body createColorInput
+	if err := ctx.BindJSON(&body); err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
-	if exist, err := h.services.Colors.Exist(colorId); err != nil || !exist {
-		if !exist {
-			err = errors.New("wrong color id")
+	if err := body.isValid(); err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.services.Colors.Update(ctx.Request.Context(), colorId, body.Name, body.Hex, *body.Price); err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
 		}
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	if err := h.services.Colors.Update(colorId, color.Name, color.Hex, *color.Price); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+type deleteColorsInput struct {
+	ColorsId []int `json:"colorsId" binding:"required"`
+}
+
+func (i *deleteColorsInput) isValid() error {
+	if len(i.ColorsId) < 1 {
+		return fmt.Errorf("wrong images id length %d", len(i.ColorsId))
+	}
+
+	return nil
 }
 
 // @Summary Delete colors
@@ -115,21 +145,25 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 // @Description delete color by id
 // @Accept json
 // @Produce json
-// @Param id path int true "color id"
+// @Param input body deleteColorsInput true "images id info"
 // @Success 200 ""
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /colors/{id} [delete]
-func (h *Handler) deleteColor(ctx *gin.Context) {
-	strColorId := ctx.Param("id")
-	colorId, err := strconv.Atoi(strColorId)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+// @Router /colors [delete]
+func (h *Handler) deleteColors(ctx *gin.Context) {
+	var body deleteColorsInput
+	if err := ctx.BindJSON(&body); err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
-	if err := h.services.Colors.Delete(colorId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+	if err := body.isValid(); err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.services.Colors.Delete(ctx.Request.Context(), body.ColorsId); err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -152,12 +186,12 @@ func (h *Handler) deleteColorFromItems(ctx *gin.Context) {
 	strColorId := ctx.Param("id")
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
-	if err := h.services.Colors.DeleteFromItems(colorId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+	if err := h.services.Colors.DeleteFromItems(ctx.Request.Context(), colorId); err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -180,20 +214,16 @@ func (h *Handler) addColorToItems(ctx *gin.Context) {
 	strColorId := ctx.Param("id")
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
-	if exist, err := h.services.Colors.Exist(colorId); err != nil || !exist {
-		if !exist {
-			err = errors.New("wrong color id")
+	if err := h.services.Colors.AddToItems(ctx.Request.Context(), colorId); err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
 		}
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	if err := h.services.Colors.AddToItems(colorId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -214,21 +244,17 @@ func (h *Handler) getColorById(ctx *gin.Context) {
 	strColorId := ctx.Param("id")
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
-	if exist, err := h.services.Colors.Exist(colorId); err != nil || !exist {
-		if !exist {
-			err = errors.New("wrong color id")
-		}
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	color, err := h.services.Colors.GetById(colorId)
+	color, err := h.services.Colors.GetById(ctx.Request.Context(), colorId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -242,11 +268,11 @@ func (h *Handler) getColorById(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {array} models.Color
 // @Failure 500 {object} ErrorResponse
-// @Router /colors/ [get]
+// @Router /colors [get]
 func (h *Handler) getAllColors(ctx *gin.Context) {
-	colors, err := h.services.Colors.GetAll()
+	colors, err := h.services.Colors.GetAll(ctx.Request.Context())
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 

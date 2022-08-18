@@ -1,4 +1,5 @@
 http:
+  frontendHost: http://localhost:3000/
   host: localhost
   port: 8000
   maxHeaderBytes: 1
@@ -9,6 +10,9 @@ pgsql:
   dbname: shop
   sslmode: disable
   port: 5432
+
+redis:
+  defaultDB: 0
 
 auth:
   accessTokenTTL: 1h

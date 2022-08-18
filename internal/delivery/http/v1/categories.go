@@ -2,10 +2,9 @@ package v1
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"shop_backend/internal/models"
+	apperrors "shop_backend/pkg/errors"
 	"strconv"
 )
 
@@ -14,17 +13,29 @@ func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 	{
 		admins := categories.Group("/", h.userIdentity, h.adminIdentify)
 		{
-			admins.POST("/create", h.createCategory)
-			admins.DELETE("/:id", h.deleteCategory)
-			admins.PUT("/:id", h.updateCategory)
+			admins.POST("/create", h.completedIdentify, h.createCategory)
+			admins.DELETE("/:id", h.completedIdentify, h.deleteCategory)
+			admins.PUT("/:id", h.completedIdentify, h.updateCategory)
 		}
-		categories.GET("/", h.getAllCategories)
-		categories.GET("/:id", h.getCategoryById)
+		categories.GET("/", h.completedIdentify, h.getAllCategories)
+		categories.GET("/:id", h.completedIdentify, h.getCategoryById)
 	}
 }
 
-type CreateCategoryResult struct {
-	CategoryId int `json:"categoryId"`
+type createCategoryInput struct {
+	Name    string `json:"name" binding:"required"`
+	ImageId int    `json:"imageId" binding:"required"`
+}
+
+func (i *createCategoryInput) isValid() error {
+	if len(i.Name) < 1 || len(i.Name) > 30 {
+		return errors.New("wrong category name")
+	}
+	if i.ImageId < 1 {
+		return errors.New("wrong image id")
+	}
+
+	return nil
 }
 
 // @Summary Create a new category
@@ -34,25 +45,34 @@ type CreateCategoryResult struct {
 // @Description create a new category
 // @Accept json
 // @Produce json
-// @Param input body models.Category true "input body"
-// @Success 200 {object} CreateCategoryResult
-// @Failure 400 {object} ErrorResponse
+// @Param input body createCategoryInput true "input body"
+// @Success 201 {object} IdResponse
+// @Failure 400,404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /categories/create [post]
 func (h *Handler) createCategory(ctx *gin.Context) {
-	var category models.Category
-	if err := ctx.BindJSON(&category); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+	var body createCategoryInput
+	if err := ctx.BindJSON(&body); err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
-	categoryId, err := h.services.Categories.Create(category.Name)
+	if err := body.isValid(); err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	categoryId, err := h.services.Categories.Create(ctx.Request.Context(), body.Name, body.ImageId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, CreateCategoryResult{CategoryId: categoryId})
+	ctx.JSON(http.StatusCreated, IdResponse{Id: categoryId})
 }
 
 // @Summary Delete category
@@ -64,19 +84,23 @@ func (h *Handler) createCategory(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "category id"
 // @Success 200 ""
-// @Failure 400 {object} ErrorResponse
+// @Failure 400,409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /categories/{id} [delete]
 func (h *Handler) deleteCategory(ctx *gin.Context) {
 	strCategoryId := ctx.Param("id")
 	categoryId, err := strconv.Atoi(strCategoryId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
-	if err := h.services.Categories.Delete(categoryId); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+	if err := h.services.Categories.Delete(ctx.Request.Context(), categoryId); err != nil {
+		if errors.Is(err, apperrors.ErrViolatesKey) {
+			NewError(ctx, http.StatusConflict, err)
+			return
+		}
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -84,12 +108,16 @@ func (h *Handler) deleteCategory(ctx *gin.Context) {
 }
 
 type updateCategoryInput struct {
-	Name string `json:"name" binding:"required"`
+	Name    string `json:"name" binding:"required"`
+	ImageId int    `json:"imageId" binding:"required"`
 }
 
-func (u *updateCategoryInput) isValid() error {
-	if len(u.Name) < 1 || len(u.Name) > 15 {
+func (i *updateCategoryInput) isValid() error {
+	if len(i.Name) < 1 || len(i.Name) > 15 {
 		return errors.New("wrong name length")
+	}
+	if i.ImageId < 1 {
+		return errors.New("wrong image id")
 	}
 
 	return nil
@@ -109,35 +137,30 @@ func (u *updateCategoryInput) isValid() error {
 // @Failure 500 {object} ErrorResponse
 // @Router /categories/{id} [put]
 func (h *Handler) updateCategory(ctx *gin.Context) {
+	strCategoryId := ctx.Param("id")
+	categoryId, err := strconv.Atoi(strCategoryId)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+		return
+	}
+
 	var body updateCategoryInput
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
 		return
 	}
 
 	if err := body.isValid(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	strCategoryId := ctx.Param("id")
-	categoryId, err := strconv.Atoi(strCategoryId)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	if exist, err := h.services.Categories.Exist(categoryId); err != nil || !exist {
-		if !exist {
-			ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: fmt.Sprintf("wrong category id %d", categoryId)})
+	if err := h.services.Categories.Update(ctx.Request.Context(), categoryId, body.Name, body.ImageId); err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
 			return
 		}
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	if err := h.services.Categories.Update(categoryId, body.Name); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -157,21 +180,17 @@ func (h *Handler) getCategoryById(ctx *gin.Context) {
 	strCategoryId := ctx.Param("id")
 	categoryId, err := strconv.Atoi(strCategoryId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
 		return
 	}
 
-	if exist, err := h.services.Categories.Exist(categoryId); !exist {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Error: fmt.Sprintf("wrong category %d id", categoryId)})
-		return
-	} else if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	category, err := h.services.Categories.GetById(categoryId)
+	category, err := h.services.Categories.GetById(ctx.Request.Context(), categoryId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -185,11 +204,11 @@ func (h *Handler) getCategoryById(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {array} models.Category
 // @Failure 500 {object} ErrorResponse
-// @Router /categories/ [get]
+// @Router /categories [get]
 func (h *Handler) getAllCategories(ctx *gin.Context) {
-	categories, err := h.services.Categories.GetAll()
+	categories, err := h.services.Categories.GetAll(ctx.Request.Context())
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 

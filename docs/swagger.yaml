@@ -11,7 +11,7 @@ definitions:
       street:
         type: string
       zip:
-        type: integer
+        type: string
     required:
     - city
     - country
@@ -22,9 +22,12 @@ definitions:
     properties:
       id:
         type: integer
+      image:
+        $ref: '#/definitions/models.Image'
       name:
         type: string
     required:
+    - image
     - name
     type: object
   models.Color:
@@ -41,6 +44,17 @@ definitions:
     - hex
     - name
     - price
+    type: object
+  models.Delivery:
+    properties:
+      companyName:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
     type: object
   models.Image:
     properties:
@@ -80,6 +94,26 @@ definitions:
           $ref: '#/definitions/models.Tag'
         type: array
     type: object
+  models.OrderItem:
+    properties:
+      colorId:
+        type: integer
+      itemId:
+        type: integer
+      quantity:
+        type: integer
+    required:
+    - colorId
+    - itemId
+    - quantity
+    type: object
+  models.Phone:
+    properties:
+      phoneCode:
+        type: string
+      phoneNumber:
+        type: string
+    type: object
   models.Tag:
     properties:
       id:
@@ -100,6 +134,8 @@ definitions:
     properties:
       admin:
         type: boolean
+      completed:
+        type: boolean
       email:
         type: string
       firstName:
@@ -115,29 +151,55 @@ definitions:
       password:
         type: string
       phone:
-        type: string
+        $ref: '#/definitions/models.Phone'
       shippingAddress:
         $ref: '#/definitions/models.Address'
-    type: object
-  v1.CreateCategoryResult:
-    properties:
-      categoryId:
-        type: integer
-    type: object
-  v1.CreateColorResult:
-    properties:
-      colorId:
-        type: integer
     type: object
   v1.ErrorResponse:
     properties:
       error:
         type: string
     type: object
-  v1.UploadFileResponse:
+  v1.IdResponse:
     properties:
       id:
         type: integer
+    type: object
+  v1.createCategoryInput:
+    properties:
+      imageId:
+        type: integer
+      name:
+        type: string
+    required:
+    - imageId
+    - name
+    type: object
+  v1.createColorInput:
+    properties:
+      hex:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    required:
+    - hex
+    - name
+    - price
+    type: object
+  v1.createDeliveryInput:
+    properties:
+      companyName:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    required:
+    - companyName
+    - name
+    - price
     type: object
   v1.createItemInput:
     properties:
@@ -172,25 +234,54 @@ definitions:
     - price
     - sku
     type: object
+  v1.createOrderInput:
+    properties:
+      deliveryId:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.OrderItem'
+        type: array
+    required:
+    - deliveryId
+    - items
+    type: object
+  v1.deleteColorsInput:
+    properties:
+      colorsId:
+        items:
+          type: integer
+        type: array
+    required:
+    - colorsId
+    type: object
+  v1.deleteImagesInput:
+    properties:
+      imagesId:
+        items:
+          type: integer
+        type: array
+    required:
+    - imagesId
+    type: object
+  v1.deleteItemsInput:
+    properties:
+      itemsId:
+        items:
+          type: integer
+        type: array
+    required:
+    - itemsId
+    type: object
   v1.updateCategoryInput:
     properties:
+      imageId:
+        type: integer
       name:
         type: string
     required:
+    - imageId
     - name
-    type: object
-  v1.updateColorInput:
-    properties:
-      hex:
-        type: string
-      name:
-        type: string
-      price:
-        type: number
-    required:
-    - hex
-    - name
-    - price
     type: object
   v1.updateItemInput:
     properties:
@@ -301,7 +392,7 @@ info:
   title: FinlandShop API
   version: "0.5"
 paths:
-  /categories/:
+  /categories:
     get:
       consumes:
       - application/json
@@ -340,6 +431,10 @@ paths:
           description: ""
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
         "500":
@@ -428,16 +523,20 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.Category'
+          $ref: '#/definitions/v1.createCategoryInput'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/v1.CreateCategoryResult'
+            $ref: '#/definitions/v1.IdResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
         "500":
@@ -450,7 +549,37 @@ paths:
       summary: Create a new category
       tags:
       - categories-actions
-  /colors/:
+  /colors:
+    delete:
+      consumes:
+      - application/json
+      description: delete color by id
+      parameters:
+      - description: images id info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.deleteColorsInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Delete colors
+      tags:
+      - colors-actions
     get:
       consumes:
       - application/json
@@ -472,35 +601,6 @@ paths:
       tags:
       - colors-actions
   /colors/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: delete color by id
-      parameters:
-      - description: color id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ""
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-      security:
-      - UsersAuth: []
-      - AdminAuth: []
-      summary: Delete colors
-      tags:
-      - colors-actions
     get:
       consumes:
       - application/json
@@ -546,7 +646,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/v1.updateColorInput'
+          $ref: '#/definitions/v1.createColorInput'
       produces:
       - application/json
       responses:
@@ -651,7 +751,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.CreateColorResult'
+            $ref: '#/definitions/v1.IdResponse'
         "400":
           description: Bad Request
           schema:
@@ -666,7 +766,185 @@ paths:
       summary: Create a new color
       tags:
       - colors-actions
-  /images/:
+  /delivery/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete delivery by id
+      parameters:
+      - description: delivery id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Delete delivery by id
+      tags:
+      - delivery-actions
+    get:
+      consumes:
+      - application/json
+      description: get delivery by id
+      parameters:
+      - description: delivery id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Delivery'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Get delivery by id
+      tags:
+      - delivery-actions
+    put:
+      consumes:
+      - application/json
+      description: update delivery by id
+      parameters:
+      - description: delivery id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Update delivery by id
+      tags:
+      - delivery-actions
+  /delivery/all:
+    get:
+      consumes:
+      - application/json
+      description: get all delivery
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Delivery'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Get all delivery
+      tags:
+      - delivery-actions
+  /delivery/create:
+    post:
+      consumes:
+      - application/json
+      description: create a new delivery
+      parameters:
+      - description: delivery info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.createDeliveryInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.IdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Create a new delivery
+      tags:
+      - delivery-actions
+  /images:
+    delete:
+      consumes:
+      - application/json
+      description: delete images by id
+      parameters:
+      - description: images id info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.deleteImagesInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Delete images
+      tags:
+      - images-actions
     get:
       consumes:
       - application/json
@@ -693,9 +971,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: upload image
+      description: upload images
       parameters:
-      - description: photo to upload
+      - description: photos to upload
         in: formData
         name: photo
         required: true
@@ -704,38 +982,6 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.UploadFileResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.ErrorResponse'
-      security:
-      - UsersAuth: []
-      - AdminAuth: []
-      summary: Upload image
-      tags:
-      - images-actions
-  /images/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: delete image by id
-      parameters:
-      - description: image id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
           description: ""
         "400":
           description: Bad Request
@@ -748,20 +994,21 @@ paths:
       security:
       - UsersAuth: []
       - AdminAuth: []
-      summary: Delete image
+      summary: Upload images
       tags:
       - images-actions
-  /items/{id}:
+  /items:
     delete:
       consumes:
       - application/json
-      description: delete item by id
+      description: delete items by id
       parameters:
-      - description: item id
-        in: path
-        name: id
+      - description: items id info
+        in: body
+        name: input
         required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/v1.deleteItemsInput'
       produces:
       - application/json
       responses:
@@ -771,6 +1018,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -778,9 +1029,10 @@ paths:
       security:
       - UsersAuth: []
       - AdminAuth: []
-      summary: Delete item
+      summary: Delete items
       tags:
       - items-actions
+  /items/{id}:
     get:
       consumes:
       - application/json
@@ -806,6 +1058,14 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
       summary: Get item by ID
       tags:
       - items-actions
@@ -829,9 +1089,59 @@ paths:
       - application/json
       responses:
         "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Update item
+      tags:
+      - items-actions
+  /items/all:
+    get:
+      consumes:
+      - application/json
+      description: get all items with sort options
+      parameters:
+      - description: sort field
+        enum:
+        - id
+        - name
+        - description
+        - category_id
+        - price
+        - sku
+        - created_at
+        in: query
+        name: sort_by
+        type: string
+      - description: sort order
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sort_order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Item'
+            items:
+              $ref: '#/definitions/models.Item'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -843,7 +1153,7 @@ paths:
       security:
       - UsersAuth: []
       - AdminAuth: []
-      summary: Update item
+      summary: Get all items
       tags:
       - items-actions
   /items/category/{id}:
@@ -870,6 +1180,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
       summary: Get items with category
       tags:
       - items-actions
@@ -888,12 +1206,20 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/models.Item'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
         "500":
@@ -953,6 +1279,10 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
       summary: Get item by SKU
       tags:
       - items-actions
@@ -980,9 +1310,130 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
       summary: Get items with tag
       tags:
       - items-actions
+  /orders/create:
+    post:
+      consumes:
+      - application/json
+      description: create a new order
+      parameters:
+      - description: input body
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.createOrderInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      summary: Create a new order
+      tags:
+      - orders-actions
+  /users/{token}:
+    get:
+      consumes:
+      - application/json
+      description: verify user by token
+      parameters:
+      - description: verify token
+        in: path
+        name: token
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "307":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: User verify
+  /users/address:
+    put:
+      consumes:
+      - application/json
+      description: update current user address
+      parameters:
+      - description: address info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.userUpdateAddressInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      summary: User update address
+      tags:
+      - users-auth
+  /users/all:
+    get:
+      consumes:
+      - application/json
+      description: get all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Get all users
+      tags:
+      - users-auth
   /users/email:
     put:
       consumes:
@@ -1021,14 +1472,14 @@ paths:
     put:
       consumes:
       - application/json
-      description: update current user address
+      description: update current user info
       parameters:
-      - description: address info
+      - description: info body
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/v1.userUpdateAddressInput'
+          $ref: '#/definitions/v1.userUpdateInfoInput'
       produces:
       - application/json
       responses:
@@ -1044,7 +1495,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
-      summary: User update address
+      summary: User update info
       tags:
       - users-auth
   /users/logout:
@@ -1227,11 +1678,36 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.ErrorResponse'
       summary: User sign-up
+      tags:
+      - users-auth
+  /users/verify:
+    post:
+      consumes:
+      - application/json
+      description: Send new email verification
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Send new email verification
       tags:
       - users-auth
 securityDefinitions:

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"io"
 	"mime/multipart"
@@ -8,6 +9,7 @@ import (
 	"path/filepath"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
+	apperrors "shop_backend/pkg/errors"
 	fn "shop_backend/pkg/filename"
 )
 
@@ -19,28 +21,38 @@ func NewImagesService(repo repository.Images) *ImagesService {
 	return &ImagesService{repo: repo}
 }
 
-func (s *ImagesService) Upload(image *multipart.FileHeader) (int, error) {
-	ext := filepath.Ext(image.Filename)
-	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
-		return 0, errors.New("wrong file extension")
-	}
+func (s *ImagesService) Upload(ctx context.Context, images []*multipart.FileHeader) error {
+	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		for _, image := range images {
+			ext := filepath.Ext(image.Filename)
+			if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
+				return apperrors.ErrFileExtension
+			}
 
-	var filename string
-LOOP:
-	for {
-		filename = fn.Generate() + ext
-		if _, err := os.Stat("./files/" + filename); errors.Is(err, os.ErrNotExist) {
-			break LOOP
-		} else {
-			continue LOOP
+			var filename string
+		LOOP:
+			for {
+				filename = fn.Generate() + ext
+				if _, err := os.Stat("./files/" + filename); errors.Is(err, os.ErrNotExist) {
+					break LOOP
+				} else {
+					continue LOOP
+				}
+			}
+
+			if err := s.saveFile(image, "./files/"+filename); err != nil {
+				return err
+			}
+
+			if err := s.repo.Upload(ctx, filename); err != nil {
+				s.deleteFile(filename)
+				return err
+			}
+
 		}
-	}
+		return nil
+	})
 
-	if err := s.saveFile(image, "./files/"+filename); err != nil {
-		return 0, err
-	}
-
-	return s.repo.Upload(filename)
 }
 
 func (s *ImagesService) saveFile(file *multipart.FileHeader, dst string) error {
@@ -60,27 +72,35 @@ func (s *ImagesService) saveFile(file *multipart.FileHeader, dst string) error {
 	return err
 }
 
-func (s *ImagesService) Delete(imageId int) error {
-	image, err := s.repo.GetById(imageId)
-	if err != nil {
-		return err
-	}
-
-	if err := os.Remove("./files/" + image.Filename); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return err
-	}
-
-	if err := s.repo.Delete(imageId); err != nil {
-		return err
-	}
-
-	return nil
+func (s *ImagesService) deleteFile(fileName string) error {
+	return os.Remove("./files/" + fileName)
 }
 
-func (s *ImagesService) GetAll() ([]models.Image, error) {
-	return s.repo.GetAll()
+func (s *ImagesService) Delete(ctx context.Context, imagesId []int) error {
+	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		for _, imageId := range imagesId {
+			image, err := s.repo.GetById(ctx, imageId)
+			if err != nil {
+				return err
+			}
+
+			if err := s.deleteFile(image.Filename); err != nil && !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
+
+			if err := s.repo.Delete(ctx, image.Id); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
-func (s *ImagesService) Exist(imageId int) (bool, error) {
-	return s.repo.Exist(imageId)
+func (s *ImagesService) GetAll(ctx context.Context) ([]models.Image, error) {
+	return s.repo.GetAll(ctx)
+}
+
+func (s *ImagesService) Exist(ctx context.Context, imageId int) (bool, error) {
+	return s.repo.Exist(ctx, imageId)
 }

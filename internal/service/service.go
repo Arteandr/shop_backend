@@ -7,49 +7,51 @@ import (
 	"shop_backend/internal/repository"
 	"shop_backend/pkg/auth"
 	"shop_backend/pkg/hash"
+	"shop_backend/pkg/mail"
 	"time"
 )
 
 type Images interface {
-	Upload(image *multipart.FileHeader) (int, error)
-	GetAll() ([]models.Image, error)
-	Exist(imageId int) (bool, error)
-	Delete(imageId int) error
+	Upload(ctx context.Context, images []*multipart.FileHeader) error
+	GetAll(ctx context.Context) ([]models.Image, error)
+	Exist(ctx context.Context, imageId int) (bool, error)
+	Delete(ctx context.Context, imagesId []int) error
 }
 
 type Colors interface {
-	Exist(colorId int) (bool, error)
-	GetById(colorId int) (models.Color, error)
-	GetAll() ([]models.Color, error)
-	Create(name, hex string, price float64) (int, error)
-	Update(id int, name, hex string, price float64) error
-	Delete(colorId int) error
-	DeleteFromItems(colorId int) error
-	AddToItems(colorId int) error
+	GetById(ctx context.Context, colorId int) (models.Color, error)
+	GetAll(ctx context.Context) ([]models.Color, error)
+	Create(ctx context.Context, name, hex string, price float64) (int, error)
+	Update(ctx context.Context, id int, name, hex string, price float64) error
+	Delete(ctx context.Context, colorsId []int) error
+	DeleteFromItems(ctx context.Context, colorId int) error
+	AddToItems(ctx context.Context, colorId int) error
+	Exist(ctx context.Context, colorId int) (bool, error)
 }
 
 type Categories interface {
-	Exist(categoryId int) (bool, error)
-	GetAll() ([]models.Category, error)
-	GetById(categoryId int) (models.Category, error)
-	Create(name string) (int, error)
-	Delete(categoryId int) error
-	Update(categoryId int, name string) error
+	GetAll(ctx context.Context) ([]models.Category, error)
+	GetById(ctx context.Context, categoryId int) (models.Category, error)
+	Create(ctx context.Context, name string, imageId int) (int, error)
+	Delete(ctx context.Context, categoryId int) error
+	Update(ctx context.Context, categoryId int, name string, imageId int) error
+	Exist(ctx context.Context, colorId int) (bool, error)
 }
 
 type Items interface {
-	Create(name, description string, categoryId int, sku string, price float64) (int, error)
-	Update(id int, name, description string, categoryId int, tags []string, colorsId []int, price float64, sku string, imagesId []int) error
-	LinkColor(itemId int, colorId int) error
-	LinkTags(itemId int, tags []string) error
-	LinkImages(itemId int, imagesId []int) error
-	GetNew() ([]models.Item, error)
-	GetById(itemId int) (models.Item, error)
-	GetBySku(sku string) (models.Item, error)
-	GetByCategory(categoryId int) ([]models.Item, error)
-	GetByTag(tag string) ([]models.Item, error)
-	Delete(itemId int) error
-	Exist(itemId int) (bool, error)
+	Create(ctx context.Context, item models.Item) (models.Item, error)
+	Update(ctx context.Context, item models.Item) error
+	LinkColors(ctx context.Context, itemId int, colors []models.Color) error
+	LinkTags(ctx context.Context, itemId int, tags []models.Tag) error
+	LinkImages(ctx context.Context, itemId int, images []models.Image) error
+	GetAll(ctx context.Context, sortOptions models.SortOptions) ([]models.Item, error)
+	GetNew(ctx context.Context) ([]models.Item, error)
+	GetById(ctx context.Context, itemId int) (models.Item, error)
+	GetBySku(ctx context.Context, sku string) (models.Item, error)
+	GetByCategory(ctx context.Context, categoryId int) ([]models.Item, error)
+	GetByTag(ctx context.Context, tag string) ([]models.Item, error)
+	Delete(ctx context.Context, itemsId []int) error
+	Exist(ctx context.Context, itemId int) (bool, error)
 }
 
 type Users interface {
@@ -57,12 +59,34 @@ type Users interface {
 	SignIn(ctx context.Context, findBy, login, password string) (models.Tokens, error)
 	Logout(ctx context.Context, userId int) error
 	GetMe(ctx context.Context, userId int) (models.User, error)
+	GetAll(ctx context.Context) ([]models.User, error)
 	RefreshTokens(ctx context.Context, refreshToken string) (models.Tokens, error)
 	UpdateEmail(ctx context.Context, userId int, email string) error
 	UpdatePassword(ctx context.Context, userId int, oldPassword, newPassword string) error
 	UpdateInfo(ctx context.Context, userId int, login, firstName, lastName, phoneCode, phoneNumber string) error
 	UpdateAddress(ctx context.Context, userId int, different bool, invoiceAddress models.Address, shippingAddress models.Address) error
 	DeleteMe(ctx context.Context, userId int) error
+	IsCompleted(ctx context.Context, userId int) (bool, error)
+	CompleteVerify(ctx context.Context, token string) error
+	SendVerify(ctx context.Context, userId int) error
+}
+
+type Delivery interface {
+	Create(ctx context.Context, delivery models.Delivery) (int, error)
+	GetById(ctx context.Context, deliveryId int) (models.Delivery, error)
+	GetAll(ctx context.Context) ([]models.Delivery, error)
+	Update(ctx context.Context, delivery models.Delivery) error
+	Delete(ctx context.Context, deliveryId int) error
+	Exist(ctx context.Context, deliveryId int) (bool, error)
+}
+
+type Orders interface {
+	Create(ctx context.Context, order models.Order) (int, error)
+}
+
+type Mails interface {
+	CreateVerify(ctx context.Context, userId int, login, email string) error
+	CompleteVerify(ctx context.Context, token string) (int, error)
 }
 
 type Services struct {
@@ -71,6 +95,9 @@ type Services struct {
 	Categories Categories
 	Colors     Colors
 	Images     Images
+	Delivery   Delivery
+	Orders     Orders
+	Mails      Mails
 }
 
 type ServicesDeps struct {
@@ -79,14 +106,33 @@ type ServicesDeps struct {
 	TokenManager    auth.TokenManager
 	AccessTokenTTL  time.Duration
 	RefreshTokenTTL time.Duration
+	MailSender      mail.Sender
 }
 
 func NewServices(deps ServicesDeps) *Services {
+	images := NewImagesService(deps.Repos.Images)
+	categories := NewCategoriesService(deps.Repos.Categories, images)
+	colors := NewColorsService(deps.Repos.Colors)
+	mails := NewMailsService(deps.Repos.Mails, deps.MailSender)
+	users := NewUsersService(UsersServiceDeps{
+		repo:            deps.Repos.Users,
+		hasher:          deps.Hasher,
+		tokenManager:    deps.TokenManager,
+		accessTokenTTL:  deps.AccessTokenTTL,
+		refreshTokenTTL: deps.RefreshTokenTTL,
+		mailsService:    mails,
+	})
+	delivery := NewDeliveryService(deps.Repos.Delivery)
+	items := NewItemsService(deps.Repos.Items, categories, colors, images)
+
 	return &Services{
-		Items:      NewItemsService(deps.Repos.Items),
-		Categories: NewCategoriesService(deps.Repos.Categories),
-		Colors:     NewColorsService(deps.Repos.Colors),
-		Images:     NewImagesService(deps.Repos.Images),
-		Users:      NewUsersService(deps.Repos.Users, deps.Hasher, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL),
+		Items:      items,
+		Categories: categories,
+		Colors:     colors,
+		Images:     images,
+		Orders:     NewOrdersService(deps.Repos.Orders, users, delivery, items, colors),
+		Delivery:   delivery,
+		Users:      users,
+		Mails:      mails,
 	}
 }
