@@ -1,6 +1,11 @@
 version: "3.9"
 
 services:
+  frontend:
+    container_name: frontend
+    image: snak1o/shop
+    environment:
+      HOST_API: localhost:80
   redis:
     container_name: shop_redis
     image: redis:7-alpine
@@ -37,5 +42,6 @@ services:
       - "80:80"
     depends_on:
       - backend
+      - frontend
     volumes:
       - ${HOME}/files:/var/files

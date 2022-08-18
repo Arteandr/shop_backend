@@ -6,7 +6,7 @@ ENV GOOS linux
 
 ENV GIN_MODE release
 
-RUN apk update --no-cache && apk add --no-cache tzdata
+RUN apk update --no-cache
 
 WORKDIR /build
 
@@ -27,10 +27,6 @@ RUN go build -o main ./cmd/app.go
 FROM alpine
 
 RUN apk update --no-cache && apk add --no-cache ca-certificates
-
-COPY --from=builder /usr/share/zoneinfo/Europe/Helsinki /usr/share/zoneinfo/Europe/Helsinki
-
-ENV TZ Europe/Helsinki
 
 WORKDIR /app
 
