@@ -5,7 +5,9 @@ services:
     container_name: frontend
     image: snak1o/shop
     environment:
-      HOST_API: localhost:80
+      HOST_API: http://localhost
+    depends_on:
+      - backend
   redis:
     container_name: shop_redis
     image: redis:7-alpine
