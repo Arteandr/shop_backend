@@ -1,5 +1,5 @@
 http:
-  frontendHost: http://localhost:3000/
+  frontendHost: http://localhost:80/
   host: localhost
   port: 8000
   maxHeaderBytes: 1

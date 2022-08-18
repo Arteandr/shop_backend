@@ -44,7 +44,7 @@ func Run(configPath string) {
 
 	// SMTP
 	dialer := gomail.NewDialer(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.User, cfg.SMTP.Password)
-	emailSender := mail.NewEmailSender(dialer, fmt.Sprintf("%s:%s", cfg.HTTP.Host, cfg.HTTP.Port))
+	emailSender := mail.NewEmailSender(dialer, cfg.HTTP.Host)
 
 	// DB
 	connectionString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
