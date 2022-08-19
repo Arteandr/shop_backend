@@ -184,7 +184,7 @@ func (h *Handler) userCompleteVerify(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Redirect(http.StatusTemporaryRedirect, h.cfg.HTTP.FrontendHost+"confirm")
+	ctx.Redirect(http.StatusTemporaryRedirect, h.cfg.HTTP.FrontendHost+"/confirm")
 }
 
 // @Summary Send new email verification

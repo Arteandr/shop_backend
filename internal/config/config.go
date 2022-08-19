@@ -80,7 +80,7 @@ func Init(configPath string) (*Config, error) {
 func setEnv(cfg *Config) error {
 	var ok bool
 	// HTTP
-	cfg.HTTP.FrontendHost, ok = os.LookupEnv("HTTP_HOST")
+	cfg.HTTP.Host, ok = os.LookupEnv("HTTP_HOST")
 	if !ok {
 		return errors.New("empty http host env")
 	}
