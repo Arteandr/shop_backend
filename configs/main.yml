@@ -1,6 +1,4 @@
 http:
-  frontendHost: http://localhost:80/
-  host: localhost
   port: 8000
   maxHeaderBytes: 1
   readTimeout: 10s
@@ -9,7 +7,6 @@ http:
 pgsql:
   dbname: shop
   sslmode: disable
-  port: 5432
 
 redis:
   defaultDB: 0

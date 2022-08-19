@@ -18,8 +18,8 @@ type (
 	}
 
 	HTTPConfig struct {
-		FrontendHost       string        `mapstructure:"frontendHost"`
-		Host               string        `mapstructure:"host"`
+		FrontendHost       string
+		Host               string
 		Port               string        `mapstructure:"port"`
 		ReadTimeout        time.Duration `mapstructure:"readTimeout"`
 		WriteTimeout       time.Duration `mapstructure:"writeTimeout"`
@@ -78,6 +78,17 @@ func Init(configPath string) (*Config, error) {
 }
 
 func setEnv(cfg *Config) error {
+	var ok bool
+	// HTTP
+	cfg.HTTP.FrontendHost, ok = os.LookupEnv("HTTP_HOST")
+	if !ok {
+		return errors.New("empty http host env")
+	}
+	cfg.HTTP.FrontendHost, ok = os.LookupEnv("HTTP_FRONTEND_HOST")
+	if !ok {
+		return errors.New("empty frontend host env")
+	}
+
 	// PostgresSQL connection
 	cfg.PGSQL.Host = os.Getenv("POSTGRES_HOST")
 	cfg.PGSQL.User = os.Getenv("POSTGRES_USER")
