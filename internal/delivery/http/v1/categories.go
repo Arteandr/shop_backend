@@ -17,8 +17,8 @@ func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
 			admins.DELETE("/:id", h.completedIdentify, h.deleteCategory)
 			admins.PUT("/:id", h.completedIdentify, h.updateCategory)
 		}
-		categories.GET("/", h.completedIdentify, h.getAllCategories)
-		categories.GET("/:id", h.completedIdentify, h.getCategoryById)
+		categories.GET("/", h.getAllCategories)
+		categories.GET("/:id", h.getCategoryById)
 	}
 }
 

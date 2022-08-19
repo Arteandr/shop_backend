@@ -90,9 +90,18 @@ func setEnv(cfg *Config) error {
 	}
 
 	// PostgresSQL connection
-	cfg.PGSQL.Host = os.Getenv("POSTGRES_HOST")
-	cfg.PGSQL.User = os.Getenv("POSTGRES_USER")
-	cfg.PGSQL.Password = os.Getenv("POSTGRES_PASSWORD")
+	cfg.PGSQL.Host, ok = os.LookupEnv("POSTGRES_HOST")
+	if !ok {
+		return errors.New("empty postgres host env")
+	}
+	cfg.PGSQL.User, ok = os.LookupEnv("POSTGRES_USER")
+	if !ok {
+		return errors.New("empty postgres user env")
+	}
+	cfg.PGSQL.Password, ok = os.LookupEnv("POSTGRES_PASSWORD")
+	if !ok {
+		return errors.New("empty postgres password env")
+	}
 	val, ok := os.LookupEnv("POSTGRES_PORT")
 	if !ok {
 		cfg.PGSQL.Port = "5432"

@@ -7,14 +7,14 @@ services:
     env_file:
       - ./backend.env
     volumes:
-      - $HOME/redisdata:/data
+      - ${HOME}/redisdata:/data
     command: redis-server --save 20 1 --loglevel warning
   postgres:
     image: postgres
     env_file:
-      ./pgsql.env
+      - ./pgsql.env
     volumes:
-      - $HOME/pgdata:/var/lib/postgresql/data
+      - ${HOME}/pgdata:/var/lib/postgresql/data
   backend:
     build:
       context: .

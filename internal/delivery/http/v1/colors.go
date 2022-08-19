@@ -22,8 +22,8 @@ func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
 			admins.DELETE("/", h.completedIdentify, h.deleteColors)
 		}
 
-		colors.GET("/", h.completedIdentify, h.getAllColors)
-		colors.GET("/:id", h.completedIdentify, h.getColorById)
+		colors.GET("/", h.getAllColors)
+		colors.GET("/:id", h.getColorById)
 	}
 }
 

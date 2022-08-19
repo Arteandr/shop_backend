@@ -51,6 +51,7 @@ func Run(configPath string) {
 		cfg.PGSQL.Host, cfg.PGSQL.Port, cfg.PGSQL.User, cfg.PGSQL.Password, cfg.PGSQL.DatabaseName, cfg.PGSQL.SSLMode)
 	db, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
+		logger.Info(connectionString)
 		logger.Error("[DATABASE] " + err.Error())
 		return
 	}

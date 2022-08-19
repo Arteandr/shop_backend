@@ -20,7 +20,7 @@ func (h *Handler) InitDeliveryRoutes(api *gin.RouterGroup) {
 			admins.PUT("/:id", h.completedIdentify, h.updateDelivery)
 			admins.DELETE("/:id", h.completedIdentify, h.deleteDelivery)
 		}
-		delivery.GET("/all", h.completedIdentify, h.getAllDelivery)
+		delivery.GET("/all", h.getAllDelivery)
 	}
 }
 
