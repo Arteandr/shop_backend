@@ -20,6 +20,7 @@ type (
 	HTTPConfig struct {
 		FrontendHost       string
 		Host               string
+		HTTPS              bool
 		Port               string        `mapstructure:"port"`
 		ReadTimeout        time.Duration `mapstructure:"readTimeout"`
 		WriteTimeout       time.Duration `mapstructure:"writeTimeout"`
@@ -88,6 +89,16 @@ func setEnv(cfg *Config) error {
 	if !ok {
 		return errors.New("empty frontend host env")
 	}
+	val, ok := os.LookupEnv("HTTPS")
+	if !ok {
+		cfg.HTTP.HTTPS = false
+	} else {
+		b, err := strconv.ParseBool(val)
+		if err != nil {
+			return errors.New("wrong https mode")
+		}
+		cfg.HTTP.HTTPS = b
+	}
 
 	// PostgresSQL connection
 	cfg.PGSQL.Host, ok = os.LookupEnv("POSTGRES_HOST")
@@ -102,7 +113,7 @@ func setEnv(cfg *Config) error {
 	if !ok {
 		return errors.New("empty postgres password env")
 	}
-	val, ok := os.LookupEnv("POSTGRES_PORT")
+	val, ok = os.LookupEnv("POSTGRES_PORT")
 	if !ok {
 		cfg.PGSQL.Port = "5432"
 	} else {

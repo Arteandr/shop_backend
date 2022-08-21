@@ -30,7 +30,7 @@ func NewHandler(services *service.Services, cfg *config.Config, tokenManager aut
 func (h *Handler) Init() *gin.Engine {
 	r := gin.Default()
 
-	r.Use(corsMiddleware)
+	r.Use(h.corsMiddleware)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
