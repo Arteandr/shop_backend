@@ -129,6 +129,15 @@ func (h *Handler) deleteOrder(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// @Summary Get all orders
+// @Security UsersAuth
+// @Tags orders-actions
+// @Description get all orders
+// @Accept json
+// @Produce json
+// @Success 200 ""
+// @Failure 500 {object} ErrorResponse
+// @Router /orders/me/all [get]
 func (h *Handler) getAllOrders(ctx *gin.Context) {
 	userId, err := getIdByContext(ctx, userCtx)
 	if err != nil {

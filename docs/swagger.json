@@ -1533,6 +1533,37 @@
                 }
             }
         },
+        "/orders/me/all": {
+            "get": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    }
+                ],
+                "description": "get all orders",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orders-actions"
+                ],
+                "summary": "Get all orders",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/orders/{id}": {
             "delete": {
                 "security": [

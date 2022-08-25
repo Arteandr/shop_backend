@@ -1389,6 +1389,25 @@ paths:
       summary: Create a new order
       tags:
       - orders-actions
+  /orders/me/all:
+    get:
+      consumes:
+      - application/json
+      description: get all orders
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      summary: Get all orders
+      tags:
+      - orders-actions
   /users/{token}:
     get:
       consumes:
