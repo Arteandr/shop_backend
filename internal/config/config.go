@@ -2,9 +2,12 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"github.com/spf13/viper"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -20,11 +23,11 @@ type (
 	HTTPConfig struct {
 		FrontendHost       string
 		Host               string
-		HTTPS              bool
 		Port               string        `mapstructure:"port"`
 		ReadTimeout        time.Duration `mapstructure:"readTimeout"`
 		WriteTimeout       time.Duration `mapstructure:"writeTimeout"`
 		MaxHeaderMegabytes int           `mapstructure:"maxHeaderBytes"`
+		AllowedOrigins     []string
 	}
 
 	PGSQLConfig struct {
@@ -89,16 +92,16 @@ func setEnv(cfg *Config) error {
 	if !ok {
 		return errors.New("empty frontend host env")
 	}
-	val, ok := os.LookupEnv("HTTPS")
-	if !ok {
-		cfg.HTTP.HTTPS = false
-	} else {
-		b, err := strconv.ParseBool(val)
-		if err != nil {
-			return errors.New("wrong https mode")
-		}
-		cfg.HTTP.HTTPS = b
+
+	val, ok := os.LookupEnv("ALLOWED_ORIGINS")
+	if !ok || len(val) < 1 {
+		return errors.New("wrong allowed origins env")
 	}
+	origins, err := parseCORS(val)
+	if err != nil {
+		return err
+	}
+	cfg.HTTP.AllowedOrigins = origins
 
 	// PostgresSQL connection
 	cfg.PGSQL.Host, ok = os.LookupEnv("POSTGRES_HOST")
@@ -158,6 +161,24 @@ func setEnv(cfg *Config) error {
 	cfg.Redis.Password = os.Getenv("REDIS_PASSWORD")
 
 	return nil
+}
+
+func parseCORS(env string) ([]string, error) {
+	out := make([]string, 0)
+	arr := strings.Split(env, ",")
+	if len(arr) < 1 {
+		return nil, errors.New("wrong allowed origins env")
+	}
+
+	for i, item := range arr {
+		pattern := `^https?:\/\/\w+(\.\w+)*(:[0-9]+)?(\/.*)?$`
+		if matched, _ := regexp.MatchString(pattern, item); !matched {
+			return nil, fmt.Errorf("wrong allowed origins number %d", i+1)
+		}
+		out = append(out, item)
+	}
+
+	return out, nil
 }
 
 func unmarshal(cfg *Config) error {
