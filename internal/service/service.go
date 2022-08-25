@@ -82,6 +82,8 @@ type Delivery interface {
 
 type Orders interface {
 	Create(ctx context.Context, order models.Order) (int, error)
+	Exist(ctx context.Context, orderId int) (bool, error)
+	Delete(ctx context.Context, orderId int) error
 }
 
 type Mails interface {

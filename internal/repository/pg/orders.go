@@ -2,6 +2,7 @@ package pg
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -94,5 +95,27 @@ func (r *OrdersRepo) LinkItem(ctx context.Context, orderId, itemId, colorId, qua
 			return apperrors.ErrIdNotFound(field, id)
 		}
 	}
+	return err
+}
+
+// $1 = orderId
+func (r *OrdersRepo) Exist(ctx context.Context, orderId int) (bool, error) {
+	db := r.GetInstance(ctx)
+	var exist bool
+	subquery := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", ordersTable)
+	query := fmt.Sprintf("SELECT exists (%s)", subquery)
+	if err := db.GetContext(ctx, &exist, query, orderId); err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+
+	return exist, nil
+}
+
+// $1 = orderId
+func (r *OrdersRepo) Delete(ctx context.Context, orderId int) error {
+	db := r.GetInstance(ctx)
+	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1;", ordersTable)
+	_, err := db.ExecContext(ctx, query, orderId)
+
 	return err
 }

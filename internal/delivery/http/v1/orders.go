@@ -7,11 +7,16 @@ import (
 	"net/http"
 	"shop_backend/internal/models"
 	apperrors "shop_backend/pkg/errors"
+	"strconv"
 )
 
 func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
 	orders := api.Group("/orders", h.userIdentity)
 	{
+		admin := orders.Group("/", h.adminIdentify)
+		{
+			admin.DELETE("/:id", h.deleteOrder)
+		}
 		orders.POST("/create", h.completedIdentify, h.createOrder)
 	}
 }
@@ -89,4 +94,36 @@ func (h *Handler) createOrder(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, IdResponse{Id: id})
+}
+
+// @Summary Delete order
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags orders-actions
+// @Description delete order by id
+// @Accept json
+// @Produce json
+// @Param id path int true "order id"
+// @Success 200 ""
+// @Failure 400,404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /orders/{id} [delete]
+func (h *Handler) deleteOrder(ctx *gin.Context) {
+	strOrderId := ctx.Param("id")
+	orderId, err := strconv.Atoi(strOrderId)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+		return
+	}
+
+	if err := h.services.Orders.Delete(ctx.Request.Context(), orderId); err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }

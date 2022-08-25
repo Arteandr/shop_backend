@@ -103,7 +103,9 @@ type Delivery interface {
 
 type Orders interface {
 	Create(ctx context.Context, userId int, deliveryId int) (int, error)
+	Delete(ctx context.Context, orderId int) error
 	LinkItem(ctx context.Context, orderId, itemId, colorId, quantity int) error
+	Exist(ctx context.Context, orderId int) (bool, error)
 	pg.Transactor
 }
 

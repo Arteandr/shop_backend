@@ -51,3 +51,24 @@ func (s *OrdersService) Create(ctx context.Context, order models.Order) (int, er
 		return nil
 	})
 }
+
+func (s *OrdersService) Delete(ctx context.Context, orderId int) error {
+	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		exist, err := s.Exist(ctx, orderId)
+		if !exist {
+			return apperrors.ErrIdNotFound("order", orderId)
+		} else if err != nil {
+			return err
+		}
+
+		if err := s.repo.Delete(ctx, orderId); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s *OrdersService) Exist(ctx context.Context, orderId int) (bool, error) {
+	return s.repo.Exist(ctx, orderId)
+}
