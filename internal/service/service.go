@@ -83,6 +83,7 @@ type Delivery interface {
 type Orders interface {
 	Create(ctx context.Context, order models.Order) (int, error)
 	Exist(ctx context.Context, orderId int) (bool, error)
+	GetAllByUserId(ctx context.Context, userId int) ([]models.ServiceOrder, error)
 	Delete(ctx context.Context, orderId int) error
 }
 

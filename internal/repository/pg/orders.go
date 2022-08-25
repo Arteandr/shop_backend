@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"shop_backend/internal/models"
 	apperrors "shop_backend/pkg/errors"
 	"strings"
 )
@@ -118,4 +119,58 @@ func (r *OrdersRepo) Delete(ctx context.Context, orderId int) error {
 	_, err := db.ExecContext(ctx, query, orderId)
 
 	return err
+}
+
+// $1 = userId
+func (r *OrdersRepo) GetAllByUserId(ctx context.Context, userId int) ([]models.Order, error) {
+	db := r.GetInstance(ctx)
+	var orders []models.Order
+	query := fmt.Sprintf("SELECT * FROM %s WHERE user_id=$1;", ordersTable)
+	rows, err := db.QueryxContext(ctx, query, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var order models.Order
+		if err := rows.StructScan(&order); err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
+func (r *OrdersRepo) GetItems(ctx context.Context, orderId int) ([]models.ServiceOrderItem, error) {
+	db := r.GetInstance(ctx)
+	var items []models.ServiceOrderItem
+	query := fmt.Sprintf("SELECT o.item_id, o.color_id, o.quantity FROM %s o WHERE o.order_id=$1;", orderItemsTable)
+	rows, err := db.QueryxContext(ctx, query, orderId)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var item models.ServiceOrderItem
+		if err := rows.StructScan(&item); err != nil {
+			return nil, err
+		}
+
+		items = append(items, item)
+	}
+
+	return items, nil
+}
+
+func (r *OrdersRepo) GetStatus(ctx context.Context, statusId int) (string, error) {
+	db := r.GetInstance(ctx)
+	var name string
+	query := fmt.Sprintf("SELECT name FROM %s WHERE id=$1;", statusTable)
+	if err := db.GetContext(ctx, &name, query, statusId); err != nil {
+		return "", err
+	}
+
+	return name, nil
 }

@@ -17,4 +17,5 @@ const (
 	deliveryCompanyTable  = "delivery_company"
 	ordersTable           = "orders"
 	orderItemsTable       = "order_items"
+	statusTable           = "statuses"
 )

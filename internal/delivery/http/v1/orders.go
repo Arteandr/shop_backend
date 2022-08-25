@@ -17,6 +17,7 @@ func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
 		{
 			admin.DELETE("/:id", h.deleteOrder)
 		}
+		orders.GET("/me/all", h.completedIdentify, h.getAllOrders)
 		orders.POST("/create", h.completedIdentify, h.createOrder)
 	}
 }
@@ -126,4 +127,20 @@ func (h *Handler) deleteOrder(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+func (h *Handler) getAllOrders(ctx *gin.Context) {
+	userId, err := getIdByContext(ctx, userCtx)
+	if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	orders, err := h.services.Orders.GetAllByUserId(ctx, userId)
+	if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, orders)
 }
