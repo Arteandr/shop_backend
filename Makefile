@@ -8,3 +8,5 @@ swag:
 	swag init -g cmd/app.go
 migrate_new:
 	migrate create -ext sql -dir ./schema -seq $(name)
+build:
+	docker build -t hwndrer/backend .
