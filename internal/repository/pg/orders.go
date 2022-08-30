@@ -111,6 +111,18 @@ func (r *OrdersRepo) Exist(ctx context.Context, orderId int) (bool, error) {
 	return exist, nil
 }
 
+func (r *OrdersRepo) ExistStatus(ctx context.Context, statusId int) (bool, error) {
+	db := r.GetInstance(ctx)
+	var exist bool
+	subquery := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", statusTable)
+	query := fmt.Sprintf("SELECT exists (%s)", subquery)
+	if err := db.GetContext(ctx, &exist, query, statusId); err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+
+	return exist, nil
+}
+
 // $1 = orderId
 func (r *OrdersRepo) Delete(ctx context.Context, orderId int) error {
 	db := r.GetInstance(ctx)
@@ -175,4 +187,14 @@ func (r *OrdersRepo) GetStatus(ctx context.Context, statusId int) (string, error
 	}
 
 	return name, nil
+}
+
+// $1 = statusId
+// $2 = orderId
+func (r *OrdersRepo) UpdateStatus(ctx context.Context, orderId, statusId int) error {
+	db := r.GetInstance(ctx)
+	query := fmt.Sprintf("UPDATE %s SET status_id=$1 WHERE id=$2;", ordersTable)
+	_, err := db.ExecContext(ctx, query, statusId, orderId)
+
+	return err
 }

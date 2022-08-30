@@ -84,6 +84,7 @@ type Orders interface {
 	Create(ctx context.Context, order models.Order) (int, error)
 	Exist(ctx context.Context, orderId int) (bool, error)
 	GetAllByUserId(ctx context.Context, userId int) ([]models.ServiceOrder, error)
+	UpdateStatus(ctx context.Context, orderId, statusId int) error
 	Delete(ctx context.Context, orderId int) error
 }
 

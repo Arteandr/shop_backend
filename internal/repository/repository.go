@@ -108,7 +108,9 @@ type Orders interface {
 	GetStatus(ctx context.Context, statusId int) (string, error)
 	Delete(ctx context.Context, orderId int) error
 	LinkItem(ctx context.Context, orderId, itemId, colorId, quantity int) error
+	UpdateStatus(ctx context.Context, orderId, statusId int) error
 	Exist(ctx context.Context, orderId int) (bool, error)
+	ExistStatus(ctx context.Context, statusId int) (bool, error)
 	pg.Transactor
 }
 

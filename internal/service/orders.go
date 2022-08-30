@@ -112,3 +112,30 @@ func (s *OrdersService) GetAllByUserId(ctx context.Context, userId int) ([]model
 		return nil
 	})
 }
+
+func (s *OrdersService) UpdateStatus(ctx context.Context, orderId, statusId int) error {
+	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		var exist bool
+		var err error
+
+		exist, err = s.repo.ExistStatus(ctx, statusId)
+		if !exist {
+			return apperrors.ErrIdNotFound("status", statusId)
+		} else if err != nil {
+			return err
+		}
+
+		exist, err = s.repo.Exist(ctx, orderId)
+		if !exist {
+			return apperrors.ErrIdNotFound("order", orderId)
+		} else if err != nil {
+			return err
+		}
+
+		if err := s.repo.UpdateStatus(ctx, orderId, statusId); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}

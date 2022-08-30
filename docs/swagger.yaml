@@ -316,6 +316,13 @@ definitions:
     - price
     - sku
     type: object
+  v1.updateOrderStatusInput:
+    properties:
+      statusId:
+        type: integer
+    required:
+    - statusId
+    type: object
   v1.userSignInInput:
     properties:
       login:
@@ -1353,6 +1360,45 @@ paths:
       - UsersAuth: []
       - AdminAuth: []
       summary: Delete order
+      tags:
+      - orders-actions
+    put:
+      consumes:
+      - application/json
+      description: update order status by id
+      parameters:
+      - description: order id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: status info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.updateOrderStatusInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Update order status
       tags:
       - orders-actions
   /orders/create:

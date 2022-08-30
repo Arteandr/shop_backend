@@ -16,6 +16,7 @@ func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
 		admin := orders.Group("/", h.adminIdentify)
 		{
 			admin.DELETE("/:id", h.deleteOrder)
+			admin.PUT("/:id", h.updateOrderStatus)
 		}
 		orders.GET("/me/all", h.completedIdentify, h.getAllOrders)
 		orders.POST("/create", h.completedIdentify, h.createOrder)
@@ -152,4 +153,47 @@ func (h *Handler) getAllOrders(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, orders)
+}
+
+type updateOrderStatusInput struct {
+	StatusId int `json:"statusId" binding:"required"`
+}
+
+// @Summary Update order status
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags orders-actions
+// @Description update order status by id
+// @Accept json
+// @Produce json
+// @Success 200 ""
+// @Param id path int true "order id"
+// @Param input body updateOrderStatusInput true "status info"
+// @Failure 400,404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /orders/{id} [put]
+func (h *Handler) updateOrderStatus(ctx *gin.Context) {
+	strOrderId := ctx.Param("id")
+	orderId, err := strconv.Atoi(strOrderId)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+		return
+	}
+
+	var body updateOrderStatusInput
+	if err := ctx.BindJSON(&body); err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+		return
+	}
+
+	if err := h.services.Orders.UpdateStatus(ctx.Request.Context(), orderId, body.StatusId); err != nil {
+		if errors.As(err, &apperrors.IdNotFound{}) {
+			NewError(ctx, http.StatusNotFound, err)
+			return
+		}
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }
