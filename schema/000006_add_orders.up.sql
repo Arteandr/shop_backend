@@ -3,8 +3,11 @@ CREATE TABLE statuses
     id   serial primary key not null,
     name varchar(30)        not null
 );
-INSERT INTO statuses (name)
-VALUES ('Received');
+INSERT INTO statuses (name) VALUES ('Waiting for payment');
+INSERT INTO statuses (name) VALUES ('Processing');
+INSERT INTO statuses (name) VALUES ('Queued');
+INSERT INTO statuses (name) VALUES ('Completed');
+INSERT INTO statuses (name) VALUES ('Canceled');
 
 CREATE TABLE orders
 (
