@@ -154,6 +154,27 @@ func (r *OrdersRepo) GetAllByUserId(ctx context.Context, userId int) ([]models.O
 	return orders, nil
 }
 
+func (r *OrdersRepo) GetAllStatuses(ctx context.Context) ([]models.OrderStatus, error) {
+	db := r.GetInstance(ctx)
+	var statuses []models.OrderStatus
+	query := fmt.Sprintf("SELECT * FROM %s;", statusTable)
+	rows, err := db.QueryxContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var status models.OrderStatus
+		if err := rows.StructScan(&status); err != nil {
+			return nil, err
+		}
+
+		statuses = append(statuses, status)
+	}
+
+	return statuses, nil
+}
+
 func (r *OrdersRepo) GetItems(ctx context.Context, orderId int) ([]models.ServiceOrderItem, error) {
 	db := r.GetInstance(ctx)
 	var items []models.ServiceOrderItem

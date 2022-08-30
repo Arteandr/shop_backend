@@ -107,11 +107,50 @@ definitions:
     - itemId
     - quantity
     type: object
+  models.OrderStatus:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
   models.Phone:
     properties:
       phoneCode:
         type: string
       phoneNumber:
+        type: string
+    type: object
+  models.ServiceOrder:
+    properties:
+      createdAt:
+        type: string
+      delivery:
+        $ref: '#/definitions/models.Delivery'
+      id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.ServiceOrderItem'
+        type: array
+      status:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.ServiceOrderItem:
+    properties:
+      colorId:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+      quantity:
+        type: integer
+      sku:
         type: string
     type: object
   models.Tag:
@@ -1444,7 +1483,11 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ServiceOrder'
+            type: array
         "500":
           description: Internal Server Error
           schema:
@@ -1452,6 +1495,30 @@ paths:
       security:
       - UsersAuth: []
       summary: Get all orders
+      tags:
+      - orders-actions
+  /orders/statuses/all:
+    get:
+      consumes:
+      - application/json
+      description: get all order statuses
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.OrderStatus'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Get all order statuses
       tags:
       - orders-actions
   /users/{token}:

@@ -113,6 +113,10 @@ func (s *OrdersService) GetAllByUserId(ctx context.Context, userId int) ([]model
 	})
 }
 
+func (s *OrdersService) GetAllStatuses(ctx context.Context) ([]models.OrderStatus, error) {
+	return s.repo.GetAllStatuses(ctx)
+}
+
 func (s *OrdersService) UpdateStatus(ctx context.Context, orderId, statusId int) error {
 	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		var exist bool

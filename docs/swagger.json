@@ -1553,7 +1553,53 @@
                 "summary": "Get all orders",
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ServiceOrder"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/statuses/all": {
+            "get": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "get all order statuses",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orders-actions"
+                ],
+                "summary": "Get all order statuses",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.OrderStatus"
+                            }
+                        }
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -2402,6 +2448,17 @@
                 }
             }
         },
+        "models.OrderStatus": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Phone": {
             "type": "object",
             "properties": {
@@ -2409,6 +2466,55 @@
                     "type": "string"
                 },
                 "phoneNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ServiceOrder": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "delivery": {
+                    "$ref": "#/definitions/models.Delivery"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ServiceOrderItem"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.ServiceOrderItem": {
+            "type": "object",
+            "properties": {
+                "colorId": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku": {
                     "type": "string"
                 }
             }

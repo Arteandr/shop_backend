@@ -17,6 +17,7 @@ func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
 		{
 			admin.DELETE("/:id", h.deleteOrder)
 			admin.PUT("/:id", h.updateOrderStatus)
+			admin.GET("/statuses/all", h.getAllOrderStatuses)
 		}
 		orders.GET("/me/all", h.completedIdentify, h.getAllOrders)
 		orders.POST("/create", h.completedIdentify, h.createOrder)
@@ -136,7 +137,7 @@ func (h *Handler) deleteOrder(ctx *gin.Context) {
 // @Description get all orders
 // @Accept json
 // @Produce json
-// @Success 200 ""
+// @Success 200 {array} models.ServiceOrder
 // @Failure 500 {object} ErrorResponse
 // @Router /orders/me/all [get]
 func (h *Handler) getAllOrders(ctx *gin.Context) {
@@ -153,6 +154,26 @@ func (h *Handler) getAllOrders(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, orders)
+}
+
+// @Summary Get all order statuses
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags orders-actions
+// @Description get all order statuses
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.OrderStatus
+// @Failure 500 {object} ErrorResponse
+// @Router /orders/statuses/all [get]
+func (h *Handler) getAllOrderStatuses(ctx *gin.Context) {
+	statuses, err := h.services.Orders.GetAllStatuses(ctx.Request.Context())
+	if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, statuses)
 }
 
 type updateOrderStatusInput struct {

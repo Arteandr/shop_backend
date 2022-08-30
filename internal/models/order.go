@@ -34,3 +34,8 @@ type ServiceOrderItem struct {
 	ColorId  int     `json:"colorId" db:"color_id"`
 	Quantity int     `json:"quantity" db:"quantity"`
 }
+
+type OrderStatus struct {
+	Id   int    `json:"id" db:"id"`
+	Name string `json:"name" db:"name"`
+}
