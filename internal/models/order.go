@@ -27,8 +27,10 @@ type ServiceOrder struct {
 }
 
 type ServiceOrderItem struct {
+	Id       int     `json:"id" db:"item_id"`
 	Name     string  `json:"name" db:"item_name"`
 	Sku      string  `json:"sku" db:"item_sku"`
 	Price    float64 `json:"price" db:"item_price"`
-	Quantity int     `json:"quantity" db:"item_quantity"`
+	ColorId  int     `json:"colorId" db:"color_id"`
+	Quantity int     `json:"quantity" db:"quantity"`
 }

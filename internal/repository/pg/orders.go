@@ -145,7 +145,10 @@ func (r *OrdersRepo) GetAllByUserId(ctx context.Context, userId int) ([]models.O
 func (r *OrdersRepo) GetItems(ctx context.Context, orderId int) ([]models.ServiceOrderItem, error) {
 	db := r.GetInstance(ctx)
 	var items []models.ServiceOrderItem
-	query := fmt.Sprintf("SELECT o.item_id, o.color_id, o.quantity FROM %s o WHERE o.order_id=$1;", orderItemsTable)
+	query := fmt.Sprintf("SELECT o.item_id,i.name item_name,i.sku item_sku,i.price item_price,o.color_id,o.quantity"+
+		" FROM %s o JOIN %s i"+
+		" ON o.item_id=i.id"+
+		" WHERE o.order_id=$1;", orderItemsTable, itemsTable)
 	rows, err := db.QueryxContext(ctx, query, orderId)
 	if err != nil {
 		return nil, err
