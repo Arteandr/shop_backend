@@ -123,7 +123,7 @@ func (r *DeliveryRepo) Update(ctx context.Context, delivery models.Delivery) err
 	query := fmt.Sprintf("UPDATE %s SET name=$1,company_id=(%s),price=$3 WHERE id=$4;", deliveryTable, subquery)
 	rows, err := db.ExecContext(ctx, query, delivery.Name, delivery.CompanyName, delivery.Price, delivery.Id)
 	rowsAffected, _ := rows.RowsAffected()
-	fmt.Println(rowsAffected)
+
 	if rowsAffected < 1 {
 		return errors.ErrDeliveryNotFound
 	}

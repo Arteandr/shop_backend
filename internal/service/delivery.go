@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 )
@@ -31,7 +30,6 @@ func (s *DeliveryService) Create(ctx context.Context, delivery models.Delivery) 
 
 		id, err = s.repo.Create(ctx, delivery)
 		if err != nil {
-			fmt.Println(err)
 			return err
 		}
 

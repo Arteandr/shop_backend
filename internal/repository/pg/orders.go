@@ -63,10 +63,10 @@ func (r *OrdersRepo) Create(ctx context.Context, userId int, deliveryId int) (in
 	query := fmt.Sprintf("INSERT INTO %s (user_id,delivery_id) VALUES ($1,$2) RETURNING id;", ordersTable)
 	err := db.GetContext(ctx, &id, query, userId, deliveryId)
 	if err != nil {
-		pqError, ok := err.(*pq.Error)
-		if ok {
-			fmt.Println(pqError.Code)
-		}
+		//pqError, ok := err.(*pq.Error)
+		//if ok {
+		//	return 0, err
+		//}
 		return 0, err
 	}
 
@@ -85,7 +85,6 @@ func (r *OrdersRepo) LinkItem(ctx context.Context, orderId, itemId, colorId, qua
 		pqError, ok := err.(*pq.Error)
 		if ok {
 			field := strings.Split(pqError.Constraint, "_")[2]
-			fmt.Println(field)
 			var id int
 			switch field {
 			case "item":
