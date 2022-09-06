@@ -103,6 +103,48 @@ func (s *OrdersService) GetAllByUserId(ctx context.Context, userId int) ([]model
 				UserId:    orders[i].UserId,
 				Items:     items,
 				Delivery:  delivery,
+				Comment:   orders[i].Comment,
+				CreatedAt: orders[i].CreatedAt,
+			}
+
+			fullOrders = append(fullOrders, o)
+		}
+
+		return nil
+	})
+}
+
+func (s *OrdersService) GetAll(ctx context.Context) ([]models.ServiceOrder, error) {
+	var fullOrders []models.ServiceOrder
+	return fullOrders, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		orders, err := s.repo.GetAll(ctx)
+		if err != nil {
+			return err
+		}
+
+		for i, _ := range orders {
+			items, err := s.repo.GetItems(ctx, orders[i].Id)
+			if err != nil {
+				return err
+			}
+
+			delivery, err := s.deliveryService.GetById(ctx, orders[i].DeliveryId)
+			if err != nil {
+				return err
+			}
+
+			status, err := s.repo.GetStatus(ctx, orders[i].StatusId)
+			if err != nil {
+				return err
+			}
+
+			o := models.ServiceOrder{
+				Id:        orders[i].Id,
+				Status:    status,
+				UserId:    orders[i].UserId,
+				Items:     items,
+				Delivery:  delivery,
+				Comment:   orders[i].Comment,
 				CreatedAt: orders[i].CreatedAt,
 			}
 

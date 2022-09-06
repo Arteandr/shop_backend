@@ -123,6 +123,8 @@ definitions:
     type: object
   models.ServiceOrder:
     properties:
+      comment:
+        type: string
       createdAt:
         type: string
       delivery:
@@ -142,6 +144,8 @@ definitions:
     properties:
       colorId:
         type: integer
+      comment:
+        type: string
       id:
         type: integer
       name:
@@ -275,6 +279,8 @@ definitions:
     type: object
   v1.createOrderInput:
     properties:
+      comment:
+        type: string
       deliveryId:
         type: integer
       items:
@@ -282,6 +288,7 @@ definitions:
           $ref: '#/definitions/models.OrderItem'
         type: array
     required:
+    - comment
     - deliveryId
     - items
     type: object
@@ -1440,6 +1447,30 @@ paths:
       summary: Update order status
       tags:
       - orders-actions
+  /orders/all:
+    get:
+      consumes:
+      - application/json
+      description: get all orders
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ServiceOrder'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Get all orders
+      tags:
+      - orders-actions
   /orders/create:
     post:
       consumes:
@@ -1478,7 +1509,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: get all orders
+      description: get all user orders
       produces:
       - application/json
       responses:
@@ -1494,7 +1525,7 @@ paths:
             $ref: '#/definitions/v1.ErrorResponse'
       security:
       - UsersAuth: []
-      summary: Get all orders
+      summary: Get all user orders
       tags:
       - orders-actions
   /orders/statuses/all:

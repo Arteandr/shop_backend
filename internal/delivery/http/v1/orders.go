@@ -15,11 +15,12 @@ func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
 	{
 		admin := orders.Group("/", h.adminIdentify)
 		{
+			admin.GET("/all", h.getAllOrders)
 			admin.DELETE("/:id", h.deleteOrder)
 			admin.PUT("/:id", h.updateOrderStatus)
 			admin.GET("/statuses/all", h.getAllOrderStatuses)
 		}
-		orders.GET("/me/all", h.completedIdentify, h.getAllOrders)
+		orders.GET("/me/all", h.completedIdentify, h.getAllUserOrders)
 		orders.POST("/create", h.completedIdentify, h.createOrder)
 	}
 }
@@ -136,16 +137,16 @@ func (h *Handler) deleteOrder(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-// @Summary Get all orders
+// @Summary Get all user orders
 // @Security UsersAuth
 // @Tags orders-actions
-// @Description get all orders
+// @Description get all user orders
 // @Accept json
 // @Produce json
 // @Success 200 {array} models.ServiceOrder
 // @Failure 500 {object} ErrorResponse
 // @Router /orders/me/all [get]
-func (h *Handler) getAllOrders(ctx *gin.Context) {
+func (h *Handler) getAllUserOrders(ctx *gin.Context) {
 	userId, err := getIdByContext(ctx, userCtx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
@@ -153,6 +154,26 @@ func (h *Handler) getAllOrders(ctx *gin.Context) {
 	}
 
 	orders, err := h.services.Orders.GetAllByUserId(ctx, userId)
+	if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, orders)
+}
+
+// @Summary Get all orders
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags orders-actions
+// @Description get all orders
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.ServiceOrder
+// @Failure 500 {object} ErrorResponse
+// @Router /orders/all [get]
+func (h *Handler) getAllOrders(ctx *gin.Context) {
+	orders, err := h.services.Orders.GetAll(ctx.Request.Context())
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
 		return

@@ -128,6 +128,27 @@ func (r *OrdersRepo) Delete(ctx context.Context, orderId int) error {
 	return err
 }
 
+func (r *OrdersRepo) GetAll(ctx context.Context) ([]models.Order, error) {
+	db := r.GetInstance(ctx)
+	var orders []models.Order
+	query := fmt.Sprintf("SELECT * FROM %s;", ordersTable)
+	rows, err := db.QueryxContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var order models.Order
+		if err := rows.StructScan(&order); err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
 // $1 = userId
 func (r *OrdersRepo) GetAllByUserId(ctx context.Context, userId int) ([]models.Order, error) {
 	db := r.GetInstance(ctx)

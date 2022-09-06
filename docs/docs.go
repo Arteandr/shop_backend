@@ -1486,6 +1486,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/orders/all": {
+            "get": {
+                "security": [
+                    {
+                        "UsersAuth": []
+                    },
+                    {
+                        "AdminAuth": []
+                    }
+                ],
+                "description": "get all orders",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orders-actions"
+                ],
+                "summary": "Get all orders",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ServiceOrder"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/orders/create": {
             "post": {
                 "security": [
@@ -1547,7 +1587,7 @@ const docTemplate = `{
                         "UsersAuth": []
                     }
                 ],
-                "description": "get all orders",
+                "description": "get all user orders",
                 "consumes": [
                     "application/json"
                 ],
@@ -1557,7 +1597,7 @@ const docTemplate = `{
                 "tags": [
                     "orders-actions"
                 ],
-                "summary": "Get all orders",
+                "summary": "Get all user orders",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2480,6 +2520,9 @@ const docTemplate = `{
         "models.ServiceOrder": {
             "type": "object",
             "properties": {
+                "comment": {
+                    "type": "string"
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -2508,6 +2551,9 @@ const docTemplate = `{
             "properties": {
                 "colorId": {
                     "type": "integer"
+                },
+                "comment": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "integer"
@@ -2708,10 +2754,14 @@ const docTemplate = `{
         "v1.createOrderInput": {
             "type": "object",
             "required": [
+                "comment",
                 "deliveryId",
                 "items"
             ],
             "properties": {
+                "comment": {
+                    "type": "string"
+                },
                 "deliveryId": {
                     "type": "integer"
                 },

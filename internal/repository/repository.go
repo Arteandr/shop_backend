@@ -103,6 +103,7 @@ type Delivery interface {
 
 type Orders interface {
 	Create(ctx context.Context, userId int, deliveryId int, comment string) (int, error)
+	GetAll(ctx context.Context) ([]models.Order, error)
 	GetAllByUserId(ctx context.Context, userId int) ([]models.Order, error)
 	GetAllStatuses(ctx context.Context) ([]models.OrderStatus, error)
 	GetItems(ctx context.Context, orderId int) ([]models.ServiceOrderItem, error)

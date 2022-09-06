@@ -24,6 +24,7 @@ type ServiceOrder struct {
 	UserId    int                `json:"user_id" db:"user_id"`
 	Items     []ServiceOrderItem `json:"items"`
 	Delivery  Delivery           `json:"delivery"`
+	Comment   string             `json:"comment" db:"comment"`
 	CreatedAt time.Time          `json:"createdAt" db:"created_at"`
 }
 
