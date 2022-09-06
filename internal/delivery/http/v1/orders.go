@@ -27,6 +27,7 @@ func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
 type createOrderInput struct {
 	Items      []models.OrderItem `json:"items" binding:"required"`
 	DeliveryId int                `json:"deliveryId" binding:"required"`
+	Comment    string             `json:"comment" binding:"required"`
 }
 
 func (i *createOrderInput) isValid() error {
@@ -46,6 +47,9 @@ func (i *createOrderInput) isValid() error {
 	}
 	if i.DeliveryId < 1 {
 		return fmt.Errorf("wrong delivery id %d", i.DeliveryId)
+	}
+	if len(i.Comment) < 1 || len(i.Comment) > 255 {
+		return fmt.Errorf("wrong comment length")
 	}
 
 	return nil
@@ -84,6 +88,7 @@ func (h *Handler) createOrder(ctx *gin.Context) {
 		UserId:     userId,
 		DeliveryId: body.DeliveryId,
 		Items:      body.Items,
+		Comment:    body.Comment,
 	}
 
 	id, err := h.services.Orders.Create(ctx, order)

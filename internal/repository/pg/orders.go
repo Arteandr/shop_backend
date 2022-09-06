@@ -57,16 +57,12 @@ func (r *OrdersRepo) GetInstance(ctx context.Context) SqlxDB {
 
 // $1 = userId
 // $2 = deliveryId
-func (r *OrdersRepo) Create(ctx context.Context, userId int, deliveryId int) (int, error) {
+func (r *OrdersRepo) Create(ctx context.Context, userId int, deliveryId int, comment string) (int, error) {
 	db := r.GetInstance(ctx)
 	var id int
-	query := fmt.Sprintf("INSERT INTO %s (user_id,delivery_id) VALUES ($1,$2) RETURNING id;", ordersTable)
-	err := db.GetContext(ctx, &id, query, userId, deliveryId)
+	query := fmt.Sprintf("INSERT INTO %s (user_id,delivery_id,comment) VALUES ($1,$2,$3) RETURNING id;", ordersTable)
+	err := db.GetContext(ctx, &id, query, userId, deliveryId, comment)
 	if err != nil {
-		//pqError, ok := err.(*pq.Error)
-		//if ok {
-		//	return 0, err
-		//}
 		return 0, err
 	}
 

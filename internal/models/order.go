@@ -8,6 +8,7 @@ type Order struct {
 	UserId     int         `json:"userId" db:"user_id"`
 	DeliveryId int         `json:"deliveryId" db:"delivery_id"`
 	StatusId   int         `json:"statusId" db:"status_id"`
+	Comment    string      `json:"comment" db:"comment"`
 	CreatedAt  time.Time   `json:"created_at" db:"created_at"`
 }
 
@@ -32,6 +33,7 @@ type ServiceOrderItem struct {
 	Sku      string  `json:"sku" db:"item_sku"`
 	Price    float64 `json:"price" db:"item_price"`
 	ColorId  int     `json:"colorId" db:"color_id"`
+	Comment  string  `json:"comment" db:"comment"`
 	Quantity int     `json:"quantity" db:"quantity"`
 }
 

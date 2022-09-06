@@ -37,7 +37,7 @@ func (s *OrdersService) Create(ctx context.Context, order models.Order) (int, er
 			return err
 		}
 
-		id, err = s.repo.Create(ctx, order.UserId, order.DeliveryId)
+		id, err = s.repo.Create(ctx, order.UserId, order.DeliveryId, order.Comment)
 		if err != nil {
 			return err
 		}
