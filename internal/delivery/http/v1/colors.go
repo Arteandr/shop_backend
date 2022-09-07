@@ -3,11 +3,13 @@ package v1
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
-	apperrors "shop_backend/pkg/errors"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+
+	apperrors "shop_backend/pkg/errors"
 )
 
 func (h *Handler) InitColorsRoutes(api *gin.RouterGroup) {
@@ -41,9 +43,11 @@ func (i *createColorInput) isValid() error {
 	if len(i.Hex) < 1 || len(i.Hex) > 7 {
 		return errors.New("wrong hex length")
 	}
+
 	if !strings.HasPrefix(i.Hex, "#") {
 		return errors.New("hex must start with #")
 	}
+
 	i.Hex = strings.ToUpper(i.Hex)
 
 	return nil
@@ -65,17 +69,20 @@ func (h *Handler) createColor(ctx *gin.Context) {
 	var body createColorInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
 	colorId, err := h.services.Colors.Create(ctx.Request.Context(), body.Name, body.Hex, *body.Price)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -100,26 +107,32 @@ func (h *Handler) updateColor(ctx *gin.Context) {
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
 	var body createColorInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
 	if err := h.services.Colors.Update(ctx.Request.Context(), colorId, body.Name, body.Hex, *body.Price); err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -154,16 +167,19 @@ func (h *Handler) deleteColors(ctx *gin.Context) {
 	var body deleteColorsInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
 	if err := h.services.Colors.Delete(ctx.Request.Context(), body.ColorsId); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -187,11 +203,13 @@ func (h *Handler) deleteColorFromItems(ctx *gin.Context) {
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
 	if err := h.services.Colors.DeleteFromItems(ctx.Request.Context(), colorId); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -215,15 +233,19 @@ func (h *Handler) addColorToItems(ctx *gin.Context) {
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
 	if err := h.services.Colors.AddToItems(ctx.Request.Context(), colorId); err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -245,6 +267,7 @@ func (h *Handler) getColorById(ctx *gin.Context) {
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
@@ -252,9 +275,12 @@ func (h *Handler) getColorById(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -273,6 +299,7 @@ func (h *Handler) getAllColors(ctx *gin.Context) {
 	colors, err := h.services.Colors.GetAll(ctx.Request.Context())
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"shop_backend/internal/models"
@@ -19,8 +20,10 @@ func NewCategoriesRepo(db *sqlx.DB) *CategoriesRepo {
 }
 
 func (r *CategoriesRepo) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
-	var tx *sqlx.Tx
-	var err error
+	var (
+		tx  *sqlx.Tx
+		err error
+	)
 	// Check if transaction is existed in ctx
 	existingTx := extractTx(ctx)
 	if existingTx != nil {
@@ -36,17 +39,23 @@ func (r *CategoriesRepo) WithinTransaction(ctx context.Context, tFunc func(ctx c
 		if existingTx == nil {
 			tx.Rollback()
 		}
+
 		return err
 	}
+
 	if existingTx == nil {
 		tx.Commit()
 	}
+
 	return nil
 }
 
 func (r *CategoriesRepo) GetImage(ctx context.Context, categoryId int) (models.Image, error) {
-	db := r.GetInstance(ctx)
-	var image models.Image
+	var (
+		db    = r.GetInstance(ctx)
+		image models.Image
+	)
+
 	query := fmt.Sprintf("SELECT i.id,i.filename,i.created_at FROM %s AS i, %s as c_i WHERE i.id=c_i.image_id AND c_i.category_id=$1 LIMIT 1;", imagesTable, categoriesImagesTable)
 	if err := db.QueryRowContext(ctx, query, categoryId).Scan(&image.Id, &image.Filename, &image.CreatedAt); err != nil {
 		return models.Image{}, err
@@ -64,19 +73,21 @@ func (r *CategoriesRepo) LinkImage(ctx context.Context, categoryId, imageId int)
 }
 
 func (r *CategoriesRepo) GetInstance(ctx context.Context) SqlxDB {
-	tx := extractTx(ctx)
-	if tx != nil {
+	if tx := extractTx(ctx); tx != nil {
 		return tx
 	}
+
 	return r.db
 }
 
 func (r *CategoriesRepo) Create(ctx context.Context, category models.Category) (int, error) {
-	db := r.GetInstance(ctx)
-	var id int
+	var (
+		db = r.GetInstance(ctx)
+		id int
+	)
+
 	query := fmt.Sprintf("INSERT INTO %s (name) VALUES ($1) RETURNING id;", categoriesTable)
-	err := db.GetContext(ctx, &id, query, category.Name)
-	if err != nil {
+	if err := db.GetContext(ctx, &id, query, category.Name); err != nil {
 		return 0, err
 	}
 
@@ -84,13 +95,18 @@ func (r *CategoriesRepo) Create(ctx context.Context, category models.Category) (
 }
 
 func (r *CategoriesRepo) Exist(ctx context.Context, categoryId int) (bool, error) {
-	db := r.GetInstance(ctx)
-	var exist bool
+	var (
+		db    = r.GetInstance(ctx)
+		exist bool
+	)
+
 	queryMain := fmt.Sprintf("SELECT name FROM %s WHERE id=$1", categoriesTable)
+
 	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
 	if err := db.GetContext(ctx, &exist, query, categoryId); err != nil && err != sql.ErrNoRows {
 		return false, err
 	}
+
 	return exist, nil
 }
 
@@ -98,6 +114,7 @@ func (r *CategoriesRepo) Delete(ctx context.Context, categoryId int) error {
 	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1;", categoriesTable)
 	_, err := db.ExecContext(ctx, query, categoryId)
+
 	pqError, ok := err.(*pq.Error)
 	if ok {
 		if pqError.Code == "23503" {
@@ -111,9 +128,13 @@ func (r *CategoriesRepo) Delete(ctx context.Context, categoryId int) error {
 }
 
 func (r *CategoriesRepo) GetAll(ctx context.Context) ([]models.Category, error) {
-	db := r.GetInstance(ctx)
-	var categories []models.Category
+	var (
+		db         = r.GetInstance(ctx)
+		categories []models.Category
+	)
+
 	query := fmt.Sprintf("SELECT * FROM %s;", categoriesTable)
+
 	rows, err := db.QueryxContext(ctx, query)
 	if err != nil {
 		return nil, err
@@ -124,6 +145,7 @@ func (r *CategoriesRepo) GetAll(ctx context.Context) ([]models.Category, error) 
 		if err := rows.Scan(&c.Id, &c.Name); err != nil {
 			return nil, err
 		}
+
 		categories = append(categories, c)
 	}
 
@@ -131,9 +153,13 @@ func (r *CategoriesRepo) GetAll(ctx context.Context) ([]models.Category, error) 
 }
 
 func (r *CategoriesRepo) GetById(ctx context.Context, categoryId int) (models.Category, error) {
-	db := r.GetInstance(ctx)
-	var category models.Category
+	var (
+		db       = r.GetInstance(ctx)
+		category models.Category
+	)
+
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", categoriesTable)
+
 	rows, err := db.QueryxContext(ctx, query, categoryId)
 	if err != nil {
 		return models.Category{}, err

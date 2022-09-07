@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	apperrors "shop_backend/pkg/errors"
@@ -46,13 +47,13 @@ func (s *ImagesService) Upload(ctx context.Context, images []*multipart.FileHead
 
 			if err := s.repo.Upload(ctx, filename); err != nil {
 				s.deleteFile(filename)
+
 				return err
 			}
-
 		}
+
 		return nil
 	})
-
 }
 
 func (s *ImagesService) saveFile(file *multipart.FileHeader, dst string) error {
@@ -69,6 +70,7 @@ func (s *ImagesService) saveFile(file *multipart.FileHeader, dst string) error {
 	defer out.Close()
 
 	_, err = io.Copy(out, src)
+
 	return err
 }
 

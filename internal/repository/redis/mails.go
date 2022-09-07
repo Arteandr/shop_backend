@@ -3,9 +3,11 @@ package redis
 import (
 	"context"
 	"errors"
-	"github.com/go-redis/redis/v9"
-	apperrors "shop_backend/pkg/errors"
 	"time"
+
+	apperrors "shop_backend/pkg/errors"
+
+	"github.com/go-redis/redis/v9"
 )
 
 type MailsRepo struct {
@@ -32,6 +34,7 @@ func (r *MailsRepo) GetVerify(ctx context.Context, token string) (string, error)
 		if errors.Is(err, redis.Nil) {
 			return "", apperrors.ErrUserNotFound
 		}
+
 		return "", err
 	}
 

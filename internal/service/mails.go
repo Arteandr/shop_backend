@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/google/uuid"
 	"shop_backend/internal/repository"
 	apperrors "shop_backend/pkg/errors"
 	"shop_backend/pkg/mail"
-	"strconv"
 )
 
 type MailsService struct {

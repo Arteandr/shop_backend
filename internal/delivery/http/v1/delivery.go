@@ -2,12 +2,14 @@ package v1
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"net/http"
-	"shop_backend/internal/models"
-	apperrors "shop_backend/pkg/errors"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+
+	"shop_backend/internal/models"
+	apperrors "shop_backend/pkg/errors"
 )
 
 func (h *Handler) InitDeliveryRoutes(api *gin.RouterGroup) {
@@ -59,11 +61,13 @@ func (h *Handler) createDelivery(ctx *gin.Context) {
 	var body createDeliveryInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
@@ -76,6 +80,7 @@ func (h *Handler) createDelivery(ctx *gin.Context) {
 	id, err := h.services.Delivery.Create(ctx.Request.Context(), delivery)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -99,6 +104,7 @@ func (h *Handler) getDeliveryById(ctx *gin.Context) {
 	deliveryId, err := strconv.Atoi(strDeliveryId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
@@ -106,9 +112,12 @@ func (h *Handler) getDeliveryById(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -128,6 +137,7 @@ func (h *Handler) getAllDelivery(ctx *gin.Context) {
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -150,6 +160,7 @@ func (h *Handler) updateDelivery(ctx *gin.Context) {
 	var body createDeliveryInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
@@ -157,6 +168,7 @@ func (h *Handler) updateDelivery(ctx *gin.Context) {
 	deliveryId, err := strconv.Atoi(strDeliveryId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
@@ -169,6 +181,7 @@ func (h *Handler) updateDelivery(ctx *gin.Context) {
 
 	if err := h.services.Delivery.Update(ctx.Request.Context(), delivery); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -192,11 +205,13 @@ func (h *Handler) deleteDelivery(ctx *gin.Context) {
 	deliveryId, err := strconv.Atoi(strDeliveryId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
 	if err := h.services.Delivery.Delete(ctx, deliveryId); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 

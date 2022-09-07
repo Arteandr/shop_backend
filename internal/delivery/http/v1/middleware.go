@@ -3,10 +3,11 @@ package v1
 import (
 	"errors"
 	"net/http"
-	"shop_backend/internal/models"
-	apperrors "shop_backend/pkg/errors"
 	"strconv"
 	"strings"
+
+	"shop_backend/internal/models"
+	apperrors "shop_backend/pkg/errors"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,6 +36,7 @@ func (h *Handler) sort(defaultSortField, defaultSortOrder string) gin.HandlerFun
 			upperSortOrder := strings.ToUpper(sortOrder)
 			if upperSortOrder != ASC && upperSortOrder != DESC {
 				ctx.Status(http.StatusBadRequest)
+
 				return
 			}
 		}
@@ -63,15 +65,21 @@ func getSortOptions(ctx *gin.Context) (models.SortOptions, error) {
 }
 
 func (h *Handler) completedIdentify(ctx *gin.Context) {
-	id, err := getIdByContext(ctx, userCtx)
+	id, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
 	completed, err := h.services.Users.IsCompleted(ctx, id)
 	if !completed {
 		NewError(ctx, http.StatusForbidden, apperrors.ErrUserNotCompleted)
+
+		return
+	} else if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 }
@@ -80,6 +88,7 @@ func (h *Handler) userIdentity(ctx *gin.Context) {
 	id, err := h.parseAuthHeader(ctx)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
+
 		return
 	}
 
@@ -87,20 +96,23 @@ func (h *Handler) userIdentity(ctx *gin.Context) {
 }
 
 func (h *Handler) adminIdentify(ctx *gin.Context) {
-	id, err := getIdByContext(ctx, userCtx)
+	id, err := getIdByContext(ctx)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
+
 		return
 	}
 
 	user, err := h.services.Users.GetMe(ctx.Request.Context(), id)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
+
 		return
 	}
 
-	if user.Admin != true {
+	if !user.Admin {
 		ctx.AbortWithStatus(http.StatusForbidden)
+
 		return
 	}
 }
@@ -123,20 +135,20 @@ func (h *Handler) parseAuthHeader(ctx *gin.Context) (string, error) {
 	return h.tokenManager.Parse(headerParts[1])
 }
 
-func getIdByContext(ctx *gin.Context, context string) (int, error) {
-	idFromCtx, ok := ctx.Get(context)
+func getIdByContext(ctx *gin.Context) (int, error) {
+	idFromCtx, ok := ctx.Get(userCtx)
 	if !ok {
-		return 0, errors.New(context + " not found")
+		return 0, errors.New(userCtx + " not found")
 	}
 
 	idStr, ok := idFromCtx.(string)
 	if !ok {
-		return 0, errors.New(context + " is of invalid type")
+		return 0, errors.New(userCtx + " is of invalid type")
 	}
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		return 0, errors.New(context + " is of invalid type")
+		return 0, errors.New(userCtx + " is of invalid type")
 	}
 
 	return id, nil

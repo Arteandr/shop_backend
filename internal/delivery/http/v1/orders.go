@@ -3,11 +3,13 @@ package v1
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+
 	"shop_backend/internal/models"
 	apperrors "shop_backend/pkg/errors"
-	"strconv"
 )
 
 func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
@@ -35,20 +37,25 @@ func (i *createOrderInput) isValid() error {
 	if len(i.Items) < 1 {
 		return errors.New("wrong items length")
 	}
+
 	for _, item := range i.Items {
 		if item.Id < 1 {
 			return fmt.Errorf("wrong item id %d", item.Id)
 		}
+
 		if item.Quantity < 1 {
 			return fmt.Errorf("wrong quantity %d", item.Quantity)
 		}
+
 		if item.ColorId < 1 {
 			return fmt.Errorf("wrong color id %d", item.ColorId)
 		}
 	}
+
 	if i.DeliveryId < 1 {
 		return fmt.Errorf("wrong delivery id %d", i.DeliveryId)
 	}
+
 	if len(i.Comment) < 1 || len(i.Comment) > 255 {
 		return fmt.Errorf("wrong comment length")
 	}
@@ -71,17 +78,20 @@ func (h *Handler) createOrder(ctx *gin.Context) {
 	var body createOrderInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
-	userId, err := getIdByContext(ctx, userCtx)
+	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -96,9 +106,12 @@ func (h *Handler) createOrder(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -122,15 +135,19 @@ func (h *Handler) deleteOrder(ctx *gin.Context) {
 	orderId, err := strconv.Atoi(strOrderId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
 	if err := h.services.Orders.Delete(ctx.Request.Context(), orderId); err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -147,15 +164,17 @@ func (h *Handler) deleteOrder(ctx *gin.Context) {
 // @Failure 500 {object} ErrorResponse
 // @Router /orders/me/all [get]
 func (h *Handler) getAllUserOrders(ctx *gin.Context) {
-	userId, err := getIdByContext(ctx, userCtx)
+	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
 	orders, err := h.services.Orders.GetAllByUserId(ctx, userId)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -176,6 +195,7 @@ func (h *Handler) getAllOrders(ctx *gin.Context) {
 	orders, err := h.services.Orders.GetAll(ctx.Request.Context())
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -196,6 +216,7 @@ func (h *Handler) getAllOrderStatuses(ctx *gin.Context) {
 	statuses, err := h.services.Orders.GetAllStatuses(ctx.Request.Context())
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -224,21 +245,26 @@ func (h *Handler) updateOrderStatus(ctx *gin.Context) {
 	orderId, err := strconv.Atoi(strOrderId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
 	var body updateOrderStatusInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := h.services.Orders.UpdateStatus(ctx.Request.Context(), orderId, body.StatusId); err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 

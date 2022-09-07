@@ -2,6 +2,7 @@ package pg
 
 import (
 	"context"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -20,5 +21,6 @@ func extractTx(ctx context.Context) *sqlx.Tx {
 	if tx, ok := ctx.Value(txKey{}).(*sqlx.Tx); ok {
 		return tx
 	}
+
 	return nil
 }

@@ -3,12 +3,13 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/viper"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 type (
@@ -88,6 +89,7 @@ func setEnv(cfg *Config) error {
 	if !ok {
 		return errors.New("empty http host env")
 	}
+
 	cfg.HTTP.FrontendHost, ok = os.LookupEnv("HTTP_FRONTEND_HOST")
 	if !ok {
 		return errors.New("empty frontend host env")
@@ -97,10 +99,12 @@ func setEnv(cfg *Config) error {
 	if !ok || len(val) < 1 {
 		return errors.New("wrong allowed origins env")
 	}
+
 	origins, err := parseCORS(val)
 	if err != nil {
 		return err
 	}
+
 	cfg.HTTP.AllowedOrigins = origins
 
 	// PostgresSQL connection
@@ -108,14 +112,17 @@ func setEnv(cfg *Config) error {
 	if !ok {
 		return errors.New("empty postgres host env")
 	}
+
 	cfg.PGSQL.User, ok = os.LookupEnv("POSTGRES_USER")
 	if !ok {
 		return errors.New("empty postgres user env")
 	}
+
 	cfg.PGSQL.Password, ok = os.LookupEnv("POSTGRES_PASSWORD")
 	if !ok {
 		return errors.New("empty postgres password env")
 	}
+
 	val, ok = os.LookupEnv("POSTGRES_PORT")
 	if !ok {
 		cfg.PGSQL.Port = "5432"
@@ -134,18 +141,22 @@ func setEnv(cfg *Config) error {
 	if !ok {
 		return errors.New("empty smtp host env")
 	}
+
 	cfg.SMTP.User, ok = os.LookupEnv("SMTP_USER")
 	if !ok {
 		return errors.New("empty smtp user env")
 	}
+
 	cfg.SMTP.Password, ok = os.LookupEnv("SMTP_PASSWORD")
 	if !ok {
 		return errors.New("empty smtp password env")
 	}
+
 	val, ok = os.LookupEnv("SMTP_PORT")
 	if !ok {
 		return errors.New("empty smtp port env")
 	}
+
 	port, err := strconv.Atoi(val)
 	if err != nil {
 		return err
@@ -158,6 +169,7 @@ func setEnv(cfg *Config) error {
 	if !ok {
 		return errors.New("empty redis host env")
 	}
+
 	cfg.Redis.Password = os.Getenv("REDIS_PASSWORD")
 
 	return nil
@@ -165,6 +177,7 @@ func setEnv(cfg *Config) error {
 
 func parseCORS(env string) ([]string, error) {
 	out := make([]string, 0)
+
 	arr := strings.Split(env, ",")
 	if len(arr) < 1 {
 		return nil, errors.New("wrong allowed origins env")
@@ -175,6 +188,7 @@ func parseCORS(env string) ([]string, error) {
 		if matched, _ := regexp.MatchString(pattern, item); !matched {
 			return nil, fmt.Errorf("wrong allowed origins number %d", i+1)
 		}
+
 		out = append(out, item)
 	}
 

@@ -3,9 +3,10 @@ package mail
 import (
 	"bytes"
 	"fmt"
-	"gopkg.in/gomail.v2"
 	"html/template"
 	"net/mail"
+
+	"gopkg.in/gomail.v2"
 )
 
 const verifyHtmlPath = "./resources/email_confirm.html"
@@ -47,14 +48,18 @@ func (e *EmailSender) SendVerify(to, login, token string) error {
 	msg.SetHeader("From", "hwndrer-new@yandex.ru")
 	msg.SetAddressHeader("To", to, login)
 	msg.SetHeader("Subject", "Complete registration for BoatCover")
+
 	var b bytes.Buffer
+
 	tmpl, err := template.ParseFiles(verifyHtmlPath)
 	if err != nil {
 		return err
 	}
+
 	if err := tmpl.Execute(&b, data); err != nil {
 		return err
 	}
+
 	msg.Embed("./resources/images/icon.png")
 	msg.SetBody("text/html", b.String())
 

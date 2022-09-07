@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"net/mail"
 	"regexp"
+	"strings"
+
 	"shop_backend/internal/models"
 	apperrors "shop_backend/pkg/errors"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,7 +55,7 @@ func (u *userSignUpInput) isValid() error {
 	}
 	const emailLength = 30
 	if len(u.Email) > emailLength {
-		return errors.New(fmt.Sprintf("email length must not exceed %d characters", emailLength))
+		return fmt.Errorf("email length must not exceed %d characters", emailLength)
 	}
 
 	if len(u.Login) < 2 || len(u.Login) > 15 {
@@ -87,11 +88,13 @@ func (h *Handler) userSignUp(ctx *gin.Context) {
 	var body userSignUpInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
@@ -99,9 +102,12 @@ func (h *Handler) userSignUp(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -135,6 +141,7 @@ func (h *Handler) userSignIn(ctx *gin.Context) {
 	var body userSignInInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
@@ -149,10 +156,12 @@ func (h *Handler) userSignIn(ctx *gin.Context) {
 	if err != nil {
 		if errors.Is(err, apperrors.ErrUserNotFound) {
 			NewError(ctx, http.StatusNotFound, apperrors.ErrUserNotFound)
+
 			return
 		}
 
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -176,11 +185,13 @@ func (h *Handler) userCompleteVerify(ctx *gin.Context) {
 	token := ctx.Param("token")
 	if token == "" {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
 	if err := h.services.Users.CompleteVerify(ctx, token); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -197,14 +208,16 @@ func (h *Handler) userCompleteVerify(ctx *gin.Context) {
 // @Failure 500 {object} ErrorResponse
 // @Router /users/verify [post]
 func (h *Handler) userSendVerify(ctx *gin.Context) {
-	userId, err := getIdByContext(ctx, userCtx)
+	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
 	if err := h.services.Users.SendVerify(ctx, userId); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -224,6 +237,7 @@ func (h *Handler) userRefresh(ctx *gin.Context) {
 	refreshToken, err := ctx.Cookie("refresh_token")
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidCookie)
+
 		return
 	}
 
@@ -231,10 +245,12 @@ func (h *Handler) userRefresh(ctx *gin.Context) {
 	if err != nil {
 		if errors.Is(err, apperrors.ErrUserNotFound) {
 			NewError(ctx, http.StatusNotFound, apperrors.ErrUserNotFound)
+
 			return
 		}
 
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -256,9 +272,10 @@ func (h *Handler) userRefresh(ctx *gin.Context) {
 // @Failure 500 {object} ErrorResponse
 // @Router /users/me [get]
 func (h *Handler) userGetMe(ctx *gin.Context) {
-	userId, err := getIdByContext(ctx, userCtx)
+	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -266,10 +283,12 @@ func (h *Handler) userGetMe(ctx *gin.Context) {
 	if err != nil {
 		if errors.Is(err, apperrors.ErrUserNotFound) {
 			NewError(ctx, http.StatusNotFound, apperrors.ErrUserNotFound)
+
 			return
 		}
 
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -290,6 +309,7 @@ func (h *Handler) getAllUsers(ctx *gin.Context) {
 	users, err := h.services.Users.GetAll(ctx.Request.Context())
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -306,14 +326,16 @@ func (h *Handler) getAllUsers(ctx *gin.Context) {
 // @Failure 500 {object} ErrorResponse
 // @Router /users/logout [post]
 func (h *Handler) userLogout(ctx *gin.Context) {
-	userId, err := getIdByContext(ctx, userCtx)
+	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
 	if err := h.services.Users.Logout(ctx.Request.Context(), userId); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -333,7 +355,7 @@ func (u *userUpdateEmailInput) isValid() error {
 
 	const emailLength = 30
 	if len(u.Email) > emailLength {
-		return errors.New(fmt.Sprintf("email length must not exceed %d characters", emailLength))
+		return fmt.Errorf("email length must not exceed %d characters", emailLength)
 	}
 
 	return nil
@@ -354,26 +376,32 @@ func (h *Handler) userUpdateEmail(ctx *gin.Context) {
 	var body userUpdateEmailInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
-	userId, err := getIdByContext(ctx, userCtx)
+	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
 	if err := h.services.Users.UpdateEmail(ctx.Request.Context(), userId, body.Email); err != nil {
 		if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -408,27 +436,32 @@ func (h *Handler) userUpdatePassword(ctx *gin.Context) {
 	var body userUpdatePasswordInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
-	userId, err := getIdByContext(ctx, userCtx)
+	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
 	if err := h.services.Users.UpdatePassword(ctx, userId, body.OldPassword, body.NewPassword); err != nil {
 		if errors.Is(err, apperrors.ErrOldPassword) {
 			NewError(ctx, http.StatusConflict, apperrors.ErrOldPassword)
+
 			return
 		}
 
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -492,22 +525,26 @@ func (h *Handler) userUpdateInfo(ctx *gin.Context) {
 	var body userUpdateInfoInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
-	userId, err := getIdByContext(ctx, userCtx)
+	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
 	if err := h.services.Users.UpdateInfo(ctx, userId, body.Login, body.FirstName, body.LastName, body.CompanyName, body.PhoneCode, body.PhoneNumber); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -545,19 +582,22 @@ func (h *Handler) userUpdateAddress(ctx *gin.Context) {
 	var body userUpdateAddressInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	different := body.isDiffer()
 
-	userId, err := getIdByContext(ctx, userCtx)
+	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
 	if err := h.services.Users.UpdateAddress(ctx, userId, different, body.InvoiceAddress, body.ShippingAddress); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -574,14 +614,16 @@ func (h *Handler) userUpdateAddress(ctx *gin.Context) {
 // @Failure 500 {object} ErrorResponse
 // @Router /users/me [delete]
 func (h *Handler) userDeleteMe(ctx *gin.Context) {
-	userId, err := getIdByContext(ctx, userCtx)
+	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
 	if err := h.services.Users.DeleteMe(ctx.Request.Context(), userId); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 

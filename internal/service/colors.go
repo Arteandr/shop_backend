@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	apperrors "shop_backend/pkg/errors"
@@ -81,6 +82,7 @@ func (s *ColorsService) Update(ctx context.Context, id int, name, hex string, pr
 
 func (s *ColorsService) Exist(ctx context.Context, colorId int) (bool, error) {
 	var exist bool
+
 	return exist, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		var err error
 		exist, err = s.repo.Exist(ctx, colorId)
@@ -94,6 +96,7 @@ func (s *ColorsService) Exist(ctx context.Context, colorId int) (bool, error) {
 
 func (s *ColorsService) GetById(ctx context.Context, colorId int) (models.Color, error) {
 	var color models.Color
+
 	return color, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		var err error
 		exist, err := s.repo.Exist(ctx, colorId)

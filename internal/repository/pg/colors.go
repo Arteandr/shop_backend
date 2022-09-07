@@ -3,8 +3,10 @@ package pg
 import (
 	"context"
 	"fmt"
-	"github.com/jmoiron/sqlx"
+
 	"shop_backend/internal/models"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type ColorsRepo struct {
@@ -16,8 +18,11 @@ func NewColorsRepo(db *sqlx.DB) *ColorsRepo {
 }
 
 func (r *ColorsRepo) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
-	var tx *sqlx.Tx
-	var err error
+	var (
+		tx  *sqlx.Tx
+		err error
+	)
+
 	// Check if transaction is existed in ctx
 	existingTx := extractTx(ctx)
 	if existingTx != nil {
@@ -33,27 +38,33 @@ func (r *ColorsRepo) WithinTransaction(ctx context.Context, tFunc func(ctx conte
 		if existingTx == nil {
 			tx.Rollback()
 		}
+
 		return err
 	}
+
 	if existingTx == nil {
 		tx.Commit()
 	}
+
 	return nil
 }
 
 func (r *ColorsRepo) GetInstance(ctx context.Context) SqlxDB {
-	tx := extractTx(ctx)
-	if tx != nil {
+	if tx := extractTx(ctx); tx != nil {
 		return tx
 	}
+
 	return r.db
 }
 
 func (r *ColorsRepo) Create(ctx context.Context, color models.Color) (int, error) {
-	var id int
+	var (
+		db = r.GetInstance(ctx)
+		id int
+	)
+
 	query := fmt.Sprintf("INSERT INTO %s (name,hex,price) VALUES ($1,$2,$3) RETURNING id;", colorsTable)
-	row := r.db.QueryRow(query, color.Name, color.Hex, color.Price)
-	if err := row.Scan(&id); err != nil {
+	if err := db.GetContext(ctx, &id, query, color.Name, color.Hex, color.Price); err != nil {
 		return 0, err
 	}
 
@@ -61,9 +72,13 @@ func (r *ColorsRepo) Create(ctx context.Context, color models.Color) (int, error
 }
 
 func (r *ColorsRepo) Exist(ctx context.Context, colorId int) (bool, error) {
-	db := r.GetInstance(ctx)
-	var exist bool
+	var (
+		db    = r.GetInstance(ctx)
+		exist bool
+	)
+
 	queryMain := fmt.Sprintf("SELECT name FROM %s WHERE id=$1", colorsTable)
+
 	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
 	if err := db.GetContext(ctx, &exist, query, colorId); err != nil {
 		return false, err
@@ -104,8 +119,11 @@ func (r *ColorsRepo) Update(ctx context.Context, color models.Color) error {
 }
 
 func (r *ColorsRepo) GetById(ctx context.Context, colorId int) (models.Color, error) {
-	db := r.GetInstance(ctx)
-	var color models.Color
+	var (
+		db    = r.GetInstance(ctx)
+		color models.Color
+	)
+
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1;", colorsTable)
 	if err := db.QueryRowContext(ctx, query, colorId).Scan(&color.Id, &color.Name, &color.Hex, &color.Price); err != nil {
 		return models.Color{}, err
@@ -115,10 +133,25 @@ func (r *ColorsRepo) GetById(ctx context.Context, colorId int) (models.Color, er
 }
 
 func (r *ColorsRepo) GetAll(ctx context.Context) ([]models.Color, error) {
-	var colors []models.Color
+	var (
+		db     = r.GetInstance(ctx)
+		colors []models.Color
+	)
+
 	query := fmt.Sprintf("SELECT * FROM %s ORDER BY id;", colorsTable)
-	if err := r.db.Select(&colors, query); err != nil {
-		return []models.Color{}, err
+
+	rows, err := db.QueryxContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var color models.Color
+		if err := rows.StructScan(&color); err != nil {
+			return nil, err
+		}
+
+		colors = append(colors, color)
 	}
 
 	return colors, nil

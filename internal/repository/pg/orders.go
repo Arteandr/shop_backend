@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"shop_backend/internal/models"
 	apperrors "shop_backend/pkg/errors"
-	"strings"
 )
 
 type OrdersRepo struct {
@@ -39,19 +40,22 @@ func (r *OrdersRepo) WithinTransaction(ctx context.Context, tFunc func(ctx conte
 		if existingTx == nil {
 			tx.Rollback()
 		}
+
 		return err
 	}
+
 	if existingTx == nil {
 		tx.Commit()
 	}
+
 	return nil
 }
 
 func (r *OrdersRepo) GetInstance(ctx context.Context) SqlxDB {
-	tx := extractTx(ctx)
-	if tx != nil {
+	if tx := extractTx(ctx); tx != nil {
 		return tx
 	}
+
 	return r.db
 }
 
@@ -80,17 +84,22 @@ func (r *OrdersRepo) LinkItem(ctx context.Context, orderId, itemId, colorId, qua
 	if err != nil {
 		pqError, ok := err.(*pq.Error)
 		if ok {
-			field := strings.Split(pqError.Constraint, "_")[2]
-			var id int
+			var (
+				field = strings.Split(pqError.Constraint, "_")[2]
+				id    int
+			)
+
 			switch field {
 			case "item":
 				id = itemId
 			case "color":
 				id = colorId
 			}
+
 			return apperrors.ErrIdNotFound(field, id)
 		}
 	}
+
 	return err
 }
 

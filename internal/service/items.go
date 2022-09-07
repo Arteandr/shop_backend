@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	apperrors "shop_backend/pkg/errors"
@@ -100,6 +101,7 @@ func (s *ItemsService) LinkColors(ctx context.Context, itemId int, colors []mode
 				return err
 			}
 		}
+
 		return nil
 	})
 }
@@ -123,9 +125,9 @@ func (s *ItemsService) LinkTags(ctx context.Context, itemId int, tags []models.T
 				return err
 			}
 		}
+
 		return nil
 	})
-
 }
 
 func (s *ItemsService) GetAll(ctx context.Context, sortOptions models.SortOptions) ([]models.Item, error) {
@@ -403,7 +405,6 @@ func (s *ItemsService) GetByTag(ctx context.Context, tag string) ([]models.Item,
 
 		return nil
 	})
-
 }
 
 func (s *ItemsService) Update(ctx context.Context, item models.Item) error {

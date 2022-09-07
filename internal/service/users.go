@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
+	"time"
+
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	"shop_backend/pkg/auth"
 	apperrors "shop_backend/pkg/errors"
 	"shop_backend/pkg/hash"
-	"strconv"
-	"time"
 )
 
 type UsersService struct {
@@ -158,7 +159,6 @@ func (s *UsersService) RefreshTokens(ctx context.Context, refreshToken string) (
 
 		return nil
 	})
-
 }
 
 func (s *UsersService) GetMe(ctx context.Context, userId int) (models.User, error) {

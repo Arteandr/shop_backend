@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/jmoiron/sqlx"
+
 	"shop_backend/internal/models"
 	"shop_backend/pkg/errors"
 	apperrors "shop_backend/pkg/errors"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type DeliveryRepo struct {
@@ -21,8 +23,10 @@ func NewDeliveryRepo(db *sqlx.DB) *DeliveryRepo {
 }
 
 func (r *DeliveryRepo) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
-	var tx *sqlx.Tx
-	var err error
+	var (
+		tx  *sqlx.Tx
+		err error
+	)
 	// Check if transaction is existed in ctx
 	existingTx := extractTx(ctx)
 	if existingTx != nil {
@@ -38,26 +42,33 @@ func (r *DeliveryRepo) WithinTransaction(ctx context.Context, tFunc func(ctx con
 		if existingTx == nil {
 			tx.Rollback()
 		}
+
 		return err
 	}
+
 	if existingTx == nil {
 		tx.Commit()
 	}
+
 	return nil
 }
 
 func (r *DeliveryRepo) GetInstance(ctx context.Context) SqlxDB {
-	tx := extractTx(ctx)
-	if tx != nil {
+	if tx := extractTx(ctx); tx != nil {
 		return tx
 	}
+
 	return r.db
 }
 
 func (r *DeliveryRepo) Create(ctx context.Context, delivery models.Delivery) (int, error) {
-	db := r.GetInstance(ctx)
-	var id int
+	var (
+		db = r.GetInstance(ctx)
+		id int
+	)
+
 	subquery := fmt.Sprintf("SELECT id FROM %s WHERE name=$2", deliveryCompanyTable)
+
 	query := fmt.Sprintf("INSERT INTO %s (name,company_id,price) VALUES($1,(%s),$3) RETURNING id;", deliveryTable, subquery)
 	if err := db.GetContext(ctx, &id, query, delivery.Name, delivery.CompanyName, delivery.Price); err != nil {
 		return 0, err
@@ -75,9 +86,13 @@ func (r *DeliveryRepo) CreateCompany(ctx context.Context, name string) error {
 }
 
 func (r *DeliveryRepo) ExistCompany(ctx context.Context, name string) (bool, error) {
-	db := r.GetInstance(ctx)
-	var exist bool
+	var (
+		db    = r.GetInstance(ctx)
+		exist bool
+	)
+
 	subquery := fmt.Sprintf("SELECT * FROM %s WHERE name=$1", deliveryCompanyTable)
+
 	query := fmt.Sprintf("SELECT exists (%s)", subquery)
 	if err := db.GetContext(ctx, &exist, query, name); err != nil {
 		return false, err
@@ -139,12 +154,15 @@ func (r *DeliveryRepo) Delete(ctx context.Context, deliveryId int) error {
 }
 
 func (r *DeliveryRepo) Exist(ctx context.Context, deliveryId int) (bool, error) {
-	db := r.GetInstance(ctx)
-	var exist bool
+	var (
+		db    = r.GetInstance(ctx)
+		exist bool
+	)
 	queryMain := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", deliveryTable)
 	query := fmt.Sprintf("SELECT exists (%s)", queryMain)
 	if err := db.GetContext(ctx, &exist, query, deliveryId); err != nil && err != sql.ErrNoRows {
 		return false, err
 	}
+
 	return exist, nil
 }

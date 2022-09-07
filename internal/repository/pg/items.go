@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
+	"strings"
+
 	"shop_backend/internal/models"
 	apperrors "shop_backend/pkg/errors"
-	"strings"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type ItemsRepo struct {
@@ -21,8 +23,10 @@ func NewItemsRepo(db *sqlx.DB) *ItemsRepo {
 }
 
 func (r *ItemsRepo) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
-	var tx *sqlx.Tx
-	var err error
+	var (
+		tx  *sqlx.Tx
+		err error
+	)
 	// Check if transaction is existed in ctx
 	existingTx := extractTx(ctx)
 	if existingTx != nil {
@@ -38,31 +42,37 @@ func (r *ItemsRepo) WithinTransaction(ctx context.Context, tFunc func(ctx contex
 		if existingTx == nil {
 			tx.Rollback()
 		}
+
 		return err
 	}
+
 	if existingTx == nil {
 		tx.Commit()
 	}
+
 	return nil
 }
 
 func (r *ItemsRepo) GetInstance(ctx context.Context) SqlxDB {
-	tx := extractTx(ctx)
-	if tx != nil {
+	if tx := extractTx(ctx); tx != nil {
 		return tx
 	}
+
 	return r.db
 }
 
 func (r *ItemsRepo) Create(ctx context.Context, item models.Item) (int, error) {
-	db := r.GetInstance(ctx)
-	var id int
+	var (
+		db = r.GetInstance(ctx)
+		id int
+	)
 	query := fmt.Sprintf("INSERT INTO %s (name,description,category_id,sku,price) VALUES ($1,$2,$3,$4,$5) RETURNING id;", itemsTable)
 	err := db.GetContext(ctx, &id, query, item.Name, item.Description, item.Category.Id, item.Sku, item.Price)
 	pqError, ok := err.(*pq.Error)
 	if ok {
 		if pqError.Code == "23505" {
 			field := strings.Split(pqError.Constraint, "_")[1]
+
 			return 0, apperrors.ErrUniqueValue(field)
 		} else {
 			return 0, err
@@ -97,8 +107,10 @@ func (r *ItemsRepo) LinkImage(ctx context.Context, itemId, imageId int) error {
 }
 
 func (r *ItemsRepo) GetNew(ctx context.Context, limit int) ([]int, error) {
-	db := r.GetInstance(ctx)
-	var ids []int
+	var (
+		db  = r.GetInstance(ctx)
+		ids []int
+	)
 	query := fmt.Sprintf("SELECT I.id FROM %s AS I ORDER BY created_at DESC LIMIT $1;", itemsTable)
 	rows, err := db.QueryxContext(ctx, query, limit)
 	if err != nil {
@@ -110,6 +122,7 @@ func (r *ItemsRepo) GetNew(ctx context.Context, limit int) ([]int, error) {
 		if err := rows.Scan(&id); err != nil {
 			return nil, err
 		}
+
 		ids = append(ids, id)
 	}
 
@@ -130,6 +143,7 @@ func (r *ItemsRepo) GetAll(ctx context.Context, sortOptions models.SortOptions) 
 		if err := rows.Scan(&id); err != nil {
 			return nil, err
 		}
+
 		ids = append(ids, id)
 	}
 
@@ -144,6 +158,7 @@ func (r *ItemsRepo) GetById(ctx context.Context, itemId int) (models.Item, error
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.Item{}, apperrors.ErrIdNotFound("item", itemId)
 		}
+
 		return models.Item{}, err
 	}
 
@@ -151,13 +166,16 @@ func (r *ItemsRepo) GetById(ctx context.Context, itemId int) (models.Item, error
 }
 
 func (r *ItemsRepo) GetBySku(ctx context.Context, sku string) (models.Item, error) {
-	db := r.GetInstance(ctx)
-	var item models.Item
+	var (
+		db   = r.GetInstance(ctx)
+		item models.Item
+	)
 	query := fmt.Sprintf("SELECT * FROM %s where sku=$1;", itemsTable)
 	if err := db.QueryRowContext(ctx, query, sku).Scan(&item.Id, &item.Name, &item.Description, &item.Category.Id, &item.Price, &item.Sku, &item.CreatedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.Item{}, apperrors.ErrIdNotFound("sku", 0)
 		}
+
 		return models.Item{}, err
 	}
 
@@ -178,6 +196,7 @@ func (r *ItemsRepo) GetByCategory(ctx context.Context, categoryId int) ([]int, e
 		if err := rows.Scan(&id); err != nil {
 			return nil, err
 		}
+
 		ids = append(ids, id)
 	}
 
@@ -198,6 +217,7 @@ func (r *ItemsRepo) GetByTag(ctx context.Context, tag string) ([]int, error) {
 		if err := rows.Scan(&id); err != nil {
 			return nil, err
 		}
+
 		ids = append(ids, id)
 	}
 
@@ -218,6 +238,7 @@ func (r *ItemsRepo) GetColors(ctx context.Context, itemId int) ([]models.Color, 
 		if err := rows.StructScan(&c); err != nil {
 			return nil, err
 		}
+
 		colors = append(colors, c)
 	}
 
@@ -238,6 +259,7 @@ func (r *ItemsRepo) GetTags(ctx context.Context, itemId int) ([]models.Tag, erro
 		if err := rows.StructScan(&t); err != nil {
 			return nil, err
 		}
+
 		tags = append(tags, t)
 	}
 
@@ -258,6 +280,7 @@ func (r *ItemsRepo) GetImages(ctx context.Context, itemId int) ([]models.Image, 
 		if err := rows.StructScan(&i); err != nil {
 			return nil, err
 		}
+
 		images = append(images, i)
 	}
 

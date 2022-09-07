@@ -4,6 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/go-redis/redis/v9"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -11,9 +17,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"gopkg.in/gomail.v2"
-	"net/http"
-	"os"
-	"os/signal"
+
 	"shop_backend/internal/config"
 	delivery "shop_backend/internal/delivery/http"
 	"shop_backend/internal/repository"
@@ -23,8 +27,6 @@ import (
 	"shop_backend/pkg/hash"
 	"shop_backend/pkg/logger"
 	"shop_backend/pkg/mail"
-	"syscall"
-	"time"
 )
 
 func Run(configPath string) {
@@ -32,6 +34,7 @@ func Run(configPath string) {
 	cfg, err := config.Init(configPath)
 	if err != nil {
 		logger.Error(err)
+
 		return
 	}
 
@@ -53,6 +56,7 @@ func Run(configPath string) {
 	if err != nil {
 		logger.Info(connectionString)
 		logger.Error("[DATABASE] " + err.Error())
+
 		return
 	}
 
@@ -60,16 +64,19 @@ func Run(configPath string) {
 	instance, err := postgres.WithInstance(db.DB, &postgres.Config{})
 	if err != nil {
 		logger.Error("[DB INSTANCE] " + err.Error())
+
 		return
 	}
 	m, err := migrate.NewWithDatabaseInstance("file://./schema", "postgres", instance)
 	if err != nil {
 		logger.Error("[MIGRATE] " + err.Error())
+
 		return
 	}
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		logger.Error("[MIGRATE] " + err.Error())
+
 		return
 	}
 
@@ -80,6 +87,7 @@ func Run(configPath string) {
 	tokenManager, err := auth.NewManager(cfg.Auth.JWT.SigningKey)
 	if err != nil {
 		logger.Error("[AUTH] " + err.Error())
+
 		return
 	}
 
@@ -112,6 +120,7 @@ func Run(configPath string) {
 
 	<-quit
 	const timeout = 5 * time.Second
+
 	ctx, shutdown := context.WithTimeout(context.Background(), timeout)
 	defer shutdown()
 

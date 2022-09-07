@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	apperrors "shop_backend/pkg/errors"
@@ -21,6 +22,7 @@ func NewCategoriesService(repo repository.Categories, images Images) *Categories
 
 func (s *CategoriesService) Create(ctx context.Context, name string, imageId int) (int, error) {
 	var id int
+
 	return id, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		var err error
 		category := models.Category{
@@ -53,6 +55,7 @@ func (s *CategoriesService) Delete(ctx context.Context, categoryId int) error {
 
 func (s *CategoriesService) GetAll(ctx context.Context) ([]models.Category, error) {
 	var categories []models.Category
+
 	return categories, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		var err error
 		categories, err = s.repo.GetAll(ctx)
@@ -75,6 +78,7 @@ func (s *CategoriesService) GetAll(ctx context.Context) ([]models.Category, erro
 
 func (s *CategoriesService) Exist(ctx context.Context, colorId int) (bool, error) {
 	var exist bool
+
 	return exist, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		var err error
 		exist, err = s.repo.Exist(ctx, colorId)
@@ -88,6 +92,7 @@ func (s *CategoriesService) Exist(ctx context.Context, colorId int) (bool, error
 
 func (s *CategoriesService) GetById(ctx context.Context, categoryId int) (models.Category, error) {
 	var category models.Category
+
 	return category, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		var err error
 		exist, err := s.repo.Exist(ctx, categoryId)

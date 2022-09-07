@@ -3,11 +3,13 @@ package v1
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+
 	"shop_backend/internal/models"
 	apperrors "shop_backend/pkg/errors"
-	"strconv"
 )
 
 func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
@@ -19,7 +21,6 @@ func (h *Handler) InitItemsRoutes(api *gin.RouterGroup) {
 			admins.PUT("/:id", h.completedIdentify, h.updateItems)
 			admins.DELETE("/", h.completedIdentify, h.deleteItems)
 			admins.GET("/all", h.completedIdentify, h.sort("created_at", ASC), h.getAllItems)
-
 		}
 
 		items.GET("/new", h.getNewItems)
@@ -45,21 +46,27 @@ func (i *createItemInput) isValid() error {
 	if len(i.Name) < 1 || len(i.Name) > 50 {
 		return errors.New("wrong name length")
 	}
+
 	if len(i.Description) < 1 || len(i.Description) > 255 {
 		return errors.New("wrong description length")
 	}
+
 	if i.CategoryId < 1 {
 		return errors.New("wrong category id")
 	}
+
 	if len(i.ColorsId) < 1 {
 		return errors.New("wrong colors id")
 	}
+
 	if i.Price < 0 {
 		return errors.New("wrong price")
 	}
+
 	if len(i.Sku) < 1 || len(i.Sku) > 20 {
 		return errors.New("wrong sku")
 	}
+
 	if len(i.ImagesId) < 1 {
 		return errors.New("the item must contain at least 1 image")
 	}
@@ -84,27 +91,32 @@ func (h *Handler) createItem(ctx *gin.Context) {
 	var body createItemInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
 	// Create item
-	var c []models.Color
-	for _, colorId := range body.ColorsId {
-		c = append(c, models.Color{Id: colorId})
+	c := make([]models.Color, len(body.ColorsId))
+	for i, colorId := range body.ColorsId {
+		c[i] = models.Color{Id: colorId}
 	}
-	var t []models.Tag
-	for _, tag := range body.Tags {
-		t = append(t, models.Tag{Name: tag})
+
+	t := make([]models.Tag, len(body.Tags))
+	for i, tag := range body.Tags {
+		t[i] = models.Tag{Name: tag}
 	}
-	var imgs []models.Image
-	for _, imgId := range body.ImagesId {
-		imgs = append(imgs, models.Image{Id: imgId})
+
+	imgs := make([]models.Image, len(body.ImagesId))
+	for i, imgId := range body.ImagesId {
+		imgs[i] = models.Image{Id: imgId}
 	}
+
 	i := models.Item{
 		Name:        body.Name,
 		Description: body.Description,
@@ -119,12 +131,16 @@ func (h *Handler) createItem(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		} else if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -148,6 +164,7 @@ func (h *Handler) getAllItems(ctx *gin.Context) {
 	sortOptions, err := getSortOptions(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrSortOptions)
+
 		return
 	}
 
@@ -155,12 +172,16 @@ func (h *Handler) getAllItems(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		} else if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -180,12 +201,16 @@ func (h *Handler) getNewItems(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		} else if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -207,6 +232,7 @@ func (h *Handler) getItemById(ctx *gin.Context) {
 	itemId, err := strconv.Atoi(strItemId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
@@ -214,12 +240,16 @@ func (h *Handler) getItemById(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		} else if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -240,6 +270,7 @@ func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 	categoryId, err := strconv.Atoi(strCategoryId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
@@ -247,12 +278,16 @@ func (h *Handler) getItemsByCategory(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		} else if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -273,6 +308,7 @@ func (h *Handler) getItemsByTag(ctx *gin.Context) {
 	if len(tag) < 1 {
 		err := errors.New("tag must contain at least 1 character")
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
@@ -280,12 +316,16 @@ func (h *Handler) getItemsByTag(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		} else if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -306,6 +346,7 @@ func (h *Handler) getItemBySku(ctx *gin.Context) {
 	if len(sku) < 1 {
 		err := errors.New("sku must contain at least 1 character")
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
@@ -313,12 +354,16 @@ func (h *Handler) getItemBySku(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		} else if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -353,23 +398,29 @@ func (h *Handler) deleteItems(ctx *gin.Context) {
 	var body deleteItemsInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
 	if err := h.services.Items.Delete(ctx.Request.Context(), body.ItemsId); err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		} else if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -391,21 +442,27 @@ func (i *updateItemInput) isValid() error {
 	if len(i.Name) < 1 || len(i.Name) > 50 {
 		return errors.New("wrong name length")
 	}
+
 	if len(i.Description) < 1 || len(i.Description) > 255 {
 		return errors.New("wrong description length")
 	}
+
 	if i.CategoryId < 1 {
 		return errors.New("wrong category id")
 	}
+
 	if len(i.ColorsId) < 1 {
 		return errors.New("wrong colors id")
 	}
+
 	if i.Price < 0 {
 		return errors.New("wrong price")
 	}
+
 	if len(i.Sku) < 1 || len(i.Sku) > 20 {
 		return errors.New("wrong sku")
 	}
+
 	if len(i.ImagesId) < 1 {
 		return errors.New("the item must contain at least 1 image")
 	}
@@ -431,33 +488,39 @@ func (h *Handler) updateItems(ctx *gin.Context) {
 	itemId, err := strconv.Atoi(strItemId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
 	var body updateItemInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
 	// Update item
-	var c []models.Color
-	for _, colorId := range body.ColorsId {
-		c = append(c, models.Color{Id: colorId})
+	c := make([]models.Color, len(body.ColorsId))
+	for i, colorId := range body.ColorsId {
+		c[i] = models.Color{Id: colorId}
 	}
-	var t []models.Tag
-	for _, tag := range body.Tags {
-		t = append(t, models.Tag{Name: tag})
+
+	t := make([]models.Tag, len(body.Tags))
+	for i, tag := range body.Tags {
+		t[i] = models.Tag{Name: tag}
 	}
-	var imgs []models.Image
-	for _, imgId := range body.ImagesId {
-		imgs = append(imgs, models.Image{Id: imgId})
+
+	imgs := make([]models.Image, len(body.ImagesId))
+	for i, imgId := range body.ImagesId {
+		imgs[i] = models.Image{Id: imgId}
 	}
+
 	i := models.Item{
 		Id:          itemId,
 		Name:        body.Name,
@@ -472,12 +535,16 @@ func (h *Handler) updateItems(ctx *gin.Context) {
 	if err := h.services.Items.Update(ctx.Request.Context(), i); err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		} else if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 

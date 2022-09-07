@@ -3,8 +3,10 @@ package pg
 import (
 	"context"
 	"fmt"
-	"github.com/jmoiron/sqlx"
+
 	"shop_backend/internal/models"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type ImagesRepo struct {
@@ -18,8 +20,10 @@ func NewImagesRepo(db *sqlx.DB) *ImagesRepo {
 }
 
 func (r *ImagesRepo) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
-	var tx *sqlx.Tx
-	var err error
+	var (
+		tx  *sqlx.Tx
+		err error
+	)
 	// Check if transaction is existed in ctx
 	existingTx := extractTx(ctx)
 	if existingTx != nil {
@@ -35,19 +39,22 @@ func (r *ImagesRepo) WithinTransaction(ctx context.Context, tFunc func(ctx conte
 		if existingTx == nil {
 			tx.Rollback()
 		}
+
 		return err
 	}
+
 	if existingTx == nil {
 		tx.Commit()
 	}
+
 	return nil
 }
 
 func (r *ImagesRepo) GetInstance(ctx context.Context) SqlxDB {
-	tx := extractTx(ctx)
-	if tx != nil {
+	if tx := extractTx(ctx); tx != nil {
 		return tx
 	}
+
 	return r.db
 }
 

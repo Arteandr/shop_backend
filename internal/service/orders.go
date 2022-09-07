@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	apperrors "shop_backend/pkg/errors"
@@ -81,7 +82,7 @@ func (s *OrdersService) GetAllByUserId(ctx context.Context, userId int) ([]model
 			return err
 		}
 
-		for i, _ := range orders {
+		for i := range orders {
 			items, err := s.repo.GetItems(ctx, orders[i].Id)
 			if err != nil {
 				return err
@@ -122,7 +123,7 @@ func (s *OrdersService) GetAll(ctx context.Context) ([]models.ServiceOrder, erro
 			return err
 		}
 
-		for i, _ := range orders {
+		for i := range orders {
 			items, err := s.repo.GetItems(ctx, orders[i].Id)
 			if err != nil {
 				return err

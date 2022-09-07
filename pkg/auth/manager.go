@@ -3,9 +3,10 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt"
 	"math/rand"
 	"time"
+
+	"github.com/golang-jwt/jwt"
 )
 
 type TokenManager interface {
@@ -34,6 +35,7 @@ func (m *Manager) NewJWT(userId string, ttl time.Duration) (string, error) {
 
 	return token.SignedString([]byte(m.signingKey))
 }
+
 func (m *Manager) Parse(accessToken string) (string, error) {
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

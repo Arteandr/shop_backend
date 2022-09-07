@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"shop_backend/internal/models"
 	"shop_backend/pkg/errors"
-	"strings"
-	"time"
 )
 
 type UsersRepo struct {
@@ -40,19 +41,22 @@ func (r *UsersRepo) WithinTransaction(ctx context.Context, tFunc func(ctx contex
 		if existingTx == nil {
 			tx.Rollback()
 		}
+
 		return err
 	}
+
 	if existingTx == nil {
 		tx.Commit()
 	}
+
 	return nil
 }
 
 func (r *UsersRepo) GetInstance(ctx context.Context) SqlxDB {
-	tx := extractTx(ctx)
-	if tx != nil {
+	if tx := extractTx(ctx); tx != nil {
 		return tx
 	}
+
 	return r.db
 }
 
@@ -68,6 +72,7 @@ func (r *UsersRepo) Create(ctx context.Context, user models.User) (models.User, 
 	if ok {
 		if pqError.Code == "23505" {
 			field := strings.Split(pqError.Constraint, "_")[1]
+
 			return models.User{}, errors.ErrUniqueValue(field)
 		} else {
 			return models.User{}, err
@@ -209,6 +214,7 @@ func (r *UsersRepo) SetSession(ctx context.Context, userId int, session models.S
 	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("INSERT INTO %s (user_id,refresh_token,expires_at) VALUES ($1,$2,$3);", sessionsTable)
 	_, err := db.ExecContext(ctx, query, userId, session.RefreshToken, session.ExpiresAt)
+
 	return err
 }
 
@@ -262,6 +268,7 @@ func (r *UsersRepo) GetAll(ctx context.Context) ([]models.User, error) {
 		if err := rows.StructScan(&u); err != nil {
 			return nil, err
 		}
+
 		users = append(users, u)
 	}
 
@@ -278,6 +285,7 @@ func (r *UsersRepo) UpdateField(ctx context.Context, field string, value interfa
 	if ok {
 		if pqError.Code == "23505" {
 			f := strings.Split(pqError.Constraint, "_")[1]
+
 			return errors.ErrUniqueValue(f)
 		} else {
 			return err

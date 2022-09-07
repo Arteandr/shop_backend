@@ -2,10 +2,12 @@ package v1
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"net/http"
-	apperrors "shop_backend/pkg/errors"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+
+	apperrors "shop_backend/pkg/errors"
 )
 
 func (h *Handler) InitCategoriesRoutes(api *gin.RouterGroup) {
@@ -31,6 +33,7 @@ func (i *createCategoryInput) isValid() error {
 	if len(i.Name) < 1 || len(i.Name) > 30 {
 		return errors.New("wrong category name")
 	}
+
 	if i.ImageId < 1 {
 		return errors.New("wrong image id")
 	}
@@ -54,11 +57,13 @@ func (h *Handler) createCategory(ctx *gin.Context) {
 	var body createCategoryInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
@@ -66,9 +71,12 @@ func (h *Handler) createCategory(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -92,15 +100,19 @@ func (h *Handler) deleteCategory(ctx *gin.Context) {
 	categoryId, err := strconv.Atoi(strCategoryId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
 	if err := h.services.Categories.Delete(ctx.Request.Context(), categoryId); err != nil {
 		if errors.Is(err, apperrors.ErrViolatesKey) {
 			NewError(ctx, http.StatusConflict, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -116,6 +128,7 @@ func (i *updateCategoryInput) isValid() error {
 	if len(i.Name) < 1 || len(i.Name) > 15 {
 		return errors.New("wrong name length")
 	}
+
 	if i.ImageId < 1 {
 		return errors.New("wrong image id")
 	}
@@ -141,26 +154,32 @@ func (h *Handler) updateCategory(ctx *gin.Context) {
 	categoryId, err := strconv.Atoi(strCategoryId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
 	var body updateCategoryInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
+
 		return
 	}
 
 	if err := h.services.Categories.Update(ctx.Request.Context(), categoryId, body.Name, body.ImageId); err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -181,6 +200,7 @@ func (h *Handler) getCategoryById(ctx *gin.Context) {
 	categoryId, err := strconv.Atoi(strCategoryId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
 		return
 	}
 
@@ -188,9 +208,12 @@ func (h *Handler) getCategoryById(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
+
 			return
 		}
+
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -209,6 +232,7 @@ func (h *Handler) getAllCategories(ctx *gin.Context) {
 	categories, err := h.services.Categories.GetAll(ctx.Request.Context())
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
+
 		return
 	}
 

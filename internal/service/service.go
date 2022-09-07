@@ -3,12 +3,13 @@ package service
 import (
 	"context"
 	"mime/multipart"
+	"time"
+
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	"shop_backend/pkg/auth"
 	"shop_backend/pkg/hash"
 	"shop_backend/pkg/mail"
-	"time"
 )
 
 type Images interface {
