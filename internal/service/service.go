@@ -63,7 +63,7 @@ type Users interface {
 	RefreshTokens(ctx context.Context, refreshToken string) (models.Tokens, error)
 	UpdateEmail(ctx context.Context, userId int, email string) error
 	UpdatePassword(ctx context.Context, userId int, oldPassword, newPassword string) error
-	UpdateInfo(ctx context.Context, userId int, login, firstName, lastName, phoneCode, phoneNumber string) error
+	UpdateInfo(ctx context.Context, userId int, login, firstName, lastName, companyName, phoneCode, phoneNumber string) error
 	UpdateAddress(ctx context.Context, userId int, different bool, invoiceAddress models.Address, shippingAddress models.Address) error
 	DeleteMe(ctx context.Context, userId int) error
 	IsCompleted(ctx context.Context, userId int) (bool, error)

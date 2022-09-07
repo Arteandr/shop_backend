@@ -177,6 +177,8 @@ definitions:
     properties:
       admin:
         type: boolean
+      companyName:
+        type: string
       completed:
         type: boolean
       email:
@@ -411,6 +413,8 @@ definitions:
     type: object
   v1.userUpdateInfoInput:
     properties:
+      companyName:
+        type: string
       firstName:
         type: string
       lastName:
@@ -422,6 +426,7 @@ definitions:
       phoneNumber:
         type: string
     required:
+    - companyName
     - firstName
     - lastName
     - login

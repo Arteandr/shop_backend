@@ -68,11 +68,9 @@ func (s *UsersService) SignUp(ctx context.Context, email, login, password string
 
 		if err := s.repo.CreateDefaultAddress(ctx, "invoice", newUser.Id); err != nil {
 			return err
-
 		}
 		if err := s.repo.CreateDefaultAddress(ctx, "shipping", newUser.Id); err != nil {
 			return err
-
 		}
 
 		// Hide password
@@ -284,7 +282,7 @@ func (s *UsersService) UpdatePassword(ctx context.Context, userId int, oldPasswo
 	return nil
 }
 
-func (s *UsersService) UpdateInfo(ctx context.Context, userId int, login, firstName, lastName, phoneCode, phoneNumber string) error {
+func (s *UsersService) UpdateInfo(ctx context.Context, userId int, login, firstName, lastName, companyName, phoneCode, phoneNumber string) error {
 	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		user, err := s.repo.GetById(ctx, userId)
 		if err != nil {
@@ -302,6 +300,10 @@ func (s *UsersService) UpdateInfo(ctx context.Context, userId int, login, firstN
 		}
 
 		if err := s.repo.UpdateField(ctx, "last_name", lastName, userId); err != nil {
+			return err
+		}
+
+		if err := s.repo.UpdateField(ctx, "company_name", companyName, userId); err != nil {
 			return err
 		}
 

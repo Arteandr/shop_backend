@@ -2603,6 +2603,9 @@ const docTemplate = `{
                 "admin": {
                     "type": "boolean"
                 },
+                "companyName": {
+                    "type": "string"
+                },
                 "completed": {
                     "type": "boolean"
                 },
@@ -2951,6 +2954,7 @@ const docTemplate = `{
         "v1.userUpdateInfoInput": {
             "type": "object",
             "required": [
+                "companyName",
                 "firstName",
                 "lastName",
                 "login",
@@ -2958,6 +2962,9 @@ const docTemplate = `{
                 "phoneNumber"
             ],
             "properties": {
+                "companyName": {
+                    "type": "string"
+                },
                 "firstName": {
                     "type": "string"
                 },

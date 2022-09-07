@@ -439,34 +439,39 @@ type userUpdateInfoInput struct {
 	Login       string `json:"login" binding:"required"`
 	FirstName   string `json:"firstName" binding:"required"`
 	LastName    string `json:"lastName" binding:"required"`
+	CompanyName string `json:"companyName" binding:"required"`
 	PhoneCode   string `json:"phoneCode" binding:"required"`
 	PhoneNumber string `json:"phoneNumber" binding:"required"`
 }
 
-func (u *userUpdateInfoInput) isValid() error {
+func (i *userUpdateInfoInput) isValid() error {
 	// Check login
-	if len(u.Login) < 2 || len(u.Login) > 15 {
+	if len(i.Login) < 2 || len(i.Login) > 15 {
 		return errors.New("wrong login length")
 	}
 	const loginPattern = `^[A-Za-z0-9]+$`
-	if matched, _ := regexp.MatchString(loginPattern, u.Login); !matched {
+	if matched, _ := regexp.MatchString(loginPattern, i.Login); !matched {
 		return errors.New("wrong login")
 	}
 	// Check first name
-	if len(u.FirstName) < 1 || len(u.FirstName) > 20 {
+	if len(i.FirstName) < 1 || len(i.FirstName) > 20 {
 		return errors.New("wrong first name length")
 	}
 	// Check last name
-	if len(u.FirstName) < 1 || len(u.FirstName) > 20 {
+	if len(i.FirstName) < 1 || len(i.FirstName) > 20 {
 		return errors.New("wrong first name length")
 	}
 	// Check phone code
-	if len(u.PhoneCode) < 1 || len(u.PhoneCode) > 5 {
+	if len(i.PhoneCode) < 1 || len(i.PhoneCode) > 5 {
 		return errors.New("wrong phone code length")
 	}
 	// Check phone number
-	if len(u.PhoneNumber) < 1 || len(u.PhoneNumber) > 15 {
+	if len(i.PhoneNumber) < 1 || len(i.PhoneNumber) > 15 {
 		return errors.New("wrong phone number length")
+	}
+	// Check company name
+	if len(i.CompanyName) < 1 || len(i.CompanyName) > 30 {
+		return errors.New("wrong company name length")
 	}
 
 	return nil
@@ -501,7 +506,7 @@ func (h *Handler) userUpdateInfo(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.services.Users.UpdateInfo(ctx, userId, body.Login, body.FirstName, body.LastName, body.PhoneCode, body.PhoneNumber); err != nil {
+	if err := h.services.Users.UpdateInfo(ctx, userId, body.Login, body.FirstName, body.LastName, body.CompanyName, body.PhoneCode, body.PhoneNumber); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
 		return
 	}

@@ -1,13 +1,14 @@
 CREATE TABLE users
 (
-    id         serial primary key not null unique,
-    email      varchar(255)       not null unique,
-    login      varchar(30)        not null unique,
-    password   varchar(255)       not null,
-    first_name varchar(20),
-    last_name  varchar(20),
-    admin      boolean default false,
-    completed  boolean default false
+    id           serial primary key not null unique,
+    email        varchar(255)       not null unique,
+    login        varchar(30)        not null unique,
+    password     varchar(255)       not null,
+    first_name   varchar(20),
+    last_name    varchar(20),
+    company_name varchar(30),
+    admin        boolean default false,
+    completed    boolean default false
 );
 
 CREATE TABLE phone_numbers
