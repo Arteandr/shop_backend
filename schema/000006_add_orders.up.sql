@@ -32,3 +32,16 @@ CREATE TABLE order_items
     quantity int                        not null,
     check ( quantity > 0 )
 );
+
+CREATE TABLE payment_methods
+(
+    id          serial primary key not null,
+    name        varchar(30) unique not null,
+    description varchar(30)        not null
+);
+
+CREATE TABLE payment_methods_images
+(
+    payment_method_id int references payment_methods (id) on delete cascade not null,
+    image_id          int references images (id) on delete cascade          not null
+);

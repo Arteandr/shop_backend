@@ -107,6 +107,7 @@ func (r *OrdersRepo) Exist(ctx context.Context, orderId int) (bool, error) {
 	return exist, nil
 }
 
+// $1 = statusId
 func (r *OrdersRepo) ExistStatus(ctx context.Context, statusId int) (bool, error) {
 	db := r.GetInstance(ctx)
 	var exist bool
