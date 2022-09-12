@@ -155,6 +155,42 @@ func (s *OrdersService) GetAll(ctx context.Context) ([]models.ServiceOrder, erro
 		return nil
 	})
 }
+func (s *OrdersService) GetById(ctx context.Context, orderId int) (models.ServiceOrder, error) {
+	var order models.ServiceOrder
+	return order, s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
+		o, err := s.repo.GetById(ctx, orderId)
+		if err != nil {
+			return err
+		}
+
+		items, err := s.repo.GetItems(ctx, o.Id)
+		if err != nil {
+			return err
+		}
+
+		delivery, err := s.deliveryService.GetById(ctx, o.DeliveryId)
+		if err != nil {
+			return err
+		}
+
+		status, err := s.repo.GetStatus(ctx, o.StatusId)
+		if err != nil {
+			return err
+		}
+
+		order = models.ServiceOrder{
+			Id:        o.Id,
+			Status:    status,
+			UserId:    o.UserId,
+			Items:     items,
+			Delivery:  delivery,
+			Comment:   o.Comment,
+			CreatedAt: o.CreatedAt,
+		}
+
+		return nil
+	})
+}
 
 func (s *OrdersService) GetAllStatuses(ctx context.Context) ([]models.OrderStatus, error) {
 	return s.repo.GetAllStatuses(ctx)

@@ -18,6 +18,7 @@ func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
 		admin := orders.Group("/", h.adminIdentify)
 		{
 			admin.GET("/all", h.getAllOrders)
+			admin.GET("/:id", h.getOrder)
 			admin.DELETE("/:id", h.deleteOrder)
 			admin.PUT("/:id", h.updateOrderStatus)
 			admin.GET("/statuses/all", h.getAllOrderStatuses)
@@ -200,6 +201,36 @@ func (h *Handler) getAllOrders(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, orders)
+}
+
+// @Summary Get order by id
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags orders-actions
+// @Description get order by id
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.ServiceOrder
+// @Param id path int true "order id"
+// @Failure 500 {object} ErrorResponse
+// @Router /orders/{id} [get]
+func (h *Handler) getOrder(ctx *gin.Context) {
+	strOrderId := ctx.Param("id")
+	orderId, err := strconv.Atoi(strOrderId)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+
+		return
+	}
+
+	order, err := h.services.Orders.GetById(ctx.Request.Context(), orderId)
+	if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+
+		return
+	}
+
+	ctx.JSON(http.StatusOK, order)
 }
 
 // @Summary Get all order statuses

@@ -1413,6 +1413,33 @@ paths:
       summary: Delete order
       tags:
       - orders-actions
+    get:
+      consumes:
+      - application/json
+      description: get order by id
+      parameters:
+      - description: order id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ServiceOrder'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Get order by id
+      tags:
+      - orders-actions
     put:
       consumes:
       - application/json

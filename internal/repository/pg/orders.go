@@ -181,6 +181,24 @@ func (r *OrdersRepo) GetAllByUserId(ctx context.Context, userId int) ([]models.O
 	return orders, nil
 }
 
+func (r *OrdersRepo) GetById(ctx context.Context, orderId int) (models.Order, error) {
+	db := r.GetInstance(ctx)
+	var order models.Order
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1 LIMIT 1;", ordersTable)
+	rows, err := db.QueryxContext(ctx, query, orderId)
+	if err != nil {
+		return models.Order{}, err
+	}
+
+	for rows.Next() {
+		if err := rows.StructScan(&order); err != nil {
+			return models.Order{}, err
+		}
+	}
+
+	return order, nil
+}
+
 func (r *OrdersRepo) GetAllStatuses(ctx context.Context) ([]models.OrderStatus, error) {
 	db := r.GetInstance(ctx)
 	var statuses []models.OrderStatus
