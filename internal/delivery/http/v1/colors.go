@@ -233,19 +233,16 @@ func (h *Handler) addColorToItems(ctx *gin.Context) {
 	colorId, err := strconv.Atoi(strColorId)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
-
 		return
 	}
 
 	if err := h.services.Colors.AddToItems(ctx.Request.Context(), colorId); err != nil {
 		if errors.As(err, &apperrors.IdNotFound{}) {
 			NewError(ctx, http.StatusNotFound, err)
-
 			return
 		}
 
 		NewError(ctx, http.StatusInternalServerError, err)
-
 		return
 	}
 

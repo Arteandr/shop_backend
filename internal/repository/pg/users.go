@@ -185,6 +185,10 @@ func (r *UsersRepo) GetById(ctx context.Context, userId int) (models.User, error
 		}
 	}
 
+	if user == (models.User{}) {
+		return models.User{}, errors.ErrUserNotFound
+	}
+
 	return user, nil
 }
 

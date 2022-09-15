@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/mail"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"shop_backend/internal/models"
@@ -35,9 +36,10 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 
 			authenticated.POST("/verify", h.userSendVerify)
 
-			admins := authenticated.Group("/")
+			admins := authenticated.Group("/", h.adminIdentify)
 			{
-				admins.GET("/all", h.completedIdentify, h.getAllUsers)
+				admins.GET("/all", h.getAllUsers)
+				admins.GET("/:id", h.getUser)
 			}
 		}
 	}
@@ -316,6 +318,42 @@ func (h *Handler) getAllUsers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, users)
 }
 
+// @Summary Get user by id
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags users-auth
+// @Description get user by id
+// @Accept  json
+// @Produce  json
+// @Param id path int true "user id"
+// @Success 200 {object} models.User
+// @Failure 400,404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/{id} [get]
+func (h *Handler) getUser(ctx *gin.Context) {
+	strUserId := ctx.Param("id")
+	userId, err := strconv.Atoi(strUserId)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+		return
+	}
+
+	user, err := h.services.Users.GetMe(ctx.Request.Context(), userId)
+	if err != nil {
+		if err != nil {
+			if errors.Is(err, apperrors.ErrUserNotFound) {
+				NewError(ctx, http.StatusNotFound, apperrors.ErrUserNotFound)
+				return
+			}
+
+			NewError(ctx, http.StatusInternalServerError, err)
+			return
+		}
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}
+
 // @Summary Logout current user
 // @Security UsersAuth
 // @Tags users-auth
@@ -329,13 +367,11 @@ func (h *Handler) userLogout(ctx *gin.Context) {
 	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
-
 		return
 	}
 
 	if err := h.services.Users.Logout(ctx.Request.Context(), userId); err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
-
 		return
 	}
 

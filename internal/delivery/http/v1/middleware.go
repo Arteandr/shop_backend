@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
@@ -103,7 +104,7 @@ func (h *Handler) adminIdentify(ctx *gin.Context) {
 		return
 	}
 
-	user, err := h.services.Users.GetMe(ctx.Request.Context(), id)
+	user, err := h.services.Users.GetMe(context.Background(), id)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
 
