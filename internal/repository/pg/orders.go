@@ -223,7 +223,7 @@ func (r *OrdersRepo) GetAllStatuses(ctx context.Context) ([]models.OrderStatus, 
 func (r *OrdersRepo) GetItems(ctx context.Context, orderId int) ([]models.ServiceOrderItem, error) {
 	db := r.GetInstance(ctx)
 	var items []models.ServiceOrderItem
-	query := fmt.Sprintf("SELECT o.item_id,i.name item_name,i.sku item_sku,i.price item_price,o.color_id,o.quantity"+
+	query := fmt.Sprintf("SELECT o.item_id,i.name item_name,i.sku item_sku,i.price item_price,o.color_id,i.description item_description, o.quantity"+
 		" FROM %s o JOIN %s i"+
 		" ON o.item_id=i.id"+
 		" WHERE o.order_id=$1;", orderItemsTable, itemsTable)
