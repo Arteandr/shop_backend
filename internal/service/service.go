@@ -95,6 +95,7 @@ type Orders interface {
 type Mails interface {
 	CreateVerify(ctx context.Context, userId int, login, email string) error
 	CompleteVerify(ctx context.Context, token string) (int, error)
+	UpdateStatus(ctx context.Context, login, email, firstName, lastName, statusName string) error
 }
 
 type Services struct {
@@ -138,7 +139,7 @@ func NewServices(deps ServicesDeps) *Services {
 		Categories: categories,
 		Colors:     colors,
 		Images:     images,
-		Orders:     NewOrdersService(deps.Repos.Orders, users, delivery, items, colors),
+		Orders:     NewOrdersService(deps.Repos.Orders, users, delivery, items, colors, mails),
 		Delivery:   delivery,
 		Users:      users,
 		Mails:      mails,

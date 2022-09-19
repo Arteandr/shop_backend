@@ -53,3 +53,7 @@ func (s *MailsService) CompleteVerify(ctx context.Context, token string) (int, e
 
 	return userId, nil
 }
+
+func (s *MailsService) UpdateStatus(ctx context.Context, login, email, firstName, lastName, statusName string) error {
+	return s.mailSender.SendStatus(email, login, firstName, lastName, statusName)
+}

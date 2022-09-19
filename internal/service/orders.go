@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-
+	"errors"
 	"shop_backend/internal/models"
 	"shop_backend/internal/repository"
 	apperrors "shop_backend/pkg/errors"
@@ -15,15 +15,17 @@ type OrdersService struct {
 	deliveryService Delivery
 	itemsService    Items
 	colorsService   Colors
+	mailsService    Mails
 }
 
-func NewOrdersService(repo repository.Orders, users Users, delivery Delivery, items Items, colors Colors) *OrdersService {
+func NewOrdersService(repo repository.Orders, users Users, delivery Delivery, items Items, colors Colors, mails Mails) *OrdersService {
 	return &OrdersService{
 		repo:            repo,
 		usersService:    users,
 		deliveryService: delivery,
 		itemsService:    items,
 		colorsService:   colors,
+		mailsService:    mails,
 	}
 }
 
@@ -208,6 +210,11 @@ func (s *OrdersService) UpdateStatus(ctx context.Context, orderId, statusId int)
 			return err
 		}
 
+		status, err := s.repo.GetStatus(ctx, statusId)
+		if err != nil {
+			return err
+		}
+
 		exist, err = s.repo.Exist(ctx, orderId)
 		if !exist {
 			return apperrors.ErrIdNotFound("order", orderId)
@@ -215,7 +222,25 @@ func (s *OrdersService) UpdateStatus(ctx context.Context, orderId, statusId int)
 			return err
 		}
 
+		order, err := s.repo.GetById(ctx, orderId)
+		if err != nil {
+			return err
+		}
+
+		user, err := s.usersService.GetMe(ctx, order.UserId)
+		if err != nil {
+			return err
+		}
+
+		if len(*user.FirstName) <= 0 || len(*user.LastName) <= 0 {
+			return errors.New("user don't have firstName or lastName")
+		}
+
 		if err := s.repo.UpdateStatus(ctx, orderId, statusId); err != nil {
+			return err
+		}
+
+		if err := s.mailsService.UpdateStatus(ctx, user.Login, user.Email, *user.FirstName, *user.LastName, status); err != nil {
 			return err
 		}
 
