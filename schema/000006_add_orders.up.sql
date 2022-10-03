@@ -37,7 +37,8 @@ CREATE TABLE payment_methods
 (
     id          serial primary key not null,
     name        varchar(30) unique not null,
-    description varchar(30)        not null
+    description varchar(30)        not null,
+    active      bool               not null
 );
 
 CREATE TABLE payment_methods_images

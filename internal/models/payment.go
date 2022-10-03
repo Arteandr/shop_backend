@@ -5,4 +5,5 @@ type PaymentMethod struct {
 	Name        string  `json:"name" db:"name"`
 	Description string  `json:"description" db:"description"`
 	Logo        *string `json:"logo,omitempty" db:"logo"`
+	Active      bool    `json:"active" db:"active"`
 }
