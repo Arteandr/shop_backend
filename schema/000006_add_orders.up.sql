@@ -42,6 +42,6 @@ CREATE TABLE payment_methods
 
 CREATE TABLE payment_methods_images
 (
-    payment_method_id int references payment_methods (id) on delete cascade not null,
-    image_id          int references images (id) on delete cascade          not null
+    payment_method_id int references payment_methods (id) on delete cascade unique not null,
+    image_id          int references images (id) on delete cascade                 not null
 );
