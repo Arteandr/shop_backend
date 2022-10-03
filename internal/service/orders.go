@@ -198,6 +198,23 @@ func (s *OrdersService) GetAllStatuses(ctx context.Context) ([]models.OrderStatu
 	return s.repo.GetAllStatuses(ctx)
 }
 
+func (s *OrdersService) GetAllPaymentMethods(ctx context.Context) ([]models.PaymentMethod, error) {
+	methods, err := s.repo.GetPaymentMethods(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range methods {
+		if methods[i].Logo != nil {
+			if len(*methods[i].Logo) > 0 {
+				*methods[i].Logo = "/files/" + *methods[i].Logo
+			}
+		}
+	}
+
+	return methods, nil
+}
+
 func (s *OrdersService) UpdateStatus(ctx context.Context, orderId, statusId int) error {
 	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		var exist bool

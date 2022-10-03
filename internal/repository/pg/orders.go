@@ -159,6 +159,29 @@ func (r *OrdersRepo) GetAll(ctx context.Context) ([]models.Order, error) {
 	return orders, nil
 }
 
+func (r *OrdersRepo) GetPaymentMethods(ctx context.Context) ([]models.PaymentMethod, error) {
+	db := r.GetInstance(ctx)
+	var methods []models.PaymentMethod
+	query := fmt.Sprintf("SELECT pm.*, i.filename logo FROM %s pm "+
+		"LEFT JOIN %s pmi on pm.id = pmi.payment_method_id "+
+		"LEFT JOIN %s i on pmi.image_id = i.id WHERE pm.id = 1;", paymentMethodsTable, paymentMethodsImagesTable, imagesTable)
+	rows, err := db.QueryxContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var method models.PaymentMethod
+		if err := rows.StructScan(&method); err != nil {
+			return nil, err
+		}
+
+		methods = append(methods, method)
+	}
+
+	return methods, nil
+}
+
 // $1 = userId
 func (r *OrdersRepo) GetAllByUserId(ctx context.Context, userId int) ([]models.Order, error) {
 	db := r.GetInstance(ctx)

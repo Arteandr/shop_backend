@@ -25,6 +25,11 @@ func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
 		}
 		orders.GET("/me/all", h.completedIdentify, h.getAllUserOrders)
 		orders.POST("/create", h.completedIdentify, h.createOrder)
+
+		payment := orders.Group("/payment")
+		{
+			payment.GET("/all", h.getAllPaymentMethods)
+		}
 	}
 }
 
@@ -226,11 +231,20 @@ func (h *Handler) getOrder(ctx *gin.Context) {
 	order, err := h.services.Orders.GetById(ctx.Request.Context(), orderId)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
-
 		return
 	}
 
 	ctx.JSON(http.StatusOK, order)
+}
+
+func (h *Handler) getAllPaymentMethods(ctx *gin.Context) {
+	methods, err := h.services.Orders.GetAllPaymentMethods(ctx.Request.Context())
+	if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, methods)
 }
 
 // @Summary Get all order statuses

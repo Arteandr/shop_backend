@@ -115,6 +115,7 @@ type Orders interface {
 	UpdateStatus(ctx context.Context, orderId, statusId int) error
 	Exist(ctx context.Context, orderId int) (bool, error)
 	ExistStatus(ctx context.Context, statusId int) (bool, error)
+	GetPaymentMethods(ctx context.Context) ([]models.PaymentMethod, error)
 	pg.Transactor
 }
 
