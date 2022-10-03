@@ -90,6 +90,7 @@ type Orders interface {
 	GetAllStatuses(ctx context.Context) ([]models.OrderStatus, error)
 	GetAllPaymentMethods(ctx context.Context) ([]models.PaymentMethod, error)
 	UpdateStatus(ctx context.Context, orderId, statusId int) error
+	UpdatePaymentMethodStatus(ctx context.Context, pmId int, active bool) error
 	Delete(ctx context.Context, orderId int) error
 }
 

@@ -114,6 +114,19 @@ definitions:
       name:
         type: string
     type: object
+  models.PaymentMethod:
+    properties:
+      active:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: integer
+      logo:
+        type: string
+      name:
+        type: string
+    type: object
   models.Phone:
     properties:
       phoneCode:
@@ -144,7 +157,7 @@ definitions:
     properties:
       colorId:
         type: integer
-      comment:
+      description:
         type: string
       id:
         type: integer
@@ -1560,6 +1573,59 @@ paths:
       summary: Get all user orders
       tags:
       - orders-actions
+  /orders/payment/{id}:
+    post:
+      consumes:
+      - application/json
+      description: update payment method status by id
+      parameters:
+      - description: payment method id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Update payment method status
+      tags:
+      - orders-actions
+  /orders/payment/all:
+    get:
+      consumes:
+      - application/json
+      description: get all payment methods
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.PaymentMethod'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      summary: Get all payment methods
+      tags:
+      - orders-actions
   /orders/statuses/all:
     get:
       consumes:
@@ -1584,6 +1650,42 @@ paths:
       summary: Get all order statuses
       tags:
       - orders-actions
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get user by id
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      security:
+      - UsersAuth: []
+      - AdminAuth: []
+      summary: Get user by id
+      tags:
+      - users-auth
   /users/{token}:
     get:
       consumes:

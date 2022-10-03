@@ -264,3 +264,7 @@ func (s *OrdersService) UpdateStatus(ctx context.Context, orderId, statusId int)
 		return nil
 	})
 }
+
+func (s *OrdersService) UpdatePaymentMethodStatus(ctx context.Context, pmId int, active bool) error {
+	return s.repo.UpdatePaymentMethodStatus(ctx, pmId, active)
+}

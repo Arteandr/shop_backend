@@ -164,7 +164,7 @@ func (r *OrdersRepo) GetPaymentMethods(ctx context.Context) ([]models.PaymentMet
 	var methods []models.PaymentMethod
 	query := fmt.Sprintf("SELECT pm.*, i.filename logo FROM %s pm "+
 		"LEFT JOIN %s pmi on pm.id = pmi.payment_method_id "+
-		"LEFT JOIN %s i on pmi.image_id = i.id WHERE pm.id = 1;", paymentMethodsTable, paymentMethodsImagesTable, imagesTable)
+		"LEFT JOIN %s i on pmi.image_id = i.id;", paymentMethodsTable, paymentMethodsImagesTable, imagesTable)
 	rows, err := db.QueryxContext(ctx, query)
 	if err != nil {
 		return nil, err
@@ -284,6 +284,20 @@ func (r *OrdersRepo) UpdateStatus(ctx context.Context, orderId, statusId int) er
 	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("UPDATE %s SET status_id=$1 WHERE id=$2;", ordersTable)
 	_, err := db.ExecContext(ctx, query, statusId, orderId)
+
+	return err
+}
+
+func (r *OrdersRepo) UpdatePaymentMethodStatus(ctx context.Context, pmId int, active bool) error {
+	db := r.GetInstance(ctx)
+	query := fmt.Sprintf("UPDATE %s pm SET active=$1 WHERE pm.id=$2;", paymentMethodsTable)
+	_, err := db.ExecContext(ctx, query, active, pmId)
+	if err != nil {
+		_, ok := err.(*pq.Error)
+		if ok {
+			return apperrors.ErrIdNotFound("payment method id", pmId)
+		}
+	}
 
 	return err
 }

@@ -90,13 +90,11 @@ func (h *Handler) userSignUp(ctx *gin.Context) {
 	var body userSignUpInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
-
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
-
 		return
 	}
 
@@ -104,12 +102,10 @@ func (h *Handler) userSignUp(ctx *gin.Context) {
 	if err != nil {
 		if errors.As(err, &apperrors.UniqueValue{}) {
 			NewError(ctx, http.StatusConflict, err)
-
 			return
 		}
 
 		NewError(ctx, http.StatusInternalServerError, err)
-
 		return
 	}
 

@@ -29,6 +29,7 @@ func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
 		payment := orders.Group("/payment")
 		{
 			payment.GET("/all", h.getAllPaymentMethods)
+			payment.POST("/:id", h.adminIdentify, h.updatePaymentMethodStatus)
 		}
 	}
 }
@@ -237,6 +238,15 @@ func (h *Handler) getOrder(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, order)
 }
 
+// @Summary Get all payment methods
+// @Security UsersAuth
+// @Tags orders-actions
+// @Description get all payment methods
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.PaymentMethod
+// @Failure 500 {object} ErrorResponse
+// @Router /orders/payment/all [get]
 func (h *Handler) getAllPaymentMethods(ctx *gin.Context) {
 	methods, err := h.services.Orders.GetAllPaymentMethods(ctx.Request.Context())
 	if err != nil {
@@ -245,6 +255,44 @@ func (h *Handler) getAllPaymentMethods(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, methods)
+}
+
+type updatePMStatusInput struct {
+	Active bool `json:"active" binding:"required"`
+}
+
+// @Summary Update payment method status
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags orders-actions
+// @Description update payment method status by id
+// @Accept json
+// @Produce json
+// @Success 200 ""
+// @Param id path int true "payment method id"
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /orders/payment/{id} [post]
+func (h *Handler) updatePaymentMethodStatus(ctx *gin.Context) {
+	var body updatePMStatusInput
+	if err := ctx.BindJSON(&body); err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+		return
+	}
+
+	strPMId := ctx.Param("id")
+	pmId, err := strconv.Atoi(strPMId)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+		return
+	}
+
+	if err := h.services.Orders.UpdatePaymentMethodStatus(ctx.Request.Context(), pmId, body.Active); err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }
 
 // @Summary Get all order statuses
