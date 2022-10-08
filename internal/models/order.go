@@ -8,6 +8,7 @@ type Order struct {
 	UserId     int         `json:"userId" db:"user_id"`
 	DeliveryId int         `json:"deliveryId" db:"delivery_id"`
 	StatusId   int         `json:"statusId" db:"status_id"`
+	PaymentId  int         `json:"paymentId" db:"payment_id"`
 	Comment    string      `json:"comment" db:"comment"`
 	CreatedAt  time.Time   `json:"created_at" db:"created_at"`
 }
