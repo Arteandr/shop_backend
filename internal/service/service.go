@@ -88,7 +88,9 @@ type Orders interface {
 	GetById(ctx context.Context, orderId int) (models.ServiceOrder, error)
 	GetAllByUserId(ctx context.Context, userId int) ([]models.ServiceOrder, error)
 	GetAllStatuses(ctx context.Context) ([]models.OrderStatus, error)
+	GetAllPaymentMethods(ctx context.Context) ([]models.PaymentMethod, error)
 	UpdateStatus(ctx context.Context, orderId, statusId int) error
+	UpdatePaymentMethodStatus(ctx context.Context, pmId int, active bool) error
 	Delete(ctx context.Context, orderId int) error
 }
 

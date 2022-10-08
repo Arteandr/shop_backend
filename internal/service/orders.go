@@ -40,7 +40,7 @@ func (s *OrdersService) Create(ctx context.Context, order models.Order) (int, er
 			return err
 		}
 
-		id, err = s.repo.Create(ctx, order.UserId, order.DeliveryId, order.Comment)
+		id, err = s.repo.Create(ctx, order.UserId, order.DeliveryId, order.Comment, order.PaymentId)
 		if err != nil {
 			return err
 		}
@@ -198,6 +198,23 @@ func (s *OrdersService) GetAllStatuses(ctx context.Context) ([]models.OrderStatu
 	return s.repo.GetAllStatuses(ctx)
 }
 
+func (s *OrdersService) GetAllPaymentMethods(ctx context.Context) ([]models.PaymentMethod, error) {
+	methods, err := s.repo.GetPaymentMethods(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range methods {
+		if methods[i].Logo != nil {
+			if len(*methods[i].Logo) > 0 {
+				*methods[i].Logo = "/files/" + *methods[i].Logo
+			}
+		}
+	}
+
+	return methods, nil
+}
+
 func (s *OrdersService) UpdateStatus(ctx context.Context, orderId, statusId int) error {
 	return s.repo.WithinTransaction(ctx, func(ctx context.Context) error {
 		var exist bool
@@ -246,4 +263,8 @@ func (s *OrdersService) UpdateStatus(ctx context.Context, orderId, statusId int)
 
 		return nil
 	})
+}
+
+func (s *OrdersService) UpdatePaymentMethodStatus(ctx context.Context, pmId int, active bool) error {
+	return s.repo.UpdatePaymentMethodStatus(ctx, pmId, active)
 }

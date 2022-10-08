@@ -25,12 +25,19 @@ func (h *Handler) InitOrdersRoutes(api *gin.RouterGroup) {
 		}
 		orders.GET("/me/all", h.completedIdentify, h.getAllUserOrders)
 		orders.POST("/create", h.completedIdentify, h.createOrder)
+
+		payment := orders.Group("/payment")
+		{
+			payment.GET("/all", h.getAllPaymentMethods)
+			payment.POST("/:id", h.adminIdentify, h.updatePaymentMethodStatus)
+		}
 	}
 }
 
 type createOrderInput struct {
 	Items      []models.OrderItem `json:"items" binding:"required"`
 	DeliveryId int                `json:"deliveryId" binding:"required"`
+	PaymentId  int                `json:"paymentId" binding:"required"`
 	Comment    string             `json:"comment" binding:"required"`
 }
 
@@ -57,6 +64,10 @@ func (i *createOrderInput) isValid() error {
 		return fmt.Errorf("wrong delivery id %d", i.DeliveryId)
 	}
 
+	if i.PaymentId < 1 {
+		return fmt.Errorf("wrong delivery id %d", i.DeliveryId)
+	}
+
 	if len(i.Comment) < 1 || len(i.Comment) > 255 {
 		return fmt.Errorf("wrong comment length")
 	}
@@ -79,26 +90,24 @@ func (h *Handler) createOrder(ctx *gin.Context) {
 	var body createOrderInput
 	if err := ctx.BindJSON(&body); err != nil {
 		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
-
 		return
 	}
 
 	if err := body.isValid(); err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
-
 		return
 	}
 
 	userId, err := getIdByContext(ctx)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
-
 		return
 	}
 
 	order := models.Order{
 		UserId:     userId,
 		DeliveryId: body.DeliveryId,
+		PaymentId:  body.PaymentId,
 		Items:      body.Items,
 		Comment:    body.Comment,
 	}
@@ -226,11 +235,67 @@ func (h *Handler) getOrder(ctx *gin.Context) {
 	order, err := h.services.Orders.GetById(ctx.Request.Context(), orderId)
 	if err != nil {
 		NewError(ctx, http.StatusInternalServerError, err)
-
 		return
 	}
 
 	ctx.JSON(http.StatusOK, order)
+}
+
+// @Summary Get all payment methods
+// @Security UsersAuth
+// @Tags orders-actions
+// @Description get all payment methods
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.PaymentMethod
+// @Failure 500 {object} ErrorResponse
+// @Router /orders/payment/all [get]
+func (h *Handler) getAllPaymentMethods(ctx *gin.Context) {
+	methods, err := h.services.Orders.GetAllPaymentMethods(ctx.Request.Context())
+	if err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, methods)
+}
+
+type updatePMStatusInput struct {
+	Active bool `json:"active" binding:"required"`
+}
+
+// @Summary Update payment method status
+// @Security UsersAuth
+// @Security AdminAuth
+// @Tags orders-actions
+// @Description update payment method status by id
+// @Accept json
+// @Produce json
+// @Success 200 ""
+// @Param id path int true "payment method id"
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /orders/payment/{id} [post]
+func (h *Handler) updatePaymentMethodStatus(ctx *gin.Context) {
+	var body updatePMStatusInput
+	if err := ctx.BindJSON(&body); err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidBody)
+		return
+	}
+
+	strPMId := ctx.Param("id")
+	pmId, err := strconv.Atoi(strPMId)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, apperrors.ErrInvalidParam)
+		return
+	}
+
+	if err := h.services.Orders.UpdatePaymentMethodStatus(ctx.Request.Context(), pmId, body.Active); err != nil {
+		NewError(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }
 
 // @Summary Get all order statuses

@@ -61,11 +61,13 @@ func (r *OrdersRepo) GetInstance(ctx context.Context) SqlxDB {
 
 // $1 = userId
 // $2 = deliveryId
-func (r *OrdersRepo) Create(ctx context.Context, userId int, deliveryId int, comment string) (int, error) {
+// $3 = comment
+// $4 = paymentId
+func (r *OrdersRepo) Create(ctx context.Context, userId int, deliveryId int, comment string, paymentId int) (int, error) {
 	db := r.GetInstance(ctx)
 	var id int
-	query := fmt.Sprintf("INSERT INTO %s (user_id,delivery_id,comment) VALUES ($1,$2,$3) RETURNING id;", ordersTable)
-	err := db.GetContext(ctx, &id, query, userId, deliveryId, comment)
+	query := fmt.Sprintf("INSERT INTO %s (user_id,delivery_id,comment,payment_id) VALUES ($1,$2,$3,$4) RETURNING id;", ordersTable)
+	err := db.GetContext(ctx, &id, query, userId, deliveryId, comment, paymentId)
 	if err != nil {
 		return 0, err
 	}
@@ -157,6 +159,29 @@ func (r *OrdersRepo) GetAll(ctx context.Context) ([]models.Order, error) {
 	}
 
 	return orders, nil
+}
+
+func (r *OrdersRepo) GetPaymentMethods(ctx context.Context) ([]models.PaymentMethod, error) {
+	db := r.GetInstance(ctx)
+	var methods []models.PaymentMethod
+	query := fmt.Sprintf("SELECT pm.*, i.filename logo FROM %s pm "+
+		"LEFT JOIN %s pmi on pm.id = pmi.payment_method_id "+
+		"LEFT JOIN %s i on pmi.image_id = i.id;", paymentMethodsTable, paymentMethodsImagesTable, imagesTable)
+	rows, err := db.QueryxContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var method models.PaymentMethod
+		if err := rows.StructScan(&method); err != nil {
+			return nil, err
+		}
+
+		methods = append(methods, method)
+	}
+
+	return methods, nil
 }
 
 // $1 = userId
@@ -261,6 +286,20 @@ func (r *OrdersRepo) UpdateStatus(ctx context.Context, orderId, statusId int) er
 	db := r.GetInstance(ctx)
 	query := fmt.Sprintf("UPDATE %s SET status_id=$1 WHERE id=$2;", ordersTable)
 	_, err := db.ExecContext(ctx, query, statusId, orderId)
+
+	return err
+}
+
+func (r *OrdersRepo) UpdatePaymentMethodStatus(ctx context.Context, pmId int, active bool) error {
+	db := r.GetInstance(ctx)
+	query := fmt.Sprintf("UPDATE %s pm SET active=$1 WHERE pm.id=$2;", paymentMethodsTable)
+	_, err := db.ExecContext(ctx, query, active, pmId)
+	if err != nil {
+		_, ok := err.(*pq.Error)
+		if ok {
+			return apperrors.ErrIdNotFound("payment method id", pmId)
+		}
+	}
 
 	return err
 }
